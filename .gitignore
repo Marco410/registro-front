@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+
+# Next.js build output
+.next/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local env files
+.env*
+
+# OS files
+.DS_Store
+
+# Vercel
+.vercel/
+
+# Output of 'npm pack'
+*.tgz
+
+# IDEs
+.vscode/
+.idea/ 
