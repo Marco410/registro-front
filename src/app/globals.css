@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* Configurar dark mode para Tailwind v4 */
+@variant dark (.dark &);
+
+@theme {
+  /* Colores Green */
+  --color-green-50: #e6f4ea;
+  --color-green-100: #cde9d5;
+  --color-green-200: #a8d5ba;
+  --color-green-300: #7fc39c;
+  --color-green-400: #5baa7b;
+  --color-green-500: #3b8c5a;
+  --color-green-600: #2c6b44;
+  --color-green-700: #1d4a2e;
+  --color-green-800: #11301b;
+  --color-green-900: #06170a;
+
+  /* Colores Brown */
+  --color-brown-50: #f8f7f4;
+  --color-brown-100: #e9e3df;
+  --color-brown-200: #cfc0b7;
+  --color-brown-300: #b39c8c;
+  --color-brown-400: #8c6b4b;
+  --color-brown-500: #6b4b2c;
+  --color-brown-600: #4a2e1d;
+  --color-brown-700: #301b11;
+  --color-brown-800: #170a06;
+  --color-brown-900: #0a0603;
+
+  /* Font Family */
+  --font-family-sans: "Poppins", "Inter", sans-serif;
+}
+
+@layer base {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: #ffffff;
+    color: #212121;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", "Inter", sans-serif;
+  }
+
+  html.dark,
+  html.dark body {
+    background: #121212;
+    color: #ffffff;
+  }
+
+  #root,
+  #__next {
+    min-height: 100vh;
+  }
+
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  a:hover {
+    color: #f8a274;
+  }
+
+  html.dark a:hover {
+    color: #f8a274;
+  }
+}
+
+/* Scrollbar personalizado naranja */
+::-webkit-scrollbar {
+  width: 18px;
+  background: #fff;
+}
+::-webkit-scrollbar-thumb {
+  background: #f7945e;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ffa366;
+}
+
+html.dark ::-webkit-scrollbar {
+  background: #121212;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #e3824f;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #f7945e;
+}
+
+/* Firefox */
+html {
+  scrollbar-color: #f7945e #ffffff;
+  scrollbar-width: thin;
+}
+
+html.dark {
+  scrollbar-color: #e3824f #121212;
+}
