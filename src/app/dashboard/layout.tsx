@@ -23,20 +23,20 @@ export default function DashboardLayout({
   return (
     <RequireAuth>
       <div className="flex min-h-screen bg-blue-50 dark:bg-blue-950">
-      <Sidebar
-        isCollapsed={sidebarCollapsed}
-        onToggle={handleToggleSidebar}
-        isMobileOpen={mobileMenuOpen}
-        onMobileClose={closeMobileMenu}
-      />
+        <Sidebar
+          isCollapsed={sidebarCollapsed}
+          onToggle={handleToggleSidebar}
+          isMobileOpen={mobileMenuOpen}
+          onMobileClose={closeMobileMenu}
+        />
 
-      <div
-        className={`flex min-w-0 flex-1 flex-col ${sidebarCollapsed ? "" : ""}`}
-      >
-        <DashboardHeader onOpenMobileMenu={openMobileMenu} />
-        <main className="flex-1 p-4 lg:p-6">{children}</main>
+        <div
+          className={`flex min-w-0 flex-1 flex-col ${sidebarCollapsed ? "" : ""}`}
+        >
+          <DashboardHeader onOpenMobileMenu={openMobileMenu} />
+          <main className="flex-1 p-4 lg:p-6">{children}</main>
+        </div>
       </div>
-    </div>
     </RequireAuth>
   );
 }
