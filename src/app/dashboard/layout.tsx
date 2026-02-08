@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Sidebar } from "registro/components/dashboard/sidebar";
 import { DashboardHeader } from "registro/components/dashboard/header";
+import { RequireAuth } from "registro/components/auth/require-auth";
 
 export default function DashboardLayout({
   children,
@@ -20,7 +21,8 @@ export default function DashboardLayout({
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
   return (
-    <div className="flex min-h-screen bg-blue-50 dark:bg-blue-950">
+    <RequireAuth>
+      <div className="flex min-h-screen bg-blue-50 dark:bg-blue-950">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={handleToggleSidebar}
@@ -35,5 +37,6 @@ export default function DashboardLayout({
         <main className="flex-1 p-4 lg:p-6">{children}</main>
       </div>
     </div>
+    </RequireAuth>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "registro/components/shared/Logo";
 import { useAuth } from "registro/hooks/use-auth";
+import { RedirectIfAuthenticated } from "registro/components/auth/redirect-if-authenticated";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,8 @@ export default function LoginPage() {
 
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") ?? "/dashboard";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +27,7 @@ export default function LoginPage() {
       const response = await login(email, password);
 
       if (response.success) {
-        router.push("/dashboard");
+        router.push(redirectTo);
       } else {
         setError(response.message ?? "Error al iniciar sesión");
       }
@@ -36,7 +39,8 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-[#ffffff] dark:bg-[#121212]">
+    <RedirectIfAuthenticated>
+      <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-[#ffffff] dark:bg-[#121212]">
       <div className="w-full max-w-md">
         <Link
           href="/"
@@ -137,5 +141,6 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+    </RedirectIfAuthenticated>
   );
 }

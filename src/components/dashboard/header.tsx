@@ -13,11 +13,8 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ onOpenMobileMenu }: DashboardHeaderProps) {
   const { user } = useAuth();
 
-  console.log("user");
-  console.log(user);
-
   const displayName =
-    `${user?.name} ${user?.lastName ?? ""}` ||
+    `${user?.name ?? ""} ${user?.lastName ?? ""} ${user?.secondLastName ?? ""}` ||
     user?.email?.split("@")[0] ||
     "Usuario";
   const initial = (user?.name ?? user?.email ?? "U").charAt(0).toUpperCase();
