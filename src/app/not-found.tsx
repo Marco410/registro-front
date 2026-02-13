@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
 import Logo from "registro/components/shared/Logo";
 
 export default function NotFound() {
@@ -9,50 +6,25 @@ export default function NotFound() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-blue-400 to-blue-600 dark:from-[#121212] dark:via-[#1a1a1a] dark:to-[#121212] relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 opacity-10 dark:opacity-5">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-white rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-white rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-white rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="space-y-8"
-        >
+        <div className="space-y-8 opacity-0 animate-fade-in-up">
           {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex justify-center mb-8"
-          >
+          <div className="flex justify-center mb-8 opacity-0 animate-fade-in-scale">
             <Logo size={80} />
-          </motion.div>
+          </div>
 
           {/* 404 Number */}
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              duration: 0.6,
-              delay: 0.3,
-              type: "spring",
-              stiffness: 200,
-            }}
-            className="text-8xl sm:text-[12rem] lg:text-[14rem] font-black text-white/20 dark:text-white/10 leading-none"
-          >
+          <h1 className="text-8xl sm:text-[12rem] lg:text-[14rem] font-black text-white/20 dark:text-white/10 leading-none opacity-0 animate-fade-in-scale-spring">
             404
-          </motion.h1>
+          </h1>
 
           {/* Error Message */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="space-y-4"
-          >
+          <div className="space-y-4 opacity-0 animate-fade-in-up-4">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4">
               Página no encontrada
             </h2>
@@ -64,25 +36,18 @@ export default function NotFound() {
               Pero no te preocupes, podemos ayudarte a encontrar el camino de
               regreso.
             </p>
-          </motion.div>
+          </div>
 
           {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8"
-          >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/"
-                className="inline-block px-8 py-4 bg-white text-blue-500 font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-blue-50"
-              >
-                Volver al inicio
-              </Link>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8 opacity-0 animate-fade-in-up-5">
+            <Link
+              href="/"
+              className="inline-block px-8 py-4 bg-white text-blue-500 font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-blue-50 hover:scale-105 active:scale-95"
+            >
+              Volver al inicio
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

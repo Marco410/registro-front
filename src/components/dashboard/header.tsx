@@ -1,41 +1,100 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "registro/hooks/use-auth";
-import { MobileMenuButton } from "./mobile-menu-button";
+import { MobileMenuButton } from "registro/components/dashboard/mobile-menu-button";
 
-interface DashboardHeaderProps {
-  onOpenMobileMenu?: () => void;
+interface HeaderProps {
+  onToggleSidebar: () => void;
+  onOpenMobileMenu: () => void;
 }
 
-/**
- * Dashboard header: mobile menu button (left), user name and avatar (right).
- */
-export function DashboardHeader({ onOpenMobileMenu }: DashboardHeaderProps) {
-  const { user } = useAuth();
-
+export function Header({ onToggleSidebar, onOpenMobileMenu }: HeaderProps) {
+  const { user, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const initial = user?.name?.[0] ?? user?.email?.[0] ?? "?";
   const displayName =
     `${user?.name ?? ""} ${user?.lastName ?? ""} ${user?.secondLastName ?? ""}`.trim() ||
-    user?.email?.split("@")[0] ||
+    user?.email ||
     "Usuario";
-  const initial = (user?.name ?? user?.email ?? "U").charAt(0).toUpperCase();
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-blue-200/80 bg-white px-4 backdrop-blur-sm dark:border-white-700 dark:bg-white-950/90">
-      {onOpenMobileMenu ? (
+    <header className="sticky top-0 z-30 flex min-h-[64px] items-center justify-between border-b border-gray-200 bg-app-sidebar px-4 dark:border-gray-700 dark:bg-[#202124]">
+      <div className="flex items-center gap-2">
         <MobileMenuButton onClick={onOpenMobileMenu} />
-      ) : (
-        <div className="w-10 lg:w-0" />
-      )}
-      <div className="flex flex-1 items-center justify-end gap-3">
-        <span className="hidden truncate text-sm font-medium text-blue-800 sm:inline dark:text-blue-200">
-          {displayName}
-        </span>
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-500 text-sm font-semibold text-white shadow-sm"
-          aria-hidden
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="hidden rounded-lg p-2 text-app-text-secondary hover:bg-app-selected hover:text-app-primary dark:text-gray-400 dark:hover:bg-gray-800 lg:block"
+          aria-label="Colapsar menú"
         >
-          {initial}
-        </div>
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+      </div>
+      <div className="relative" ref={menuRef}>
+        <button
+          type="button"
+          onClick={() => setMenuOpen((open) => !open)}
+          className="flex items-center gap-3 rounded-lg px-1 py-2 text-left transition-colors hover:bg-app-selected/50 dark:hover:bg-gray-700"
+          aria-expanded={menuOpen}
+          aria-haspopup="true"
+          aria-label="Menú de usuario"
+        >
+          <span className="text-sm font-medium text-app-text-primary dark:text-gray-200">
+            {displayName}
+          </span>
+          <div
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-app-primary text-sm font-semibold text-white"
+            aria-hidden
+          >
+            {initial.toUpperCase()}
+          </div>
+        </button>
+        {menuOpen && (
+          <div
+            className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-gray-200 bg-app-sidebar py-1 shadow-lg dark:border-gray-700 dark:bg-[#202124]"
+            role="menu"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false);
+                logout();
+              }}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-app-text-primary transition-colors hover:bg-app-selected dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              <HugeiconsIcon icon={Logout01Icon} size={18} />
+              Cerrar sesión
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

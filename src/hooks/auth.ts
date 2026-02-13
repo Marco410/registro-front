@@ -1,5 +1,5 @@
 import { User } from "registro/types";
-import { createApolloClient } from "./apollo";
+import { createApolloClient } from "./apollo-client";
 import { AUTHENTICATED_ITEM_QUERY } from "registro/graphql/auth/queries";
 import { AuthenticatedItemResponse } from "registro/types";
 import { mapAuthenticatedUserToUser } from "registro/types/user-mapper";

@@ -1,11 +1,11 @@
-export default function DashboardCheckinPage() {
+export default function CheckinPage() {
   return (
-    <div>
-      <h1 className="text-xl font-semibold text-brown-900 dark:text-brown-100">
+    <div className="w-full max-w-7xl">
+      <h1 className="text-2xl font-semibold tracking-tight text-black-900 dark:text-blue-100">
         Checkin
       </h1>
-      <p className="mt-2 text-sm text-brown-600 dark:text-brown-400">
-        Contenido de Checkin (ejemplo).
+      <p className="mt-2 text-black-700 dark:text-black-300">
+        Página de checkin. Contenido por definir.
       </p>
     </div>
   );

@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Providers } from "./providers";
-import "./globals.css";
+import "registro/app/globals.css";
+import { Providers } from "registro/app/providers";
 
 export const metadata: Metadata = {
-  title: {
-    default: "A&R Morelia",
-    template: "%s | A&R Morelia",
-  },
-  icons: {
-    icon: "/favicon.png",
-  },
+  title: "Registro - A&R Morelia",
+  description: "Sistema de registro de encontrados",
 };
 
 export default function RootLayout({
@@ -18,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" className="light" suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
       </body>

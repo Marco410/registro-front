@@ -1,40 +1,35 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Sidebar } from "registro/components/dashboard/sidebar";
-import { DashboardHeader } from "registro/components/dashboard/header";
+import { useState } from "react";
 import { RequireAuth } from "registro/components/auth/require-auth";
+import { Sidebar } from "registro/components/dashboard/sidebar";
+import { Header } from "registro/components/dashboard/header";
+import { MobileMenuButton } from "registro/components/dashboard/mobile-menu-button";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleToggleSidebar = useCallback(() => {
-    setSidebarCollapsed((prev) => !prev);
-  }, []);
-
-  const openMobileMenu = useCallback(() => setMobileMenuOpen(true), []);
-  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
     <RequireAuth>
-      <div className="flex min-h-screen bg-blue-50 dark:bg-blue-950">
-        <Sidebar
-          isCollapsed={sidebarCollapsed}
-          onToggle={handleToggleSidebar}
-          isMobileOpen={mobileMenuOpen}
-          onMobileClose={closeMobileMenu}
+      <div className="flex min-h-screen flex-col bg-app-surface dark:bg-[#202124]">
+        <Header
+          onToggleSidebar={() => setIsCollapsed((c) => !c)}
+          onOpenMobileMenu={() => setIsMobileOpen(true)}
         />
-
-        <div
-          className={`flex min-w-0 flex-1 flex-col ${sidebarCollapsed ? "" : ""}`}
-        >
-          <DashboardHeader onOpenMobileMenu={openMobileMenu} />
-          <main className="flex-1 p-4 lg:p-6">{children}</main>
+        <div className="flex flex-1">
+          <Sidebar
+            isCollapsed={isCollapsed}
+            isMobileOpen={isMobileOpen}
+            onMobileClose={() => setIsMobileOpen(false)}
+          />
+          <main className="flex-1 p-4 lg:p-6">
+            <div className="mx-auto w-full max-w-7xl">{children}</div>
+          </main>
         </div>
       </div>
     </RequireAuth>
