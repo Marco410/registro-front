@@ -38,6 +38,7 @@ export function useCreateEncontrado(options: UseCreateEncontradoOptions = {}) {
   const [createEncontrado, { loading }] = useMutation(
     CREATE_ENCONTRADO_MUTATION,
     {
+      refetchQueries: ["Encontrados"],
       onCompleted: () => {
         toast.success("Encontrado registrado correctamente");
         onSuccess?.();

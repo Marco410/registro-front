@@ -18,7 +18,7 @@ function buildConfirmRows(
     { label: "Apellido materno", value: displayValue(formData.apellido_m) },
     {
       label: "Sexo",
-      value: formData.sexo === "M" ? "Masculino" : "Femenino",
+      value: formData.sexo === "H" ? "Hombre" : "Mujer",
     },
     {
       label: "Fecha de nacimiento",
@@ -109,7 +109,7 @@ export function ConfirmRegistroModal({
             disabled={loading}
             onClick={onConfirm}
             className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-50 ${
-              formData.sexo === "M"
+              formData.sexo === "H"
                 ? "bg-app-primary hover:bg-app-primary/90"
                 : "bg-rose-600 hover:bg-rose-700"
             }`}

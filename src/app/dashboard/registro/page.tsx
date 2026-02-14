@@ -12,6 +12,7 @@ import {
   ContactForm,
   DiscardChangesModal,
   FormHealthIndicators,
+  RegistrosList,
   SexoSelector,
   IdentificationForm,
   useCreateEncontrado,
@@ -25,10 +26,10 @@ const initialValues: EncontradoFormData = {
   apellido_m: "",
   sexo:
     typeof window !== "undefined" && typeof localStorage !== "undefined"
-      ? localStorage.getItem("registro_sexo") === "F"
-        ? "F"
-        : "M"
-      : "M",
+      ? localStorage.getItem("registro_sexo") === "M"
+        ? "M"
+        : "H"
+      : "H",
   fecha_n: "",
   estado_c: "",
   telefono: "",
@@ -214,7 +215,7 @@ export default function DashboardRegistroPage() {
             Registro de encontrado
           </h1>
           <SexoSelector
-            value={formData.sexo === "F" ? "F" : "M"}
+            value={formData.sexo === "M" ? "M" : "H"}
             error={errors.sexo}
             onChange={handleChange}
           />
@@ -273,7 +274,7 @@ export default function DashboardRegistroPage() {
                 setFechaInputs({ dia: "", mes: "", ano: "" });
               }
             }}
-            className={`rounded-xl border px-5 py-2.5 text-sm font-medium text-app-text-primary transition-colors dark:text-gray-300 dark:hover:bg-gray-800 ${formData.sexo === "M" ? "border-gray-300 hover:bg-app-selected dark:border-gray-600" : "hover:bg-pink-500/10 dark:border-pink-400"}`}
+            className={`rounded-xl border px-5 py-2.5 text-sm font-medium text-app-text-primary transition-colors dark:text-gray-300 dark:hover:bg-gray-800 ${formData.sexo === "H" ? "border-gray-300 hover:bg-app-selected dark:border-gray-600" : "hover:bg-pink-500/10 dark:border-pink-400"}`}
           >
             Limpiar
           </button>
@@ -281,7 +282,7 @@ export default function DashboardRegistroPage() {
             type="submit"
             disabled={loading}
             className={`flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
-              formData.sexo === "M"
+              formData.sexo === "H"
                 ? "bg-app-primary hover:bg-app-primary/90 focus:ring-app-primary focus:ring-offset-2 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
                 : "bg-rose-600 hover:bg-rose-700 focus:ring-rose-500 focus:ring-offset-2 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
             }`}
@@ -289,7 +290,7 @@ export default function DashboardRegistroPage() {
             <HugeiconsIcon icon={Add01Icon} size={18} />
             {loading
               ? "Guardando…"
-              : `Registrar ${formData.sexo === "M" ? "encontrado" : "encontrada"} `}
+              : `Registrar ${formData.sexo === "H" ? "encontrado" : "encontrada"} `}
           </button>
         </div>
       </form>
@@ -298,9 +299,12 @@ export default function DashboardRegistroPage() {
         <h2 className="text-2xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
           Registros
         </h2>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="flex flex-col gap-6"></div>
-        </div>
+        <RegistrosList
+          userId={user?.id}
+          onEdit={(id) => {
+            // TODO: navegar a edición cuando exista la ruta
+          }}
+        />
       </div>
 
       <ConfirmRegistroModal

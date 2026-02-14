@@ -23,7 +23,7 @@ export interface RegistrosListProps {
 
 /**
  * Lista de encontrados del usuario actual, mostrados como badges (nombre, clave)
- * con color por sexo (azul M, rosa F) y botón editar.
+ * con color por sexo (azul H, rosa M) y botón editar.
  */
 export function RegistrosList({
   userId,
@@ -79,10 +79,10 @@ export function RegistrosList({
   return (
     <div className={`flex flex-wrap gap-3 ${className ?? ""}`.trim()}>
       {list.map((encontrado) => {
-        const isMale = encontrado.sexo === "M";
-        const badgeClass = isMale
-          ? "border-app-primary bg-app-primary/10 text-app-primary dark:bg-app-primary-muted/20 dark:border-app-primary-muted dark:text-app-primary-muted"
-          : "border-rose-500 bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:border-rose-400 dark:text-rose-400";
+        const isHombre = encontrado.sexo === "H";
+        const badgeClass = isHombre
+          ? "border-app-primary text-app-primary dark:bg-app-primary-muted/20 dark:border-app-primary-muted dark:text-app-primary-muted"
+          : "border-rose-500 text-rose-600 dark:bg-rose-500/20 dark:border-rose-400 dark:text-rose-400";
         return (
           <div
             key={encontrado.id}
@@ -100,7 +100,10 @@ export function RegistrosList({
             )}
             <span className="font-medium">{fullName(encontrado)}</span>
             <span className="opacity-90">·</span>
-            <span className="text-sm font-semibold">{encontrado.clave}</span>
+            <span className="text-sm font-semibold">
+              Clave: {encontrado.sexo}
+              {encontrado.clave}
+            </span>
           </div>
         );
       })}

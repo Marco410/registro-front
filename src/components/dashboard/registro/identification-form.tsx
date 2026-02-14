@@ -87,7 +87,7 @@ export function IdentificationForm({
   fechaAnoRef,
   className,
 }: IdentificationFormProps) {
-  const sexo = formData.sexo === "F" ? "F" : "M";
+  const sexo = formData.sexo === "M" ? "M" : "H";
   const inputClass = getInputClass(sexo);
 
   const applyFechaInputs = useCallback(
@@ -117,7 +117,7 @@ export function IdentificationForm({
       className={`rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-sm dark:border-gray-700 dark:bg-[#202124] ${className ?? ""}`.trim()}
     >
       <h2
-        className={`mb-5 border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${sexo === "M" ? "border-app-primary" : "border-pink-600"}`}
+        className={`mb-5 border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${sexo === "H" ? "border-app-primary" : "border-pink-600"}`}
       >
         Identificación
       </h2>
