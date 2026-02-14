@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
  */
 export const ENCONTRADOS_QUERY = gql`
   query Encontrados($where: EncontradoWhereInput!) {
-    encontrados(where: $where) {
+    encontrados(where: $where, orderBy: [{ clave: desc }]) {
       id
       nombre
       apellido_p
@@ -26,6 +26,7 @@ export const ENCONTRADOS_QUERY = gql`
         name
       }
     }
+    encontradosCount(where: $where)
   }
 `;
 

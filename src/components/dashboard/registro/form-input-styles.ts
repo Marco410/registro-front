@@ -1,6 +1,6 @@
 /**
  * Estilos compartidos para inputs y labels del formulario de registro.
- * El focus depende del sexo a registrar (M = azul, F = rosa).
+ * El focus depende del sexo a registrar (H = azul, M = rosa).
  */
 
 export const inputBase =
@@ -10,11 +10,11 @@ export const labelClass =
   "block text-sm font-medium text-app-text-primary dark:text-gray-300 mb-1.5";
 
 const inputBorderBySexo = {
-  M: "border-gray-200 focus:border-app-primary focus:ring-app-primary/30 dark:focus:ring-app-primary-muted/30",
-  F: "border-gray-200 focus:border-pink-500 focus:ring-pink-500/30 dark:focus:border-pink-400 dark:focus:ring-pink-400/30",
+  H: "border-gray-200 focus:border-app-primary focus:ring-app-primary/30 dark:focus:ring-app-primary-muted/30",
+  M: "border-gray-200 focus:border-pink-500 focus:ring-pink-500/30 dark:focus:border-pink-400 dark:focus:ring-pink-400/30",
 } as const;
 
-export function getInputClass(sexo: "M" | "F"): string {
+export function getInputClass(sexo: "H" | "M"): string {
   return `${inputBase} ${inputBorderBySexo[sexo]}`;
 }
 

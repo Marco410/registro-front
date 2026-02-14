@@ -3,7 +3,7 @@
 import type { ChangeEvent } from "react";
 
 export interface SexoSelectorProps {
-  value: "M" | "F";
+  value: "H" | "M";
   error?: string;
   onChange: (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -12,7 +12,7 @@ export interface SexoSelectorProps {
 }
 
 /**
- * Selector de sexo a registrar (Masculino / Femenino) para el formulario de encontrado.
+ * Selector de sexo a registrar (Hombre / Mujer) para el formulario de encontrado.
  */
 export function SexoSelector({
   value,
@@ -32,8 +32,25 @@ export function SexoSelector({
       >
         <label
           className={`cursor-pointer rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
-            value === "M"
+            value === "H"
               ? "bg-white text-app-primary shadow-sm dark:bg-gray-700 dark:text-app-primary-muted"
+              : "text-app-text-secondary hover:text-app-text-primary dark:text-gray-400 dark:hover:text-white"
+          }`}
+        >
+          <input
+            type="radio"
+            name="sexo"
+            value="H"
+            checked={value === "H"}
+            onChange={onChange}
+            className="sr-only"
+          />
+          Hombre
+        </label>
+        <label
+          className={`cursor-pointer rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
+            value === "M"
+              ? "bg-white text-rose-600 shadow-sm dark:bg-gray-700 dark:text-rose-400"
               : "text-app-text-secondary hover:text-app-text-primary dark:text-gray-400 dark:hover:text-white"
           }`}
         >
@@ -45,24 +62,7 @@ export function SexoSelector({
             onChange={onChange}
             className="sr-only"
           />
-          Masculino
-        </label>
-        <label
-          className={`cursor-pointer rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
-            value === "F"
-              ? "bg-white text-rose-600 shadow-sm dark:bg-gray-700 dark:text-rose-400"
-              : "text-app-text-secondary hover:text-app-text-primary dark:text-gray-400 dark:hover:text-white"
-          }`}
-        >
-          <input
-            type="radio"
-            name="sexo"
-            value="F"
-            checked={value === "F"}
-            onChange={onChange}
-            className="sr-only"
-          />
-          Femenino
+          Mujer
         </label>
       </div>
       {error && (
