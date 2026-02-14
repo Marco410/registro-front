@@ -1,48 +1,44 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "registro/hooks/use-auth";
-
-const LOGIN_PATH = "/auth/login";
-
-interface RequireAuthProps {
-  children: React.ReactNode;
-  /** Ruta a la que redirigir si no hay sesión. Por defecto /auth/login */
-  loginPath?: string;
-}
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 /**
- * Protege rutas que requieren sesión. Redirige a login si no hay usuario.
- * Muestra estado de carga mientras se restaura la sesión.
+ * Protege rutas: solo muestra children cuando hay sesión. Mientras se resuelve
+ * la auth muestra un loader breve; si no hay usuario, redirige a login.
  */
-export function RequireAuth({
-  children,
-  loginPath = LOGIN_PATH,
-}: RequireAuthProps) {
+export function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     if (isLoading) return;
-    if (!user) {
-      const url = `${loginPath}?redirect=${encodeURIComponent(pathname ?? "/dashboard")}`;
-      router.replace(url);
-    }
-  }, [user, isLoading, loginPath, pathname, router]);
+    if (!user) router.replace("/auth/login");
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-blue-50 dark:bg-blue-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+      <div className="flex min-h-screen flex-col bg-app-surface dark:bg-[#202124] animate-pulse">
+        <header className="h-16 w-full border-b border-app-border bg-white/50 dark:bg-[#232326]/60 flex items-center px-4">
+          <div className="h-8 w-32 bg-app-border/60 rounded" />
+        </header>
+        <div className="flex flex-1">
+          <aside className="hidden md:flex flex-col w-56 border-r border-app-border bg-white/30 dark:bg-[#222325]/40 px-4 py-8 gap-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-6 w-40 rounded bg-app-border/40 mb-4" />
+            ))}
+          </aside>
+          <main className="flex-1 p-6 flex flex-col gap-6">
+            <div className="h-10 w-2/3 bg-app-border/60 rounded" />
+            <div className="h-96 w-full bg-app-border/40 rounded" />
+          </main>
+        </div>
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return <>{children}</>;
 }

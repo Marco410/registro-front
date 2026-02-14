@@ -1,25 +1,30 @@
 "use client";
 
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Menu01Icon } from "@hugeicons/core-free-icons";
-
 interface MobileMenuButtonProps {
   onClick: () => void;
-  ariaLabel?: string;
 }
 
-export function MobileMenuButton({
-  onClick,
-  ariaLabel = "Abrir menú",
-}: MobileMenuButtonProps) {
+export function MobileMenuButton({ onClick }: MobileMenuButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={ariaLabel}
-      className="flex h-10 w-10 items-center justify-center rounded-lg text-brown-600 transition-colors hover:bg-brown-100 lg:hidden dark:text-brown-400 dark:hover:bg-brown-800"
+      className="rounded-lg p-2 text-app-text-secondary hover:bg-app-selected hover:text-app-primary dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+      aria-label="Abrir menú"
     >
-      <HugeiconsIcon icon={Menu01Icon} size={24} />
+      <svg
+        className="h-6 w-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 6h16M4 12h16M4 18h16"
+        />
+      </svg>
     </button>
   );
 }

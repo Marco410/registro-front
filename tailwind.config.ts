@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: 'class',
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,50 +9,65 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        orange: {
-          50: '#FFF3EB',
-          100: '#FFE0CC',
-          200: '#FFD1B3',
-          300: '#FFB47E',
-          400: '#FFA366',//'#228be6',
-          500: '#f7945e',
-          600: '#E07C3A',
-          700: '#C96B2C',
-          800: '#A8561F',
-          900: '#7A3A0F',
+      keyframes: {
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(1.25rem)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        green: {
-          50: '#E6F4EA',
-          100: '#CDE9D5',
-          200: '#A8D5BA',
-          300: '#7FC39C',
-          400: '#5BAA7B',
-          500: '#3B8C5A',
-          600: '#2C6B44',
-          700: '#1D4A2E',
-          800: '#11301B',
-          900: '#06170A',
+        "fade-in-scale": {
+          "0%": { opacity: "0", transform: "scale(0.8)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
-        brown: {
-          50: '#F5F3F1',
-          100: '#E9E3DF',
-          200: '#CFC0B7',
-          300: '#B39C8C',
-          400: '#8C6B4B',
-          500: '#6B4B2C',
-          600: '#4A2E1D',
-          700: '#301B11',
-          800: '#170A06',
-          900: '#0A0603',
+        "fade-in-scale-spring": {
+          "0%": { opacity: "0", transform: "scale(0.5)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
       },
-      fontFamily: {
-        sans: ['Poppins', 'Inter', 'sans-serif'],
+      animation: {
+        "fade-in-up": "fade-in-up 0.6s ease-out forwards",
+        "fade-in-scale": "fade-in-scale 0.6s ease-out 0.2s forwards",
+        "fade-in-scale-spring": "fade-in-scale-spring 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards",
+        "fade-in-up-4": "fade-in-up 0.6s ease-out 0.4s forwards",
+        "fade-in-up-5": "fade-in-up 0.6s ease-out 0.5s forwards",
+      },
+      colors: {
+        // Paleta tipo Material (blanco, grises, azul primario)
+        app: {
+          surface: "#F8F9FA",
+          sidebar: "#FFFFFF",
+          selected: "#E8F0FE",
+          primary: "#1A73E8",
+          "primary-muted": "#8AB4F8",
+          "text-primary": "#202124",
+          "text-secondary": "#5F6368",
+        },
+        brown: {
+          50: "#faf8f6",
+          100: "#f5f0eb",
+          200: "#e8dfd5",
+          300: "#d4c4b0",
+          400: "#b8a088",
+          500: "#9c7d66",
+          600: "#7d6452",
+          700: "#634f41",
+          800: "#4a3b31",
+          900: "#322922",
+        },
+        black: {
+          100: "#f1f1f1",
+          200: "#e5e5e5",
+          300: "#c4c4c4",
+          400: "#a3a3a3",
+          500: "#737373",
+          600: "#525252",
+          700: "#404040",
+          800: "#262626",
+          900: "#171717",
+        },
       },
     },
   },
   plugins: [],
 };
-export default config;
 
+export default config;

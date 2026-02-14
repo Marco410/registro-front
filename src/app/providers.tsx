@@ -2,8 +2,8 @@
 
 import { ApolloProvider } from "@apollo/client";
 import { Toaster } from "registro/components/shared/sonner";
-import client from "registro/hooks/apollo";
-import { AuthProvider } from "registro/hooks/use-auth";
+import { AuthProvider } from "registro/contexts/auth-context";
+import client from "registro/hooks/apollo-client";
 
 /**
  * Root providers component that wraps the application with necessary context providers.
