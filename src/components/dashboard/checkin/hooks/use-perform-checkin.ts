@@ -19,6 +19,7 @@ export function usePerformCheckin(options: UsePerformCheckinOptions = {}) {
     PerformCheckinResponse,
     PerformCheckinVariables
   >(PERFORM_CHECKIN_MUTATION, {
+    refetchQueries: ["Checkins"],
     onCompleted: (data) => {
       const result = data.performCheckin;
       if (result.alreadyCheckedIn && result.checkin) {
@@ -35,10 +36,15 @@ export function usePerformCheckin(options: UsePerformCheckinOptions = {}) {
 
   const submit = async (
     encontradoId: string,
+    userId: string,
     responsejson?: Record<string, unknown> | null,
   ) => {
     await performCheckin({
-      variables: { encontradoId, responsejson: responsejson ?? null },
+      variables: {
+        encontradoId,
+        userId,
+        responsejson: responsejson ?? null,
+      },
     });
   };
 

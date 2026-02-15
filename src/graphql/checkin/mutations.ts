@@ -2,11 +2,11 @@ import { gql } from "@apollo/client";
 
 /**
  * Mutación custom para realizar el check-in de un encontrado.
- * Backend: performCheckin(encontradoId: ID!, responsejson: JSON): CheckinResult
+ * Backend: performCheckin(encontradoId: ID!, userId: ID!, responsejson: JSON): CheckinResult
  */
 export const PERFORM_CHECKIN_MUTATION = gql`
-  mutation PerformCheckin($encontradoId: ID!, $responsejson: JSON) {
-    performCheckin(encontradoId: $encontradoId, responsejson: $responsejson) {
+  mutation PerformCheckin($encontradoId: ID!, $userId: ID!, $responsejson: JSON) {
+    performCheckin(encontradoId: $encontradoId, userId: $userId, responsejson: $responsejson) {
       alreadyCheckedIn
       unassignedGroup
       overflow
@@ -54,5 +54,6 @@ export interface PerformCheckinResponse {
 
 export interface PerformCheckinVariables {
   encontradoId: string;
+  userId: string;
   responsejson?: Record<string, unknown> | null;
 }
