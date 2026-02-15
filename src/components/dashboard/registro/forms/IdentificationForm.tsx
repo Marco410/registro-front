@@ -8,7 +8,7 @@ import {
   getInputClass,
   inputError,
   labelClass,
-} from "registro/components/shared/formInputStyles";
+} from "registro/components/shared/FormInputStyles";
 
 export interface FechaInputs {
   dia: string;

@@ -1,9 +1,9 @@
-export { ConfirmRegistroModal } from "./confirmRegistroModal";
+export { ConfirmRegistroModal } from "./ConfirmRegistroModal";
 export { ContactForm } from "./forms/contactForm";
 export { DiscardChangesModal } from "./DiscardChangesModal";
 export { EditEncontradoModal } from "./edit/editEncontradoModal";
 export { FormHealthIndicators } from "./forms/formHealth";
-export { IdentificationForm } from "./forms/identificationForm";
+export { IdentificationForm } from "./forms/IdentificationForm";
 export { RegistrosList } from "./registrosList";
-export { SexoSelector } from "../../shared/sexoSelector";
+export { SexoSelector } from "../../shared/SexoSelector";
 export { useCreateEncontrado } from "./hooks";
