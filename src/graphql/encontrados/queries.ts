@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
  */
 export const ENCONTRADOS_QUERY = gql`
   query Encontrados($where: EncontradoWhereInput!) {
-    encontrados(where: $where, orderBy: [{ clave: desc }]) {
+    encontrados(where: $where, orderBy: [{ create_at: desc }]) {
       id
       nombre
       apellido_p
@@ -57,4 +57,41 @@ export interface EncontradosQueryVariables {
 
 export interface EncontradosQueryResponse {
   encontrados: EncontradoListItem[];
+}
+
+/**
+ * Query para obtener un encontrado por id (edición).
+ */
+export const ENCONTRADO_BY_ID_QUERY = gql`
+  query EncontradoById($where: EncontradoWhereUniqueInput!) {
+    encontrado(where: $where) {
+      id
+      nombre
+      apellido_p
+      apellido_m
+      clave
+      create_at
+      edad
+      enfermedad
+      estado_c
+      fecha_n
+      nom_ref
+      sexo
+      tel_ref
+      telefono
+      update_at
+      user {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export interface EncontradoByIdQueryVariables {
+  where: { id: string };
+}
+
+export interface EncontradoByIdQueryResponse {
+  encontrado: EncontradoListItem | null;
 }

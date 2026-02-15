@@ -9,6 +9,7 @@ export interface SexoSelectorProps {
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => void;
   className?: string;
+  label?: string;
 }
 
 /**
@@ -19,11 +20,12 @@ export function SexoSelector({
   error,
   onChange,
   className,
+  label = "Sexo a registrar",
 }: SexoSelectorProps) {
   return (
     <div className={`flex flex-col gap-2 ${className ?? ""}`.trim()}>
       <span className="text-xs font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400">
-        Sexo a registrar
+        {label}
       </span>
       <div
         className="inline-flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800"

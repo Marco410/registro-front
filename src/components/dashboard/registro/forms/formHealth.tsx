@@ -5,7 +5,7 @@ import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 import {
   getInputClass,
   labelClass,
-} from "registro/components/dashboard/registro/form-input-styles";
+} from "registro/components/shared/FormInputStyles";
 
 export interface FormHealthIndicatorsProps {
   formData: Pick<EncontradoFormData, "sexo" | "enfermedad">;

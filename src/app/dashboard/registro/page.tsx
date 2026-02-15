@@ -11,6 +11,7 @@ import {
 import {
   ContactForm,
   DiscardChangesModal,
+  EditEncontradoModal,
   FormHealthIndicators,
   RegistrosList,
   SexoSelector,
@@ -76,6 +77,9 @@ export default function DashboardRegistroPage() {
   const [fechaError, setFechaError] = useState<string | null>(null);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [editingEncontradoId, setEditingEncontradoId] = useState<string | null>(
+    null,
+  );
   const [pendingNavigateTo, setPendingNavigateTo] = useState<string | null>(
     null,
   );
@@ -295,17 +299,26 @@ export default function DashboardRegistroPage() {
         </div>
       </form>
 
-      <div className="flex flex-col gap-6">
-        <h2 className="text-2xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
-          Registros
-        </h2>
+      <div
+        className="my-8 h-px w-full bg-gray-200 dark:bg-gray-700"
+        role="separator"
+        aria-orientation="horizontal"
+      />
+
+      <div className="flex flex-col gap-6 mt-6">
         <RegistrosList
           userId={user?.id}
-          onEdit={(id) => {
-            // TODO: navegar a edición cuando exista la ruta
-          }}
+          onEdit={(id) => setEditingEncontradoId(id)}
         />
       </div>
+
+      <EditEncontradoModal
+        open={editingEncontradoId != null}
+        encontradoId={editingEncontradoId}
+        userId={user?.id ?? ""}
+        onClose={() => setEditingEncontradoId(null)}
+        onSaved={() => setEditingEncontradoId(null)}
+      />
 
       <ConfirmRegistroModal
         open={showConfirmModal}

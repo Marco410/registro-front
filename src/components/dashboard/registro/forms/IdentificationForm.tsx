@@ -8,7 +8,7 @@ import {
   getInputClass,
   inputError,
   labelClass,
-} from "registro/components/dashboard/registro/form-input-styles";
+} from "registro/components/shared/formInputStyles";
 
 export interface FechaInputs {
   dia: string;
@@ -53,7 +53,13 @@ function validateFechaNacimiento(
 export interface IdentificationFormProps {
   formData: Pick<
     EncontradoFormData,
-    "nombre" | "apellido_p" | "apellido_m" | "sexo" | "fecha_n" | "estado_c" | "telefono"
+    | "nombre"
+    | "apellido_p"
+    | "apellido_m"
+    | "sexo"
+    | "fecha_n"
+    | "estado_c"
+    | "telefono"
   >;
   errors: Partial<Record<keyof EncontradoFormData, string>>;
   fechaInputs: FechaInputs;
@@ -241,12 +247,11 @@ export function IdentificationForm({
                 aria-label="Año"
               />
             </div>
-            {formData.fecha_n &&
-              getAgeFromFechaN(formData.fecha_n) != null && (
-                <span className="shrink-0 text-sm font-medium text-app-text-secondary dark:text-gray-400">
-                  Edad: {getAgeFromFechaN(formData.fecha_n)} años
-                </span>
-              )}
+            {formData.fecha_n && getAgeFromFechaN(formData.fecha_n) != null && (
+              <span className="shrink-0 text-sm font-medium text-app-text-secondary dark:text-gray-400">
+                Edad: {getAgeFromFechaN(formData.fecha_n)} años
+              </span>
+            )}
           </fieldset>
           {(fechaError || errors.fecha_n) && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-400">

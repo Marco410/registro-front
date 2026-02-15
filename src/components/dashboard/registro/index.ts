@@ -1,8 +1,9 @@
-export { ConfirmRegistroModal } from "./confirm-registro-modal";
-export { ContactForm } from "./contact-form";
-export { DiscardChangesModal } from "./discard-changes-modal";
-export { FormHealthIndicators } from "./form-health";
-export { IdentificationForm } from "./identification-form";
-export { RegistrosList } from "./registros-list";
-export { SexoSelector } from "./sexo-selector";
+export { ConfirmRegistroModal } from "./confirmRegistroModal";
+export { ContactForm } from "./forms/contactForm";
+export { DiscardChangesModal } from "./DiscardChangesModal";
+export { EditEncontradoModal } from "./edit/editEncontradoModal";
+export { FormHealthIndicators } from "./forms/formHealth";
+export { IdentificationForm } from "./forms/identificationForm";
+export { RegistrosList } from "./registrosList";
+export { SexoSelector } from "../../shared/sexoSelector";
 export { useCreateEncontrado } from "./hooks";
