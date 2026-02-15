@@ -26,3 +26,35 @@ export const CREATE_ENCONTRADO_MUTATION = gql`
     }
   }
 `;
+
+/**
+ * Mutación para actualizar un encontrado por id.
+ */
+export const UPDATE_ENCONTRADO_MUTATION = gql`
+  mutation UpdateEncontrado(
+    $where: EncontradoWhereUniqueInput!
+    $data: EncontradoUpdateInput!
+  ) {
+    updateEncontrado(where: $where, data: $data) {
+      id
+      apellido_m
+      apellido_p
+      clave
+      create_at
+      edad
+      enfermedad
+      estado_c
+      fecha_n
+      nom_ref
+      nombre
+      sexo
+      tel_ref
+      telefono
+      update_at
+      user {
+        id
+        name
+      }
+    }
+  }
+`;
