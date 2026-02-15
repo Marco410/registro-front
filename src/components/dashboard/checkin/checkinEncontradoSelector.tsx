@@ -187,8 +187,8 @@ export function CheckinEncontradoSelector({
                 const checkinAt = getCheckinAt(e);
                 const rowClass = isSelected
                   ? isHombre
-                    ? "bg-app-primary/10 ring-inset ring-2 ring-app-primary dark:bg-app-primary-muted/20"
-                    : "bg-pink-500/10 ring-inset ring-2 ring-pink-500 dark:bg-pink-500/20"
+                    ? "bg-app-primary/10 ring-inset ring-2 ring-app-primary dark:bg-app-primary-muted/20 rounded-xl"
+                    : "bg-pink-500/10 ring-inset ring-2 ring-pink-500 dark:bg-pink-500/20 rounded-xl"
                   : isHombre
                     ? "hover:bg-app-primary/5 dark:hover:bg-app-primary-muted/10 text-app-text-primary"
                     : "hover:bg-pink-500/5 dark:hover:bg-pink-500/10 text-app-text-primary";

@@ -8,8 +8,15 @@ export const encontradoSchema = z.object({
   fecha_n: z.string().min(1, "La fecha de nacimiento es obligatoria"),
   estado_c: z.string().min(1, "El estado civil es obligatorio"),
   telefono: z.string().optional(),
-  nom_ref: z.string().optional(),
-  tel_ref: z.string().optional(),
+  nom_ref: z
+    .string()
+    .min(
+      1,
+      " El nombre del contacto de emergencia es obligatorio. Puede ser sus padres, hermanos, amigos, tios, conocidos, etc.",
+    ),
+  tel_ref: z
+    .string()
+    .min(1, "El teléfono del contacto de emergencia es obligatorio"),
   enfermedad: z.string().optional(),
   user_id: z.string().min(1, "El ID del usuario es obligatorio"),
 });

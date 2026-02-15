@@ -12,6 +12,7 @@ export interface ContactFormProps {
   onChange: (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => void;
+  errors?: Partial<Record<"nom_ref" | "tel_ref", string>>;
   className?: string;
 }
 
@@ -21,6 +22,7 @@ export interface ContactFormProps {
 export function ContactForm({
   formData,
   onChange,
+  errors = {},
   className,
 }: ContactFormProps) {
   const sexo = formData.sexo === "M" ? "M" : "H";
@@ -32,15 +34,21 @@ export function ContactForm({
     <section
       className={`rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-sm dark:border-gray-700 dark:bg-[#202124] ${className ?? ""}`.trim()}
     >
-      <h2
-        className={`mb-5 border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${sexo === "H" ? "border-app-primary" : "border-pink-600"}`}
-      >
-        Contacto
-      </h2>
+      <div>
+        <h2
+          className={`border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${sexo === "H" ? "border-app-primary" : "border-pink-600"}`}
+        >
+          Contacto de Emergencia
+        </h2>
+        <small className="pl-3 text-xs text-app-text-secondary">
+          Nombre y teléfono de una persona de confianza que pueda ayudar en caso
+          de emergencia.
+        </small>
+      </div>
       <div className="grid gap-4 sm:grid-cols-1">
         <div>
           <label htmlFor="nom_ref" className={labelClass}>
-            Nombre del referente
+            Nombre del contacto de emergencia
           </label>
           <input
             id="nom_ref"
@@ -49,12 +57,17 @@ export function ContactForm({
             value={nomRef}
             onChange={onChange}
             className={inputClass}
-            placeholder="Persona de referencia"
+            placeholder="Contacto de emergencia"
           />
+          {errors.nom_ref && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+              {errors.nom_ref}
+            </p>
+          )}
         </div>
         <div>
           <label htmlFor="tel_ref" className={labelClass}>
-            Teléfono del referente
+            Teléfono del contacto de emergencia
           </label>
           <input
             id="tel_ref"
@@ -65,8 +78,13 @@ export function ContactForm({
             value={telRef}
             onChange={onChange}
             className={inputClass}
-            placeholder="Teléfono del referente"
+            placeholder="Teléfono del contacto de emergencia"
           />
+          {errors.tel_ref && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+              {errors.tel_ref}
+            </p>
+          )}
         </div>
       </div>
     </section>

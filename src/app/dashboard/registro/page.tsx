@@ -252,6 +252,7 @@ export default function DashboardRegistroPage() {
             <ContactForm
               formData={formData}
               onChange={handleChange}
+              errors={errors}
               className="flex flex-col gap-6"
             />
             <FormHealthIndicators
