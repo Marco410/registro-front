@@ -30,6 +30,10 @@ export const ENCONTRADOS_QUERY = gql`
         id
         name
       }
+      checkins {
+        id
+        checkinAt
+      }
     }
     encontradosCount(where: $where)
   }
@@ -52,6 +56,10 @@ export interface EncontradoListItem {
   telefono?: string | null;
   update_at: string;
   user?: { id: string; name?: string | null } | null;
+  checkins?:
+    | { id: string; checkinAt: string }
+    | Array<{ id: string; checkinAt: string }>
+    | null;
 }
 
 export interface EncontradosQueryVariables {

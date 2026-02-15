@@ -7,6 +7,7 @@ import {
   Search01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
+  CheckmarkCircle01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   ENCONTRADOS_QUERY,
@@ -18,6 +19,29 @@ import {
 function fullName(e: EncontradoListItem): string {
   const parts = [e.nombre, e.apellido_p, e.apellido_m].filter(Boolean);
   return parts.join(" ").trim() || "Sin nombre";
+}
+
+function getCheckinAt(e: EncontradoListItem): string | null {
+  const c = e.checkins;
+  if (!c) return null;
+  if (Array.isArray(c)) return c[0]?.checkinAt ?? null;
+  return c.checkinAt ?? null;
+}
+
+function formatCheckinAt(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString("es", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return iso;
+  }
 }
 
 export interface CheckinEncontradoSelectorProps {
@@ -60,7 +84,7 @@ export function CheckinEncontradoSelector({
 
   const where = (() => {
     const base: EncontradosQueryVariables["where"] = {};
-    if (userId) base.user = { id: { equals: userId } };
+    // Mostrar todos los registros (no filtrar por userId)
     if (sexoFilter) base.sexo = { equals: sexoFilter };
     if (!searchNorm) return base;
     return {
@@ -151,12 +175,16 @@ export function CheckinEncontradoSelector({
                 <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
                   Clave
                 </th>
+                <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                  Check-in
+                </th>
               </tr>
             </thead>
             <tbody>
               {list.map((e) => {
                 const isSelected = selectedId === e.id;
                 const isHombre = e.sexo === "H";
+                const checkinAt = getCheckinAt(e);
                 const rowClass = isSelected
                   ? isHombre
                     ? "bg-app-primary/10 ring-inset ring-2 ring-app-primary dark:bg-app-primary-muted/20"
@@ -182,6 +210,29 @@ export function CheckinEncontradoSelector({
                     >
                       {e.sexo}
                       {e.clave ?? "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {checkinAt ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm">
+                          <HugeiconsIcon
+                            icon={CheckmarkCircle01Icon}
+                            size={18}
+                            className={
+                              isHombre
+                                ? "text-app-primary"
+                                : "text-pink-500 dark:text-pink-400"
+                            }
+                            aria-hidden
+                          />
+                          <span className="text-app-text-secondary dark:text-gray-400">
+                            {formatCheckinAt(checkinAt)}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-app-text-secondary dark:text-gray-400">
+                          —
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );
