@@ -1,4 +1,5 @@
-export { SexoSelector } from "./sexoSelector";
+export { Checkbox } from "./checkbox";
+export { SexoSelector } from "./SexoSelector";
 export { default as Logo } from "./Logo";
-export { getInputClass } from "./formInputStyles";
-export { Toaster } from "./sonner";
+export { getInputClass } from "./FormInputStyles";
+export { Toaster } from "./Sonner";

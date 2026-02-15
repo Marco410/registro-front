@@ -4,8 +4,13 @@ import { gql } from "@apollo/client";
  * Query para listar encontrados filtrados por where (ej. por user.id).
  */
 export const ENCONTRADOS_QUERY = gql`
-  query Encontrados($where: EncontradoWhereInput!) {
-    encontrados(where: $where, orderBy: [{ create_at: desc }]) {
+  query Encontrados($where: EncontradoWhereInput!, $take: Int, $skip: Int) {
+    encontrados(
+      where: $where
+      orderBy: [{ create_at: desc }]
+      take: $take
+      skip: $skip
+    ) {
       id
       nombre
       apellido_p
@@ -52,11 +57,20 @@ export interface EncontradoListItem {
 export interface EncontradosQueryVariables {
   where: {
     user?: { id?: { equals?: string } };
+    sexo?: { equals?: string };
+    OR?: Array<
+      | { nombre?: { contains?: string; mode?: string } }
+      | { apellido_p?: { contains?: string; mode?: string } }
+      | { apellido_m?: { contains?: string; mode?: string } }
+    >;
   };
+  take?: number;
+  skip?: number;
 }
 
 export interface EncontradosQueryResponse {
   encontrados: EncontradoListItem[];
+  encontradosCount: number;
 }
 
 /**

@@ -15,7 +15,7 @@ import { FormHealthIndicators } from "registro/components/dashboard/registro/for
 import {
   type FechaInputs,
   IdentificationForm,
-} from "../forms/identificationForm";
+} from "../forms/IdentificationForm";
 import { SexoSelector } from "registro/components/shared";
 import { useUpdateEncontrado } from "../hooks";
 
