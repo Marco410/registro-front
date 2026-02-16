@@ -13,6 +13,7 @@ export const CREATE_ENCONTRADO_MUTATION = gql`
       create_at
       enfermedad
       estado_c
+      religion
       fecha_n
       nom_ref
       nombre
@@ -44,6 +45,7 @@ export const UPDATE_ENCONTRADO_MUTATION = gql`
       edad
       enfermedad
       estado_c
+      religion
       fecha_n
       nom_ref
       nombre

@@ -26,6 +26,7 @@ function buildConfirmRows(
     },
     { label: "Edad", value: displayEdad(formData.fecha_n) },
     { label: "Estado civil", value: displayValue(formData.estado_c) },
+    { label: "Religión", value: displayValue(formData.religion) },
     { label: "Teléfono", value: displayValue(formData.telefono) },
     { label: "Nombre del referido", value: displayValue(formData.nom_ref) },
     { label: "Teléfono del referido", value: displayValue(formData.tel_ref) },

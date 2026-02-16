@@ -49,6 +49,7 @@ export interface EncontradoListItem {
   edad?: number | null;
   enfermedad?: string | null;
   estado_c: string;
+  religion?: string | null;
   fecha_n: string;
   nom_ref?: string | null;
   sexo: string;
@@ -96,6 +97,7 @@ export const ENCONTRADO_BY_ID_QUERY = gql`
       edad
       enfermedad
       estado_c
+      religion
       fecha_n
       nom_ref
       sexo

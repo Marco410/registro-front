@@ -33,6 +33,7 @@ const initialValues: EncontradoFormData = {
       : "H",
   fecha_n: "",
   estado_c: "",
+  religion: "",
   telefono: "",
   nom_ref: "",
   tel_ref: "",
@@ -57,6 +58,7 @@ function hasFormData(data: EncontradoFormData): boolean {
     Boolean(data.apellido_m?.trim()) ||
     Boolean(data.fecha_n) ||
     Boolean(data.estado_c?.trim()) ||
+    Boolean(data.religion?.trim()) ||
     Boolean(data.telefono?.trim()) ||
     Boolean(data.nom_ref?.trim()) ||
     Boolean(data.tel_ref?.trim()) ||
