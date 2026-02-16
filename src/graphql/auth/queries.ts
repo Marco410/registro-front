@@ -17,7 +17,6 @@ export const AUTHENTICATED_ITEM_QUERY = gql`
           id
           name
         }
-        verified
         createdAt
       }
     }

@@ -9,6 +9,7 @@ import {
   inputError,
   labelClass,
 } from "registro/components/shared/FormInputStyles";
+import { MonthAutocomplete } from "./MonthAutocomplete";
 
 export interface FechaInputs {
   dia: string;
@@ -209,22 +210,16 @@ export function IdentificationForm({
               <span className="shrink-0 text-app-text-secondary dark:text-gray-500">
                 /
               </span>
-              <input
-                ref={fechaMesRef}
+              <MonthAutocomplete
                 id="fecha_mes"
-                type="text"
-                inputMode="numeric"
-                minLength={1}
-                maxLength={2}
-                placeholder="Mes"
                 value={fechaInputs.mes}
-                onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 2);
-                  onFechaInputsChange({ mes: v });
-                  applyFechaInputs(fechaInputs.dia, v, fechaInputs.ano);
-                  if (v.length === 2) fechaAnoRef.current?.focus();
+                onChange={(mes) => {
+                  onFechaInputsChange({ mes });
+                  applyFechaInputs(fechaInputs.dia, mes, fechaInputs.ano);
                 }}
-                className={`${inputClass} min-w-0 flex-1 text-center tabular-nums`}
+                onSelectNext={() => fechaAnoRef.current?.focus()}
+                inputRef={fechaMesRef}
+                className={inputClass}
                 aria-label="Mes"
               />
               <span className="shrink-0 text-app-text-secondary dark:text-gray-500">
