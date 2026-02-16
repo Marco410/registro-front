@@ -30,7 +30,9 @@ function groupSeatsByTeam(seats: Seat[]) {
   }
   return Array.from(byTeam.values()).sort((a, b) => {
     if (!a.team || !b.team) return a.key.localeCompare(b.key);
-    return a.team.teamNumber - b.team.teamNumber;
+    const orderA = a.team.order ?? Number.MAX_SAFE_INTEGER;
+    const orderB = b.team.order ?? Number.MAX_SAFE_INTEGER;
+    return orderA - orderB;
   });
 }
 
@@ -82,9 +84,9 @@ export function SeatsByTeam() {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-[#202124]">
       {/* Escenario */}
-      <div className="flex items-center justify-center border-b border-gray-200 bg-gray-100 py-3 dark:border-gray-700 dark:bg-gray-800/80">
+      <div className="flex items-center justify-center border-b border-gray-200 bg-gray-100 py-3 dark:border-gray-700 dark:bg-gray-800/80 py-5">
         <span className="text-xs font-semibold uppercase tracking-widest text-app-text-secondary dark:text-gray-400">
-          Escenario
+          Altar
         </span>
       </div>
       {/* Sala: izquierda = hombres, derecha = mujeres (vista desde el escenario) */}
@@ -140,6 +142,12 @@ export function SeatsByTeam() {
           <div className="h-5 w-5 rounded border-2 border-pink-500 bg-pink-500/90" />
           <span className="text-xs text-app-text-secondary dark:text-gray-400">
             Mujeres (ocupado)
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-5 w-5 rounded border-2 border-gray-400 bg-gray-400/90" />
+          <span className="text-xs text-app-text-secondary dark:text-gray-400">
+            Dado de baja
           </span>
         </div>
         <div className="flex items-center gap-2">
