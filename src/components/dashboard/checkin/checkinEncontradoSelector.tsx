@@ -163,7 +163,7 @@ export function CheckinEncontradoSelector({
               </span>
             </div>
           )}
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm bg-white">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/80">
                 <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">

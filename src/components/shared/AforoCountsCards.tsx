@@ -9,26 +9,21 @@ import {
   CalendarCheckIn01Icon,
 } from "@hugeicons/core-free-icons";
 import {
-  DASHBOARD_COUNTS_QUERY,
-  type DashboardCountsResponse,
-} from "registro/graphql/dashboard/queries";
+  AFORO_QUERY,
+  type AforoResponse,
+} from "registro/graphql/aforo/queries";
 
 const cardBase =
   "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-[#202124]";
 
-export function DashboardCountsCards() {
-  const { data, loading, error } = useQuery<DashboardCountsResponse>(
-    DASHBOARD_COUNTS_QUERY,
-  );
+export function AforoCountsCards() {
+  const { data, loading, error } = useQuery<AforoResponse>(AFORO_QUERY);
 
   if (loading) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div
-            key={i}
-            className={`${cardBase} animate-pulse`}
-          >
+          <div key={i} className={`${cardBase} animate-pulse`}>
             <div className="h-5 w-24 rounded bg-gray-200 dark:bg-gray-700" />
             <div className="mt-2 h-8 w-12 rounded bg-gray-200 dark:bg-gray-700" />
           </div>
@@ -56,42 +51,21 @@ export function DashboardCountsCards() {
 
   const cards = [
     {
-      label: "Total encontrados",
-      value: counts.encontradosCount,
-      icon: UserIcon,
-      className: "text-app-text-primary dark:text-gray-200",
-      iconBg: "bg-gray-100 dark:bg-gray-700",
-    },
-    {
-      label: "Hombres",
-      value: counts.encontradosCountH,
-      icon: Male02Icon,
-      className: "text-app-primary dark:text-app-primary-muted",
-      iconBg: "bg-app-primary/10 dark:bg-app-primary-muted/20",
-    },
-    {
-      label: "Mujeres",
-      value: counts.encontradosCountM,
-      icon: Female02Icon,
-      className: "text-pink-600 dark:text-pink-400",
-      iconBg: "bg-pink-500/10 dark:bg-pink-500/20",
-    },
-    {
-      label: "Total check-ins",
+      label: "Total",
       value: counts.checkinsCount,
       icon: CalendarCheckIn01Icon,
       className: "text-app-text-primary dark:text-gray-200",
       iconBg: "bg-gray-100 dark:bg-gray-700",
     },
     {
-      label: "Check-ins hombres",
+      label: "Hombres",
       value: counts.checkinsCountH,
       icon: CalendarCheckIn01Icon,
       className: "text-app-primary dark:text-app-primary-muted",
       iconBg: "bg-app-primary/10 dark:bg-app-primary-muted/20",
     },
     {
-      label: "Check-ins mujeres",
+      label: "Mujeres",
       value: counts.checkinsCountM,
       icon: CalendarCheckIn01Icon,
       className: "text-pink-600 dark:text-pink-400",

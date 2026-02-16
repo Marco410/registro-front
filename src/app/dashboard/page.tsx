@@ -1,4 +1,5 @@
-import { DashboardCountsCards } from "registro/components/dashboard";
+import { AforoCountsCards } from "registro/components/shared";
+import { EstadoCivilBarChart } from "registro/components/dashboard";
 
 export default function DashboardPage() {
   return (
@@ -10,7 +11,14 @@ export default function DashboardPage() {
         Bienvenido al dashboard. Use el menú para navegar a Checkin o Registro.
       </p>
       <div className="mt-8">
-        <DashboardCountsCards />
+        <AforoCountsCards />
+      </div>
+      <div className="mt-8 flex justify-start">
+        <EstadoCivilBarChart />
+      </div>
+      <div className="mt-8 flex justify-start gap-4">
+        <EstadoCivilBarChart sex="H" />
+        <EstadoCivilBarChart sex="M" />
       </div>
     </div>
   );

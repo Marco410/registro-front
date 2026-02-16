@@ -7,19 +7,13 @@ import { gql } from "@apollo/client";
 export const DASHBOARD_COUNTS_QUERY = gql`
   query DashboardCounts {
     encontradosCount
-    checkinsCount
     encontradosCountH: encontradosCount(where: { sexo: { equals: "H" } })
     encontradosCountM: encontradosCount(where: { sexo: { equals: "M" } })
-    checkinsCountH: checkinsCount(where: { encontrado: { sexo: { equals: "H" } } })
-    checkinsCountM: checkinsCount(where: { encontrado: { sexo: { equals: "M" } } })
   }
 `;
 
 export interface DashboardCountsResponse {
   encontradosCount: number;
-  checkinsCount: number;
   encontradosCountH: number;
   encontradosCountM: number;
-  checkinsCountH: number;
-  checkinsCountM: number;
 }
