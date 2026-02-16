@@ -59,6 +59,7 @@ export interface IdentificationFormProps {
     | "sexo"
     | "fecha_n"
     | "estado_c"
+    | "religion"
     | "telefono"
   >;
   errors: Partial<Record<keyof EncontradoFormData, string>>;
@@ -282,6 +283,33 @@ export function IdentificationForm({
           {errors.estado_c && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-400">
               {errors.estado_c}
+            </p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="religion" className={labelClass}>
+            Religión
+          </label>
+          <select
+            id="religion"
+            name="religion"
+            value={formData.religion ?? ""}
+            onChange={onChange}
+            className={inputClass}
+            aria-label="Religión"
+          >
+            <option value="">Seleccionar</option>
+            <option value="Católica">Católica</option>
+            <option value="Cristiana">Cristiana</option>
+            <option value="Judía">Judía</option>
+            <option value="Testigos de Jehová">Testigos de Jehová</option>
+            <option value="Mormona">Mormona</option>
+            <option value="Sin religión">Sin religión</option>
+            <option value="Otra">Otra</option>
+          </select>
+          {errors.religion && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+              {errors.religion}
             </p>
           )}
         </div>
