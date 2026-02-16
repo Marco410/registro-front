@@ -7,12 +7,14 @@ import {
   Home01Icon,
   CalendarCheckIn01Icon,
   ClipboardIcon,
+  SeatSelectorIcon,
 } from "@hugeicons/core-free-icons";
 
 const navItems = [
   { href: "/dashboard", label: "Inicio", icon: Home01Icon },
   { href: "/dashboard/checkin", label: "Checkin", icon: CalendarCheckIn01Icon },
   { href: "/dashboard/registro", label: "Registro", icon: ClipboardIcon },
+  { href: "/dashboard/aforo", label: "Aforo", icon: SeatSelectorIcon },
 ] as const;
 
 interface SidebarProps {

@@ -117,3 +117,34 @@ export interface EncontradoByIdQueryVariables {
 export interface EncontradoByIdQueryResponse {
   encontrado: EncontradoListItem | null;
 }
+
+/** Opciones de estado civil (igual que en IdentificationForm). */
+export const ESTADO_C_OPTIONS = [
+  "Soltero(a)",
+  "Casado(a)",
+  "Divorciado(a)",
+  "Viudo(a)",
+  "Unión libre",
+  "Otro",
+] as const;
+
+/**
+ * Query para estado civil de encontrados que tienen al menos un check-in.
+ * Usar where: { checkins_some: {} } (Keystone) o donde aplique en tu API.
+ */
+export const ENCONTRADOS_ESTADO_C_QUERY = gql`
+  query EncontradosEstadoC($where: EncontradoWhereInput!) {
+    encontrados(where: $where) {
+      estado_c
+    }
+  }
+`;
+
+export interface EncontradosEstadoCQueryVariables {
+  /** Ej. { checkins_some: {} } en Keystone; o { checkins: { some: {} } } en Prisma. */
+  where: Record<string, unknown>;
+}
+
+export interface EncontradosEstadoCQueryResponse {
+  encontrados: { estado_c: string }[];
+}
