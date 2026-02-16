@@ -23,7 +23,6 @@ export const LOGIN_MUTATION = gql`
             id
             name
           }
-          verified
           createdAt
         }
       }
