@@ -5,3 +5,7 @@ export {
   EstadoCivilBarChart,
   type EstadoCivilBarChartProps,
 } from "./EstadoCivilBarChart";
+export {
+  ReligionBarChart,
+  type ReligionBarChartProps,
+} from "./ReligionBarChart";

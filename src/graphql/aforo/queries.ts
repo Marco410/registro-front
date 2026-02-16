@@ -11,7 +11,15 @@ export const SEATS_QUERY = gql`
       occupied
       gender
       assignedAt
+      abandoned
+      abandonedBy {
+        nombre
+        apellido_p
+        apellido_m
+        sexo
+      }
       encontrado {
+        id
         nombre
         apellido_p
         apellido_m
@@ -20,6 +28,7 @@ export const SEATS_QUERY = gql`
       team {
         teamName
         teamNumber
+        order
         ageGroup {
           label
         }
@@ -29,6 +38,7 @@ export const SEATS_QUERY = gql`
 `;
 
 export interface SeatEncontrado {
+  id: string;
   nombre: string;
   apellido_p: string;
   apellido_m: string;
@@ -38,7 +48,15 @@ export interface SeatEncontrado {
 export interface SeatTeam {
   teamName: string;
   teamNumber: number;
+  order?: number | null;
   ageGroup: { label: string };
+}
+
+export interface SeatAbandonedBy {
+  nombre: string;
+  apellido_p: string;
+  apellido_m: string;
+  sexo: string;
 }
 
 export interface Seat {
@@ -47,6 +65,8 @@ export interface Seat {
   occupied: boolean;
   gender: string;
   assignedAt: string | null;
+  abandoned: boolean;
+  abandonedBy: SeatAbandonedBy | null;
   encontrado: SeatEncontrado | null;
   team: SeatTeam | null;
 }

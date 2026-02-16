@@ -150,3 +150,18 @@ export interface EncontradosEstadoCQueryVariables {
 export interface EncontradosEstadoCQueryResponse {
   encontrados: { estado_c: string }[];
 }
+
+/**
+ * Query para religión de encontrados (mismo where que estado civil).
+ */
+export const ENCONTRADOS_RELIGION_QUERY = gql`
+  query EncontradosReligion($where: EncontradoWhereInput!) {
+    encontrados(where: $where) {
+      religion
+    }
+  }
+`;
+
+export interface EncontradosReligionQueryResponse {
+  encontrados: { religion: string | null }[];
+}
