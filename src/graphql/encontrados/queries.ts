@@ -73,6 +73,7 @@ export interface EncontradosQueryVariables {
       | { nombre?: { contains?: string; mode?: string } }
       | { apellido_p?: { contains?: string; mode?: string } }
       | { apellido_m?: { contains?: string; mode?: string } }
+      | { clave?: { equals?: number } }
     >;
   };
   take?: number;

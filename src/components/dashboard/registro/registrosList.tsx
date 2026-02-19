@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  CheckmarkCircle01Icon,
   Edit01Icon,
   Search01Icon,
   Tick02Icon,
@@ -154,7 +155,7 @@ export function RegistrosList({
                 {getCheckinAt(encontrado) ? (
                   <span className="group relative inline-flex shrink-0">
                     <span className="inline-flex items-center justify-center text-green-600 dark:text-green-400">
-                      <HugeiconsIcon icon={Tick02Icon} size={20} />
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} />
                     </span>
                     <span
                       role="tooltip"

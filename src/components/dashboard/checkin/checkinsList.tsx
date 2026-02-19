@@ -137,7 +137,13 @@ export function CheckinsList({ userId, onSelect, className, checkinSelected }: C
                         (ev.key === "Enter" || ev.key === " ") && onSelect(c)
                     : undefined
                 }
-                className={`rounded-xl border px-4 py-3 flex flex-row justify-between ${badgeClass} ${onSelect ? "cursor-pointer transition-opacity hover:opacity-90" : ""} ${isSelected ? "bg-app-primary/10  dark:bg-app-primary-muted/20" : ""}`.trim()}
+                className={`rounded-xl border px-4 py-3 flex flex-row justify-between ${badgeClass} ${onSelect ? "cursor-pointer transition-opacity hover:opacity-90" : ""} ${
+                  isSelected
+                    ? isHombre
+                      ? "bg-app-primary/10 dark:bg-app-primary-muted/20"
+                      : "bg-pink-500/10 dark:bg-pink-500/20"
+                    : ""
+                }`.trim()}
               >
                 <div>
                   <p className="font-medium">{fullName(c)}</p>

@@ -20,17 +20,13 @@ import {
   ConfirmRegistroModal,
 } from "registro/components/dashboard/registro";
 import { useAuth } from "registro/hooks/use-auth";
+import { getStoredSexo, REGISTRO_SEXO_KEY } from "registro/constants/const";
 
 const initialValues: EncontradoFormData = {
   nombre: "",
   apellido_p: "",
   apellido_m: "",
-  sexo:
-    typeof window !== "undefined" && typeof localStorage !== "undefined"
-      ? localStorage.getItem("registro_sexo") === "M"
-        ? "M"
-        : "H"
-      : "H",
+  sexo: "H",
   fecha_n: "",
   estado_c: "",
   religion: "",
@@ -69,7 +65,10 @@ function hasFormData(data: EncontradoFormData): boolean {
 }
 
 export default function DashboardRegistroPage() {
-  const [formData, setFormData] = useState<EncontradoFormData>(initialValues);
+  const [formData, setFormData] = useState<EncontradoFormData>(() => ({
+    ...initialValues,
+    sexo: getStoredSexo(),
+  }));
   const [errors, setErrors] = useState<
     Partial<Record<keyof EncontradoFormData, string>>
   >({});
@@ -180,7 +179,7 @@ export default function DashboardRegistroPage() {
       typeof window !== "undefined" &&
       window.localStorage
     ) {
-      window.localStorage.setItem("registro_sexo", String(nextValue));
+      window.localStorage.setItem(REGISTRO_SEXO_KEY, String(nextValue));
     }
     if (errors[name as keyof EncontradoFormData]) {
       setErrors((prev: Partial<Record<keyof EncontradoFormData, string>>) => ({
@@ -214,14 +213,23 @@ export default function DashboardRegistroPage() {
     await submitEncontrado(result.data);
   };
 
+  const pageAccent =
+    formData.sexo === "M"
+      ? "border-pink-500 dark:border-pink-400"
+      : "border-app-primary";
+
   return (
     <div className="w-full max-w-7xl">
-      {/* Header */}
       <header className="mb-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
-            Registro de encontrado
-          </h1>
+          <div className={`border-l-4 pl-4 ${pageAccent}`}>
+            <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
+              Registro de encontrado
+            </h1>
+            <p className="mt-1 text-sm text-app-text-secondary dark:text-gray-400">
+              Completa los datos del encontrado para registrarlo.
+            </p>
+          </div>
           <SexoSelector
             value={formData.sexo === "M" ? "M" : "H"}
             error={errors.sexo}

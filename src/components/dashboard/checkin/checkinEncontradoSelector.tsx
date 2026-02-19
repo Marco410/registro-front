@@ -81,17 +81,27 @@ export function CheckinEncontradoSelector({
 
   const where = (() => {
     const base: EncontradosQueryVariables["where"] = {};
-    // Mostrar todos los registros (no filtrar por userId)
     if (sexoFilter) base.sexo = { equals: sexoFilter };
     if (!searchNorm) return base;
-    return {
-      ...base,
-      OR: [
-        { nombre: { contains: searchNorm, mode: "insensitive" } },
-        { apellido_p: { contains: searchNorm, mode: "insensitive" } },
-        { apellido_m: { contains: searchNorm, mode: "insensitive" } },
-      ],
-    };
+    const trimmed = searchNorm.trim();
+    const firstUpper = trimmed.length > 0 ? trimmed[0].toUpperCase() : "";
+    const afterSexo =
+      firstUpper === "H" || firstUpper === "M"
+        ? trimmed.slice(1).trim()
+        : trimmed;
+    const searchNum =
+      afterSexo.length > 0 ? parseInt(afterSexo, 10) : NaN;
+    const isNumeric =
+      !Number.isNaN(searchNum) && /^\d+$/.test(afterSexo);
+    const orConditions: EncontradosQueryVariables["where"]["OR"] = [
+      { nombre: { contains: searchNorm, mode: "insensitive" } },
+      { apellido_p: { contains: searchNorm, mode: "insensitive" } },
+      { apellido_m: { contains: searchNorm, mode: "insensitive" } },
+    ];
+    if (isNumeric) {
+      orConditions.push({ clave: { equals: searchNum } });
+    }
+    return { ...base, OR: orConditions };
   })();
 
   const { data, loading, error } = useQuery<
@@ -134,7 +144,7 @@ export function CheckinEncontradoSelector({
           type="search"
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Buscar por nombre"
+          placeholder="Buscar por nombre o clave. Ejem: 'Juan Perez', 'H1' o 'M1'"
           className={`w-full rounded-xl border bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400 ${borderClass}`}
           aria-label="Buscar por nombre"
         />

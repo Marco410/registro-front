@@ -6,7 +6,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CalendarCheckIn01Icon, ClipboardIcon } from "@hugeicons/core-free-icons";
 import CheckinPage from "./checkin/page";
 import DashboardRegistroPage from "./registro/page";
-import { routes, TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/routes";
+import { routes } from "registro/constants/routes";
+import { TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/const";
 
 
 const VALID_TABS = [TAB_CHECKIN, TAB_REGISTRO] as const;

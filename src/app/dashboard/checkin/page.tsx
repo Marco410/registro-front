@@ -16,6 +16,7 @@ import type { PerformCheckinResponse } from "registro/graphql/checkin/mutations"
 import type { CheckinListItem } from "registro/graphql/checkin/queries";
 import { useAuth } from "registro/hooks/use-auth";
 import { routes } from "registro/constants/routes";
+import { getStoredSexo, REGISTRO_SEXO_KEY } from "registro/constants/const";
 
 function buildClave(
   sexo: string,
@@ -33,7 +34,9 @@ export default function CheckinPage() {
  
 
   const [selected, setSelected] = useState<EncontradoListItem | null>(null);
-  const [sexoFilter, setSexoFilter] = useState<"H" | "M" | null>("H");
+  const [sexoFilter, setSexoFilter] = useState<"H" | "M" | null>(() =>
+    getStoredSexo(),
+  );
   const [celular, setCelular] = useState(true);
   const [medicamento, setMedicamento] = useState(false);
   const [checkinResult, setCheckinResult] = useState<
@@ -140,9 +143,9 @@ export default function CheckinPage() {
     : null;
 
   return (
-    <div className="w-full pl-10 pr-10">
-      <div className={`border-l-4 pl-4 ${pageAccent}`}>
-        <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
+    <div className="w-full max-w-7xl">
+      <div className={`border-l-4 pl-4 border-green-500`}>
+        <h1 className="text-2xl font-semibold tracking-tight bg-green dark:text-white sm:text-3xl">
           Check-in
         </h1>
         <p className="mt-1 text-sm text-app-text-secondary dark:text-gray-400">
@@ -207,9 +210,11 @@ export default function CheckinPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <SexoSelector
                         value={sexoFilter ?? "H"}
-                        onChange={(e) =>
-                          setSexoFilter((e.target.value as "H" | "M") || null)
-                        }
+                        onChange={(e) => {
+                          const value = e.target.value as "H" | "M";
+                          window.localStorage.setItem(REGISTRO_SEXO_KEY, value);
+                          setSexoFilter(value);
+                        }}
                         label=""
                         className="!mb-0"
                       />
