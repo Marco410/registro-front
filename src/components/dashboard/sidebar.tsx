@@ -10,24 +10,29 @@ import {
   SeatSelectorIcon,
   Chart03Icon,
 } from "@hugeicons/core-free-icons";
+import { routes } from "registro/constants/routes";
 import { TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/const";
 
 const navItems = [
-  { href: "/dashboard", label: "Inicio", icon: Home01Icon },
+  { href: routes.dashboard(), label: "Inicio", icon: Home01Icon },
   {
-    href: `/dashboard?tab=${TAB_CHECKIN}`,
+    href: routes.dashboardCheckin(),
     label: "Checkin",
     icon: CalendarCheckIn01Icon,
-    tab: "checkin",
+    tab: TAB_CHECKIN,
   },
   {
-    href: `/dashboard?tab=${TAB_REGISTRO}`,
+    href: routes.dashboardRegistro(),
     label: "Registro",
     icon: ClipboardIcon,
-    tab: "registro",
+    tab: TAB_REGISTRO,
   },
-  { href: "/dashboard/aforo", label: "Aforo", icon: SeatSelectorIcon },
-  { href: "/dashboard/estadisticas", label: "Estadísticas", icon: Chart03Icon },
+  { href: routes.dashboardAforo(), label: "Aforo", icon: SeatSelectorIcon },
+  {
+    href: routes.dashboardEstadisticas(),
+    label: "Estadísticas",
+    icon: Chart03Icon,
+  },
 ] as const;
 
 interface SidebarProps {
@@ -48,8 +53,8 @@ export function Sidebar({
   const isItemActive = (item: (typeof navItems)[number]) => {
     if ("tab" in item && item.tab) {
       return (
-        pathname === "/dashboard" &&
-        (item.tab === tab || (item.tab === "checkin" && tab == null))
+        pathname === routes.dashboard() &&
+        (item.tab === tab || (item.tab === TAB_CHECKIN && tab == null))
       );
     }
     return pathname === item.href;
@@ -81,7 +86,7 @@ export function Sidebar({
           }`}
         >
           <Link
-            href="/dashboard"
+            href={routes.dashboard()}
             className={`flex items-center overflow-hidden py-2 text-app-text-primary hover:opacity-90 ${
               isCollapsed ? "min-w-0 flex-none" : "min-w-0 flex-1 gap-2.5"
             }`}

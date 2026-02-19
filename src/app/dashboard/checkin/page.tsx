@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   CardCheckin,
   CheckinEncontradoSelector,
@@ -14,6 +15,7 @@ import type { EncontradoListItem } from "registro/graphql/encontrados/queries";
 import type { PerformCheckinResponse } from "registro/graphql/checkin/mutations";
 import type { CheckinListItem } from "registro/graphql/checkin/queries";
 import { useAuth } from "registro/hooks/use-auth";
+import { routes } from "registro/constants/routes";
 
 function buildClave(
   sexo: string,
@@ -152,15 +154,28 @@ export default function CheckinPage() {
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr,minmax(300px,380px)]">
         <div className="min-w-0">
           {resultData ? (
-            <div>
+            <div className="space-y-6">
               <CheckinResultCard data={resultData} />
-              <button
-                type="button"
-                onClick={handleNewCheckin}
-                className="mt-6 text-sm font-medium text-app-text-secondary underline hover:text-app-text-primary dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                Hacer otro check-in
-              </button>
+              <section className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-700 dark:bg-gray-800/30">
+                <p className="mb-3 text-sm font-medium text-app-text-primary dark:text-gray-300">
+                  Acciones
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={handleNewCheckin}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-app-text-primary shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Hacer otro check-in
+                  </button>
+                  <Link
+                    href={routes.dashboardRegistro()}
+                    className="inline-flex rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-app-text-primary shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Ir a registro (nuevo encontrado)
+                  </Link>
+                </div>
+              </section>
             </div>
           ) : (
             <div className="flex flex-col gap-6">

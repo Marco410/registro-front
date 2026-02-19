@@ -6,7 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CalendarCheckIn01Icon, ClipboardIcon } from "@hugeicons/core-free-icons";
 import CheckinPage from "./checkin/page";
 import DashboardRegistroPage from "./registro/page";
-import { TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/const";
+import { routes, TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/routes";
 
 
 const VALID_TABS = [TAB_CHECKIN, TAB_REGISTRO] as const;
@@ -25,7 +25,7 @@ export default function DashboardPage() {
     <div className="w-full max-w-7xl">
       <div className="mb-6 flex border-b border-gray-200 dark:border-gray-700">
       <Link
-          href="/dashboard?tab=registro"
+          href={routes.dashboardRegistro()}
           className={`
             flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors
             ${
@@ -39,7 +39,7 @@ export default function DashboardPage() {
           Registro
         </Link>
         <Link
-          href="/dashboard?tab=checkin"
+          href={routes.dashboardCheckin()}
           className={`
             flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors
             ${
