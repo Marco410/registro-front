@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import {
+  CardCheckin,
   CheckinEncontradoSelector,
   CheckinsList,
-  CheckinOptionsForm,
   CheckinResultCard,
   usePerformCheckin,
   useUpdateCheckinOptions,
@@ -86,10 +86,15 @@ export default function CheckinPage() {
         ageGroup: c.ageGroup ?? { id: "", label: "" },
         encontrado: {
           id: "",
-          nombre: [c.encontrado.nombre, c.encontrado.apellido_p, c.encontrado.apellido_m]
-            .filter(Boolean)
-            .join(" ")
-            .trim() || c.encontrado.nombre,
+          nombre:
+            [
+              c.encontrado.nombre,
+              c.encontrado.apellido_p,
+              c.encontrado.apellido_m,
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .trim() || c.encontrado.nombre,
           sexo: c.encontrado.sexo,
         },
         seat: c.seat ?? { id: "", letter: "" },
@@ -124,7 +129,7 @@ export default function CheckinPage() {
     : null;
 
   return (
-    <div className="w-full max-w-6xl">
+    <div className="w-full pl-10 pr-10">
       <div className={`border-l-4 pl-4 ${pageAccent}`}>
         <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
           Check-in
@@ -150,6 +155,22 @@ export default function CheckinPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-6">
+              {selected && (
+                <CardCheckin
+                  selected={selected}
+                  sexo={sexo}
+                  celular={celular}
+                  medicamento={medicamento}
+                  onCelularChange={setCelular}
+                  onMedicamentoChange={setMedicamento}
+                  onSaveOptions={handleSaveOptions}
+                  onDoCheckin={handleDoCheckin}
+                  savingOptions={savingOptions}
+                  performingCheckin={performingCheckin}
+                  onCancel={() => setSelected(null)}
+                />
+              )}
+
               <section>
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300">
@@ -179,42 +200,14 @@ export default function CheckinPage() {
                   sexoFilter={sexoFilter}
                 />
               </section>
-
-              {selected && (
-                <>
-                  <CheckinOptionsForm
-                    sexo={sexo}
-                    celular={celular}
-                    medicamento={medicamento}
-                    onCelularChange={setCelular}
-                    onMedicamentoChange={setMedicamento}
-                    disabled={performingCheckin}
-                  />
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={handleSaveOptions}
-                      disabled={savingOptions || performingCheckin}
-                      className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
-                    >
-                      {savingOptions ? "Guardando…" : "Guardar opciones"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDoCheckin}
-                      disabled={performingCheckin}
-                      className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors disabled:opacity-60 ${isHombre ? "bg-app-primary hover:bg-app-primary/90" : "bg-pink-600 hover:bg-pink-700"}`}
-                    >
-                      {performingCheckin ? "Procesando…" : "Hacer check-in"}
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
           )}
         </div>
         <aside className="lg:border-l lg:border-gray-200 lg:pl-8 dark:lg:border-gray-700">
-          <CheckinsList userId={userId} onSelect={handleSelectCheckinFromList} />
+          <CheckinsList
+            userId={userId}
+            onSelect={handleSelectCheckinFromList}
+          />
         </aside>
       </div>
     </div>

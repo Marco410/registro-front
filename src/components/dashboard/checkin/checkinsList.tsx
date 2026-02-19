@@ -13,6 +13,7 @@ import {
 
 function fullName(c: CheckinListItem): string {
   const e = c.encontrado;
+  if (!e) return "Sin nombre";
   const parts = [e.nombre, e.apellido_p, e.apellido_m].filter(Boolean);
   return parts.join(" ").trim() || "Sin nombre";
 }
@@ -116,11 +117,11 @@ export function CheckinsList({ userId, onSelect, className }: CheckinsListProps)
       ) : (
         <div className="flex flex-col gap-3">
           {list.map((c) => {
-            const isHombre = c.encontrado.sexo === "H";
+            const isHombre = c.encontrado?.sexo === "H";
             const badgeClass = isHombre
               ? "border-app-primary text-app-primary dark:bg-app-primary-muted/20 dark:border-app-primary-muted dark:text-app-primary-muted"
               : "border-pink-500 text-pink-600 dark:bg-pink-500/20 dark:border-pink-400 dark:text-pink-400";
-            const registradoPor = c.encontrado.user?.name ?? "—";
+            const registradoPor = c.encontrado?.user?.name ?? "—";
             return (
               <div
                 key={c.id}
@@ -146,7 +147,7 @@ export function CheckinsList({ userId, onSelect, className }: CheckinsListProps)
                 </div>
                 <div>
                   <p className="font-medium">
-                    {c.encontrado.sexo}
+                    {c.encontrado?.sexo}
                     {c.team?.teamNumber}
                     {c.seat?.letter}
                   </p>
