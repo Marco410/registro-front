@@ -22,6 +22,7 @@ export const ENCONTRADOS_QUERY = gql`
       estado_c
       fecha_n
       nom_ref
+      religion
       sexo
       tel_ref
       telefono
