@@ -1,9 +1,3 @@
-import { AforoCountsCards } from "registro/components/shared";
-import {
-  EstadoCivilBarChart,
-  ReligionBarChart,
-} from "registro/components/dashboard";
-
 export default function DashboardPage() {
   return (
     <div className="w-full max-w-7xl">
@@ -13,33 +7,6 @@ export default function DashboardPage() {
       <p className="mt-2 text-app-text-secondary dark:text-gray-400">
         Bienvenido al dashboard. Use el menú para navegar a Checkin o Registro.
       </p>
-      <div className="mt-8">
-        <AforoCountsCards />
-      </div>
-      <div className="mt-8 border-t border-gray-200 dark:border-gray-700">
-        <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white mt-5">
-          Estado civil
-        </h1>
-      </div>
-      <div className="mt-8 flex justify-start">
-        <EstadoCivilBarChart />
-      </div>
-      <div className="mt-8 flex justify-start gap-4">
-        <EstadoCivilBarChart sex="H" />
-        <EstadoCivilBarChart sex="M" />
-      </div>
-      <div className="mt-8 border-t border-gray-200 dark:border-gray-700">
-        <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white mt-5">
-          Religión
-        </h1>
-      </div>
-      <div className="mt-8 flex justify-start">
-        <ReligionBarChart />
-      </div>
-      <div className="mt-8 flex justify-start gap-4">
-        <ReligionBarChart sex="H" />
-        <ReligionBarChart sex="M" />
-      </div>
     </div>
   );
 }

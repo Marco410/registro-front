@@ -68,6 +68,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full rounded-lg border border-brown-200 px-3 py-2 dark:border-brown-600 dark:bg-brown-900 dark:text-blue-100"
+                placeholder="Contraseña"
               />
             </div>
             {error && (
