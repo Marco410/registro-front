@@ -22,10 +22,7 @@ function fullName(e: EncontradoListItem): string {
 }
 
 function getCheckinAt(e: EncontradoListItem): string | null {
-  const c = e.checkins;
-  if (!c) return null;
-  if (Array.isArray(c)) return c[0]?.checkinAt ?? null;
-  return c.checkinAt ?? null;
+  return e.checkins?.checkinAt ?? null;
 }
 
 function formatCheckinAt(iso: string): string {

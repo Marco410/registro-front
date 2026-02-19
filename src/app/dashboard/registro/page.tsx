@@ -38,6 +38,8 @@ const initialValues: EncontradoFormData = {
   nom_ref: "",
   tel_ref: "",
   enfermedad: "",
+  celular: true,
+  medicamento: false,
   user_id: "",
 };
 

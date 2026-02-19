@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Edit01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import {
+  Edit01Icon,
+  Search01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 import {
   ENCONTRADOS_QUERY,
   type EncontradoListItem,
@@ -14,6 +18,24 @@ import {
 function fullName(e: EncontradoListItem): string {
   const parts = [e.nombre, e.apellido_p, e.apellido_m].filter(Boolean);
   return parts.join(" ").trim() || "Sin nombre";
+}
+
+function getCheckinAt(e: EncontradoListItem): string | null {
+  return e.checkins?.checkinAt ?? null;
+}
+
+/** Formato "HH:MM am/pm" para tooltip. */
+function formatCheckinTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString("es", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return iso;
+  }
 }
 
 export interface RegistrosListProps {
@@ -129,6 +151,24 @@ export function RegistrosList({
                   Clave: {encontrado.sexo}
                   {encontrado.clave}
                 </span>
+                {getCheckinAt(encontrado) ? (
+                  <span className="group relative inline-flex shrink-0">
+                    <span className="inline-flex items-center justify-center text-green-600 dark:text-green-400">
+                      <HugeiconsIcon icon={Tick02Icon} size={20} />
+                    </span>
+                    <span
+                      role="tooltip"
+                      className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white shadow-md opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-gray-700"
+                    >
+                      El encontrado ya hizo checkin a las{" "}
+                      {formatCheckinTime(getCheckinAt(encontrado)!)}
+                      <span
+                        className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"
+                        aria-hidden
+                      />
+                    </span>
+                  </span>
+                ) : null}
               </div>
             );
           })}

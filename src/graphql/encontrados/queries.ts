@@ -27,6 +27,8 @@ export const ENCONTRADOS_QUERY = gql`
       tel_ref
       telefono
       update_at
+      celular
+      medicamento
       user {
         id
         name
@@ -57,11 +59,10 @@ export interface EncontradoListItem {
   tel_ref?: string | null;
   telefono?: string | null;
   update_at: string;
+  celular: boolean;
+  medicamento: boolean;
   user?: { id: string; name?: string | null } | null;
-  checkins?:
-    | { id: string; checkinAt: string }
-    | Array<{ id: string; checkinAt: string }>
-    | null;
+  checkins?: { id: string; checkinAt: string } | null;
 }
 
 export interface EncontradosQueryVariables {
@@ -104,7 +105,13 @@ export const ENCONTRADO_BY_ID_QUERY = gql`
       sexo
       tel_ref
       telefono
+      celular
+      medicamento
       update_at
+      checkins {
+        id
+        checkinAt
+      }
       user {
         id
         name

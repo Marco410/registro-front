@@ -19,6 +19,8 @@ export const encontradoSchema = z.object({
     .string()
     .min(1, "El teléfono del contacto de emergencia es obligatorio"),
   enfermedad: z.string().optional(),
+  celular: z.boolean().default(true),
+  medicamento: z.boolean().default(false),
   user_id: z.string().min(1, "El ID del usuario es obligatorio"),
 });
 

@@ -10,6 +10,7 @@ import {
   type CheckinsQueryResponse,
   type CheckinsQueryVariables,
 } from "registro/graphql/checkin/queries";
+import { PerformCheckinResponse } from "registro/graphql/checkin/mutations";
 
 function fullName(c: CheckinListItem): string {
   const e = c.encontrado;
@@ -39,13 +40,14 @@ export interface CheckinsListProps {
   userId: string | undefined;
   onSelect?: (checkin: CheckinListItem) => void;
   className?: string;
+  checkinSelected?: PerformCheckinResponse["performCheckin"] | null;
 }
 
 /**
  * Lista de check-ins realizados por el usuario: nombre del encontrado, fecha y quién lo registró.
  * Búsqueda por nombre y color por sexo (azul H, rosa M).
  */
-export function CheckinsList({ userId, onSelect, className }: CheckinsListProps) {
+export function CheckinsList({ userId, onSelect, className, checkinSelected }: CheckinsListProps) {
   const [search, setSearch] = useState("");
 
   const { data, loading, error } = useQuery<
@@ -122,6 +124,7 @@ export function CheckinsList({ userId, onSelect, className }: CheckinsListProps)
               ? "border-app-primary text-app-primary dark:bg-app-primary-muted/20 dark:border-app-primary-muted dark:text-app-primary-muted"
               : "border-pink-500 text-pink-600 dark:bg-pink-500/20 dark:border-pink-400 dark:text-pink-400";
             const registradoPor = c.encontrado?.user?.name ?? "—";
+            const isSelected = checkinSelected?.checkin?.id === c.id;
             return (
               <div
                 key={c.id}
@@ -134,16 +137,22 @@ export function CheckinsList({ userId, onSelect, className }: CheckinsListProps)
                         (ev.key === "Enter" || ev.key === " ") && onSelect(c)
                     : undefined
                 }
-                className={`rounded-xl border px-4 py-3 flex flex-row justify-between ${badgeClass} ${onSelect ? "cursor-pointer transition-opacity hover:opacity-90" : ""}`.trim()}
+                className={`rounded-xl border px-4 py-3 flex flex-row justify-between ${badgeClass} ${onSelect ? "cursor-pointer transition-opacity hover:opacity-90" : ""} ${isSelected ? "bg-app-primary/10  dark:bg-app-primary-muted/20" : ""}`.trim()}
               >
                 <div>
                   <p className="font-medium">{fullName(c)}</p>
                   <p className="mt-1 text-sm opacity-90">
                     {formatCheckinDate(c.checkinAt)}
                   </p>
-                  <p className="mt-0.5 text-xs opacity-80">
-                    Registrado por: {registradoPor}
-                  </p>
+                  <div className="flex flex-row gap-2">
+                    <p className="mt-0.5 text-xs opacity-80 text-app-text-secondary">
+                      Registrado por: <span className="font-bold">{registradoPor}</span>
+                    </p>
+                    |
+                    <p className="mt-0.5 text-xs opacity-80 text-app-text-secondary">
+                      Check-in por: <span className="font-bold">{c.user?.name}</span>
+                    </p>
+                  </div>
                 </div>
                 <div>
                   <p className="font-medium">

@@ -1,15 +1,23 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PrinterIcon } from "@hugeicons/core-free-icons";
+import {
+  PrinterIcon,
+  SmartPhone01Icon,
+  FirstAidKitIcon,
+} from "@hugeicons/core-free-icons";
 
 export interface CheckinResultData {
   clave: string;
   nombre: string;
+  apellido_p: string;
+  apellido_m?: string | null;
   sexo: "H" | "M";
   teamName?: string;
   seatLetter?: string;
+  celular?: boolean;
+  medicamento?: boolean;
 }
 
 export interface CheckinResultCardProps {
@@ -19,27 +27,46 @@ export interface CheckinResultCardProps {
 }
 
 /**
- * Tarjeta con la clave final (sexo+teamNumber+letter) y botón para imprimir gafete.
+ * Copias por defecto: 1 base + 1 si tiene celular + 1 si tiene medicamento.
+ */
+function getDefaultCopies(data: CheckinResultData): number {
+  return (
+    1 +
+    (data.celular ? 1 : 0) +
+    (data.medicamento ? 1 : 0)
+  );
+}
+
+/**
+ * Tarjeta con la clave final (sexo+teamNumber+letter), indicadores de celular/medicamento
+ * y botón para imprimir gafete. Las copias por defecto incluyen +1 por celular y +1 por medicamento.
  */
 export function CheckinResultCard({
   data,
   onPrint,
   className,
 }: CheckinResultCardProps) {
-  const [copies, setCopies] = useState(1);
+  const defaultCopies = getDefaultCopies(data);
+  const [copies, setCopies] = useState(defaultCopies);
   const printRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setCopies(getDefaultCopies(data));
+  }, [data.celular, data.medicamento]);
+
   const isHombre = data.sexo === "H";
+  const hasCelular = data.celular === true;
+  const hasMedicamento = data.medicamento === true;
+
   const cardClass = isHombre
-    ? "border-app-primary bg-app-primary/5 dark:bg-app-primary-muted/10"
-    : "border-pink-500 bg-pink-500/5 dark:bg-pink-500/10 dark:border-pink-400";
+    ? "border-app-primary bg-gradient-to-br from-app-primary/10 to-transparent dark:from-app-primary-muted/15"
+    : "border-pink-500 bg-gradient-to-br from-pink-500/10 to-transparent dark:from-pink-500/15 dark:border-pink-400";
 
   const handlePrint = () => {
     if (onPrint) {
       onPrint(copies);
       return;
     }
-    // Fallback: imprimir el contenido del ref N veces (copias en el diálogo)
     if (!printRef.current) return;
     const content = printRef.current.innerHTML;
     const printWindow = window.open("", "_blank");
@@ -59,53 +86,107 @@ export function CheckinResultCard({
 
   return (
     <div
-      className={`rounded-2xl border p-6 shadow-lg ${cardClass} ${className ?? ""}`.trim()}
+      className={`overflow-hidden rounded-2xl border-2 shadow-xl ${cardClass} ${className ?? ""}`.trim()}
     >
-      <div ref={printRef} className="inline-block rounded-xl bg-white/90 p-4 dark:bg-gray-900/90">
-        <p className="text-sm text-app-text-secondary dark:text-gray-400">
-          {data.nombre}
-        </p>
-        <p
-          className={`mt-1 text-3xl font-bold tracking-tight ${isHombre ? "text-app-primary" : "text-pink-600 dark:text-pink-400"}`}
+      <div className="p-6 sm:p-8">
+        <div
+          ref={printRef}
+          className={`relative overflow-hidden rounded-2xl border-2 bg-white/95 px-6 py-5 shadow-lg dark:bg-gray-900/95 ${
+            isHombre
+              ? "border-app-primary/30"
+              : "border-pink-500/30 dark:border-pink-400/30"
+          }`}
         >
-          {data.clave}
-        </p>
-        {data.teamName != null && (
-          <p className="mt-0.5 text-xs text-app-text-secondary dark:text-gray-400">
-            {data.teamName}
-            {data.seatLetter != null ? ` · Asiento ${data.seatLetter}` : ""}
+          <p className="text-sm font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400">
+            {data.nombre} {data.apellido_p} {data.apellido_m}
           </p>
-        )}
-      </div>
-
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <label
-            htmlFor="checkin-copies"
-            className="text-sm font-medium text-app-text-primary dark:text-gray-300"
+          <p
+            className={`mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl ${
+              isHombre ? "text-app-primary" : "text-pink-600 dark:text-pink-400"
+            }`}
           >
-            Copias
-          </label>
-          <input
-            id="checkin-copies"
-            type="number"
-            min={1}
-            max={99}
-            value={copies}
-            onChange={(e) =>
-              setCopies(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))
-            }
-            className="w-16 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-center text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-          />
+            {data.clave}
+          </p>
+          {(data.teamName != null || data.seatLetter != null) && (
+            <p className="mt-2 text-sm text-app-text-secondary dark:text-gray-400">
+              {data.teamName ?? ""}
+              {data.teamName != null && data.seatLetter != null && " · "}
+              {data.seatLetter != null ? `Asiento ${data.seatLetter}` : ""}
+            </p>
+          )}
+          {/* Indicadores celular / medicamento (solo visualización en gafete) */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {hasCelular && (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium ${
+                  isHombre
+                    ? "bg-app-primary/15 text-app-primary ~dark:bg-app-primary-muted/20"
+                    : "bg-pink-500/15 text-pink-700 dark:bg-pink-400/20 dark:text-pink-300"
+                }`}
+              >
+                <HugeiconsIcon icon={SmartPhone01Icon} size={14} />
+                Celular
+              </span>
+            )}
+            {hasMedicamento && (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium ${
+                  isHombre
+                    ? "bg-app-primary/15 text-app-primary dark:bg-app-primary-muted/20"
+                    : "bg-pink-500/15 text-pink-700 dark:bg-pink-400/20 dark:text-pink-300"
+                }`}
+              >
+                <HugeiconsIcon icon={FirstAidKitIcon} size={14} />
+                Medicamento
+              </span>
+            )}
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={handlePrint}
-          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors ${isHombre ? "bg-app-primary hover:bg-app-primary/90" : "bg-pink-600 hover:bg-pink-700"}`}
-        >
-          <HugeiconsIcon icon={PrinterIcon} size={20} />
-          Imprimir gafete
-        </button>
+
+        {/* Leyenda de copias y botón imprimir */}
+        <div className="mt-6 flex flex-wrap items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-3">
+            <label
+              htmlFor="checkin-copies"
+              className="text-sm font-medium text-app-text-primary dark:text-gray-300"
+            >
+              Copias
+            </label>
+            <input
+              id="checkin-copies"
+              type="number"
+              min={1}
+              max={99}
+              value={copies}
+              onChange={(e) =>
+                setCopies(
+                  Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)),
+                )
+              }
+              className="w-18 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 text-center text-sm font-semibold transition-colors focus:border-app-primary focus:outline-none focus:ring-2 focus:ring-app-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-app-primary-muted"
+            />
+            {(hasCelular || hasMedicamento) && (
+              <span className="text-xs text-app-text-secondary dark:text-gray-500">
+                (1 base
+                {hasCelular && " +1 celular"}
+                {hasMedicamento && " +1 medicamento"}
+                )
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handlePrint}
+            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.98] ${
+              isHombre
+                ? "bg-app-primary hover:bg-app-primary/90"
+                : "bg-pink-600 hover:bg-pink-700"
+            }`}
+          >
+            <HugeiconsIcon icon={PrinterIcon} size={20} />
+            Imprimir gafete
+          </button>
+        </div>
       </div>
     </div>
   );

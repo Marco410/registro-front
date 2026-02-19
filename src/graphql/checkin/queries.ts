@@ -11,11 +11,17 @@ export const CHECKINS_QUERY = gql`
       ageGroup {
         label
       }
+      user {
+        id
+        name
+      }
       encontrado {
         nombre
         apellido_p
         apellido_m
         sexo
+        celular
+        medicamento
         user {
           id
           name
@@ -47,6 +53,8 @@ export interface CheckinListItem {
     apellido_p: string;
     apellido_m: string;
     sexo: string;
+    celular: boolean;
+    medicamento: boolean;
     user?: { id: string; name?: string | null } | null;
   };
   seat?: { id: string; letter: string } | null;

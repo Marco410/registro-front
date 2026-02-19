@@ -22,6 +22,8 @@ function toMutationData(data: EncontradoFormData) {
     nom_ref: data.nom_ref || undefined,
     tel_ref: data.tel_ref || undefined,
     enfermedad: data.enfermedad || undefined,
+    celular: data.celular,
+    medicamento: data.medicamento,
     user: {
       connect: {
         id: data.user_id,

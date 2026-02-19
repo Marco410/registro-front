@@ -24,6 +24,8 @@ function toUpdateData(data: EncontradoFormData) {
     nom_ref: data.nom_ref || undefined,
     tel_ref: data.tel_ref || undefined,
     enfermedad: data.enfermedad || undefined,
+    celular: data.celular,
+    medicamento: data.medicamento,
     user: data.user_id
       ? { connect: { id: data.user_id } }
       : undefined,

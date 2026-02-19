@@ -76,6 +76,7 @@ export interface IdentificationFormProps {
   fechaMesRef: React.RefObject<HTMLInputElement>;
   fechaAnoRef: React.RefObject<HTMLInputElement>;
   className?: string;
+  disableFechaNacimiento?: boolean;
 }
 
 /**
@@ -94,9 +95,13 @@ export function IdentificationForm({
   fechaMesRef,
   fechaAnoRef,
   className,
+  disableFechaNacimiento = false,
 }: IdentificationFormProps) {
   const sexo = formData.sexo === "M" ? "M" : "H";
   const inputClass = getInputClass(sexo);
+  const fechaDisabledClass = disableFechaNacimiento
+    ? "pointer-events-none opacity-60"
+    : "";
 
   const applyFechaInputs = useCallback(
     (dia: string, mes: string, ano: string) => {
@@ -184,7 +189,7 @@ export function IdentificationForm({
             placeholder="Apellido materno"
           />
         </div>
-        <div className="w-full sm:col-span-2">
+        <div className={`w-full sm:col-span-2 ${fechaDisabledClass}`.trim()}>
           <fieldset className="flex w-full flex-row flex-nowrap items-end gap-3">
             <legend className={`${labelClass} shrink-0 pb-0`}>
               Fecha de nacimiento (DD/MM/AAAA)
@@ -198,6 +203,7 @@ export function IdentificationForm({
                 maxLength={2}
                 placeholder="Día"
                 value={fechaInputs.dia}
+                disabled={disableFechaNacimiento}
                 onChange={(e) => {
                   const v = e.target.value.replace(/\D/g, "").slice(0, 2);
                   onFechaInputsChange({ dia: v });
@@ -234,6 +240,7 @@ export function IdentificationForm({
                 maxLength={4}
                 placeholder="Año"
                 value={fechaInputs.ano}
+                disabled={disableFechaNacimiento}
                 onChange={(e) => {
                   const v = e.target.value.replace(/\D/g, "").slice(0, 4);
                   onFechaInputsChange({ ano: v });

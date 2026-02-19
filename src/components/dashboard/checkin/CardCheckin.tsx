@@ -48,22 +48,34 @@ export function CardCheckin({
         disabled={performingCheckin}
         onCancel={onCancel}
       />
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 justify-between">
+        <div className="flex flex-row gap-3">
+          <button
+            type="button"
+            onClick={onSaveOptions}
+            disabled={savingOptions || performingCheckin}
+            className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
+            >
+            {savingOptions ? "Guardando…" : "Guardar opciones"}
+          </button>
+        
+          <button
+            type="button"
+            onClick={onDoCheckin}
+            disabled={performingCheckin}
+            className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors disabled:opacity-60 ${isHombre ? "bg-app-primary hover:bg-app-primary/90" : "bg-pink-600 hover:bg-pink-700"}`}
+            >
+            {performingCheckin ? "Procesando…" : "Hacer check-in"}
+          </button>
+        </div>
+
         <button
           type="button"
-          onClick={onSaveOptions}
-          disabled={savingOptions || performingCheckin}
-          className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
-        >
-          {savingOptions ? "Guardando…" : "Guardar opciones"}
-        </button>
-        <button
-          type="button"
-          onClick={onDoCheckin}
+          onClick={onCancel}
           disabled={performingCheckin}
-          className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors disabled:opacity-60 ${isHombre ? "bg-app-primary hover:bg-app-primary/90" : "bg-pink-600 hover:bg-pink-700"}`}
+          className="rounded-xl border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-600 dark:hover:bg-red-700"
         >
-          {performingCheckin ? "Procesando…" : "Hacer check-in"}
+          Cancelar
         </button>
       </div>
     </div>

@@ -28,6 +28,7 @@ function buildClave(
 export default function CheckinPage() {
   const { user } = useAuth();
   const userId = user?.id != null ? String(user.id) : "";
+ 
 
   const [selected, setSelected] = useState<EncontradoListItem | null>(null);
   const [sexoFilter, setSexoFilter] = useState<"H" | "M" | null>("H");
@@ -36,6 +37,14 @@ export default function CheckinPage() {
   const [checkinResult, setCheckinResult] = useState<
     PerformCheckinResponse["performCheckin"] | null
   >(null);
+
+  const handleSelectEncontrado = (item: EncontradoListItem | null) => {
+    setSelected(item);
+    if (item != null) {
+      setCelular(item.celular ?? true);
+      setMedicamento(item.medicamento ?? false);
+    }
+  };
 
   const { updateCheckinOptions, loading: savingOptions } =
     useUpdateCheckinOptions();
@@ -86,15 +95,11 @@ export default function CheckinPage() {
         ageGroup: c.ageGroup ?? { id: "", label: "" },
         encontrado: {
           id: "",
-          nombre:
-            [
-              c.encontrado.nombre,
-              c.encontrado.apellido_p,
-              c.encontrado.apellido_m,
-            ]
-              .filter(Boolean)
-              .join(" ")
-              .trim() || c.encontrado.nombre,
+          celular: c.encontrado.celular,
+          medicamento: c.encontrado.medicamento,
+          nombre: c.encontrado.nombre,
+          apellido_p: c.encontrado.apellido_p ,
+          apellido_m: c.encontrado.apellido_m ?? "",
           sexo: c.encontrado.sexo,
         },
         seat: c.seat ?? { id: "", letter: "" },
@@ -122,9 +127,13 @@ export default function CheckinPage() {
           checkin.seat?.letter,
         ),
         nombre: checkin.encontrado.nombre,
+        apellido_p: checkin.encontrado.apellido_p,
+        apellido_m: checkin.encontrado.apellido_m,
         sexo: (checkin.encontrado.sexo === "M" ? "M" : "H") as "H" | "M",
         teamName: checkin.team?.teamName,
         seatLetter: checkin.seat?.letter,
+        celular: checkin.encontrado.celular,
+        medicamento: checkin.encontrado.medicamento,
       }
     : null;
 
@@ -195,7 +204,7 @@ export default function CheckinPage() {
                 <CheckinEncontradoSelector
                   userId={userId}
                   selectedId={selected?.id ?? null}
-                  onSelect={setSelected}
+                  onSelect={handleSelectEncontrado}
                   sexo={sexo}
                   sexoFilter={sexoFilter}
                 />
@@ -207,6 +216,7 @@ export default function CheckinPage() {
           <CheckinsList
             userId={userId}
             onSelect={handleSelectCheckinFromList}
+            checkinSelected={checkinResult ?? null}
           />
         </aside>
       </div>

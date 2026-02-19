@@ -20,7 +20,11 @@ export const PERFORM_CHECKIN_MUTATION = gql`
         encontrado {
           id
           nombre
+          apellido_p
+          apellido_m
           sexo
+          celular
+          medicamento
         }
         seat {
           id
@@ -45,8 +49,8 @@ export interface PerformCheckinResponse {
       id: string;
       checkinAt: string;
       ageGroup: { id: string; label: string };
-      encontrado: { id: string; nombre: string; sexo: string };
-      seat: { id: string; letter: string };
+        encontrado: { id: string; nombre: string; apellido_p: string; apellido_m: string; sexo: string; celular: boolean; medicamento: boolean };
+        seat: { id: string; letter: string };
       team: { id: string; teamNumber: number; teamName: string };
     } | null;
   };

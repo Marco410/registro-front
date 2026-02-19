@@ -34,6 +34,14 @@ function buildConfirmRows(
       label: "Enfermedad / padecimiento",
       value: displayValue(formData.enfermedad),
     },
+    {
+      label: "Tiene celular",
+      value: formData.celular ? "Sí" : "No",
+    },
+    {
+      label: "Tiene medicamento",
+      value: formData.medicamento ? "Sí" : "No",
+    },
   ];
 }
 
@@ -72,12 +80,12 @@ export function ConfirmRegistroModal({
         className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2
+        <h1
           id="confirm-modal-title"
           className="text-lg font-semibold text-app-text-primary dark:text-white"
         >
           Confirmar registro
-        </h2>
+        </h1>
         <p className="mt-1 text-sm text-app-text-secondary dark:text-gray-400">
           Revise los datos antes de guardar.
         </p>
