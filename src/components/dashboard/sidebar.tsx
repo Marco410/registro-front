@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
@@ -10,11 +10,22 @@ import {
   SeatSelectorIcon,
   Chart03Icon,
 } from "@hugeicons/core-free-icons";
+import { TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/const";
 
 const navItems = [
   { href: "/dashboard", label: "Inicio", icon: Home01Icon },
-  { href: "/dashboard/checkin", label: "Checkin", icon: CalendarCheckIn01Icon },
-  { href: "/dashboard/registro", label: "Registro", icon: ClipboardIcon },
+  {
+    href: `/dashboard?tab=${TAB_CHECKIN}`,
+    label: "Checkin",
+    icon: CalendarCheckIn01Icon,
+    tab: "checkin",
+  },
+  {
+    href: `/dashboard?tab=${TAB_REGISTRO}`,
+    label: "Registro",
+    icon: ClipboardIcon,
+    tab: "registro",
+  },
   { href: "/dashboard/aforo", label: "Aforo", icon: SeatSelectorIcon },
   { href: "/dashboard/estadisticas", label: "Estadísticas", icon: Chart03Icon },
 ] as const;
@@ -31,6 +42,18 @@ export function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
+
+  const isItemActive = (item: (typeof navItems)[number]) => {
+    if ("tab" in item && item.tab) {
+      return (
+        pathname === "/dashboard" &&
+        (item.tab === tab || (item.tab === "checkin" && tab == null))
+      );
+    }
+    return pathname === item.href;
+  };
 
   return (
     <>
@@ -79,8 +102,9 @@ export function Sidebar({
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href;
+          {navItems.map((item) => {
+            const { href, label, icon: Icon } = item;
+            const isActive = isItemActive(item);
             return (
               <Link
                 key={href}
