@@ -63,7 +63,7 @@ export function CheckinsList({ userId, onSelect, className, checkinSelected }: C
   const all = data?.checkins ?? [];
   const searchNorm = search.trim().toLowerCase();
   const list = searchNorm
-    ? all.filter((c) => fullName(c).toLowerCase().includes(searchNorm))
+    ? all.filter((c) => fullName(c).toLowerCase().includes(searchNorm) || c.clave?.toLowerCase().includes(searchNorm))
     : all;
 
   if (!userId) return null;
@@ -90,7 +90,7 @@ export function CheckinsList({ userId, onSelect, className, checkinSelected }: C
 
   return (
     <div className={`flex flex-col gap-4 ${className ?? ""}`.trim()}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:justify-between">
         <h2 className="text-xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-2xl">
           Mis check-ins ({list.length})
         </h2>
@@ -162,9 +162,7 @@ export function CheckinsList({ userId, onSelect, className, checkinSelected }: C
                 </div>
                 <div>
                   <p className="font-medium">
-                    {c.encontrado?.sexo}
-                    {c.team?.teamNumber}
-                    {c.seat?.letter}
+                    {c.clave}
                   </p>
                 </div>
               </div>

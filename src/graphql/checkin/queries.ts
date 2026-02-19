@@ -27,6 +27,7 @@ export const CHECKINS_QUERY = gql`
           name
         }
       }
+      clave
       seat {
         id
         letter
@@ -57,6 +58,7 @@ export interface CheckinListItem {
     medicamento: boolean;
     user?: { id: string; name?: string | null } | null;
   };
+  clave: string;
   seat?: { id: string; letter: string } | null;
   team?: { id: string; teamNumber: number; teamName: string } | null;
   user?: { id: string; name?: string | null } | null;

@@ -17,7 +17,7 @@ const navItems = [
   { href: routes.dashboard(), label: "Inicio", icon: Home01Icon },
   {
     href: routes.dashboardCheckin(),
-    label: "Checkin",
+    label: "Check-in",
     icon: CalendarCheckIn01Icon,
     tab: TAB_CHECKIN,
   },
