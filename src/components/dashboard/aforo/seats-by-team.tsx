@@ -89,13 +89,13 @@ export function SeatsByTeam() {
           Altar
         </span>
       </div>
-      {/* Sala: izquierda = hombres, derecha = mujeres (vista desde el escenario) */}
-      <div className="grid grid-cols-1 gap-6 p-4 md:grid-cols-2 md:gap-8">
-        <div className="flex flex-col items-stretch gap-3">
+      {/* Sala: izquierda = hombres, derecha = mujeres (vista desde el escenario); mujeres con más ancho */}
+      <div className="grid grid-cols-1 gap-2 p-4 md:grid-cols-[1fr_1.4fr] md:gap-5">
+        <div className="flex flex-col items-stretch gap-2">
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-app-primary dark:text-app-primary-muted">
             Hombres
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             {groups.map(({ team, key, seats: teamSeats }) => {
               const { hombres } = splitByGender(teamSeats);
               return (
@@ -110,11 +110,11 @@ export function SeatsByTeam() {
             })}
           </div>
         </div>
-        <div className="flex flex-col items-stretch gap-3">
+        <div className="flex flex-col items-stretch gap-2">
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-pink-600 dark:text-pink-400">
             Mujeres
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             {groups.map(({ team, key, seats: teamSeats }) => {
               const { mujeres } = splitByGender(teamSeats);
               return (

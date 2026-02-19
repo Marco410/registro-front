@@ -46,7 +46,7 @@ export function TeamGenderBlock({
   );
 }
 
-const SEAT_SIZE = "h-8 w-8";
+const SEAT_SIZE = "h-7 w-7";
 const SEAT_TEXT = "text-xs";
 
 function ocupadoPor(seat: Seat): string {
