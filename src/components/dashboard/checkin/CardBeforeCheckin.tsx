@@ -18,6 +18,7 @@ export interface CardBeforeCheckinProps {
   savingOptions: boolean;
   performingCheckin: boolean;
   onCancel: () => void;
+  onSelectedUpdate?: (item: EncontradoListItem) => void;
 }
 
 /**
@@ -36,6 +37,7 @@ export function CardBeforeCheckin({
   savingOptions,
   performingCheckin,
   onCancel,
+  onSelectedUpdate,
 }: CardBeforeCheckinProps) {
   const isHombre = sexo === "H";
   const onCancelRef = useRef(onCancel);
@@ -164,7 +166,10 @@ export function CardBeforeCheckin({
         encontradoId={editingEncontradoId}
         userId={user?.id ?? ""}
         onClose={() => setEditingEncontradoId(null)}
-        onSaved={() => setEditingEncontradoId(null)}
+        onSaved={(updated) => {
+          onSelectedUpdate?.(updated);
+          setEditingEncontradoId(null);
+        }}
       />
     </>
   );

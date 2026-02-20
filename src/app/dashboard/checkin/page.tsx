@@ -203,6 +203,11 @@ export default function CheckinPage() {
                   savingOptions={savingOptions}
                   performingCheckin={performingCheckin}
                   onCancel={() => setSelected(null)}
+                  onSelectedUpdate={(item) => {
+                    setSelected(item);
+                    setCelular(item.celular ?? true);
+                    setMedicamento(item.medicamento ?? false);
+                  }}
                 />
               )}
 

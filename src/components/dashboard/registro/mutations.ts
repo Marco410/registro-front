@@ -54,9 +54,15 @@ export const UPDATE_ENCONTRADO_MUTATION = gql`
       tel_ref
       telefono
       update_at
+      celular
+      medicamento
       user {
         id
         name
+      }
+      checkins {
+        id
+        checkinAt
       }
     }
   }

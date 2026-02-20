@@ -57,8 +57,7 @@ export interface EditEncontradoModalProps {
   encontradoId: string | null;
   userId: string;
   onClose: () => void;
-  onSaved?: () => void;
-  /** Si true, muestra alerta y deshabilita sexo y fecha de nacimiento. Si no se pasa, se deduce de los datos del encontrado (checkins). */
+  onSaved?: (updated: EncontradoListItem) => void;
   hasCheckin?: boolean;
 }
 
@@ -108,11 +107,10 @@ export function EditEncontradoModal({
   }, [open]);
 
   const { submitUpdate, loading: updateLoading } = useUpdateEncontrado({
-    onSuccess: () => {
-      onSaved?.();
+    onSuccess: (updated) => {
+      onSaved?.(updated);
       onClose();
     },
-    
   });
 
   const {
