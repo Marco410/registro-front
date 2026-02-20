@@ -6,6 +6,7 @@ import { gql } from "@apollo/client";
 export const CREATE_ENCONTRADO_MUTATION = gql`
   mutation CreateEncontradoTransactional($data: EncontradoCreateInput!) {
     createEncontradoTransactional(data: $data) {
+      id
       apellido_m
       apellido_p
       bautizo

@@ -42,7 +42,7 @@ export function useCreateEncontrado(options: UseCreateEncontradoOptions = {}) {
     CREATE_ENCONTRADO_MUTATION,
     {
       refetchQueries: ["Encontrados"],
-      onCompleted: () => {
+      onCompleted: (data) => {
         toast.success("Encontrado registrado correctamente");
         onSuccess?.();
       },
@@ -52,10 +52,13 @@ export function useCreateEncontrado(options: UseCreateEncontradoOptions = {}) {
     },
   );
 
-  const submitEncontrado = async (data: EncontradoFormData) => {
-    await createEncontrado({
+  const submitEncontrado = async (
+    data: EncontradoFormData,
+  ): Promise<{ id: string } | null> => {
+    const result = await createEncontrado({
       variables: { data: toMutationData(data) },
     });
+    return result.data?.createEncontradoTransactional ?? null;
   };
 
   return { submitEncontrado, loading };

@@ -19,8 +19,14 @@ import {
   useCreateEncontrado,
   ConfirmRegistroModal,
 } from "registro/components/dashboard/registro";
+import { usePerformCheckin } from "registro/components/dashboard/checkin";
 import { useAuth } from "registro/hooks/use-auth";
-import { getStoredSexo, REGISTRO_SEXO_KEY } from "registro/constants/const";
+import {
+  getStoredSexo,
+  PENDING_CHECKIN_RESULT_KEY,
+  REGISTRO_SEXO_KEY,
+} from "registro/constants/const";
+import { routes } from "registro/constants/routes";
 
 const initialValues: EncontradoFormData = {
   nombre: "",
@@ -88,21 +94,40 @@ export default function DashboardRegistroPage() {
   );
   const fechaMesRef = useRef<HTMLInputElement>(null);
   const fechaAnoRef = useRef<HTMLInputElement>(null);
+  const isRegisterAndCheckinRef = useRef(false);
   const hasData = hasFormData(formData);
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
+  const userId = user?.id != null ? String(user.id) : "";
+
+  const resetFormAfterSave = () => {
+    setShowConfirmModal(false);
+    setFormData((prev) => ({
+      ...initialValues,
+      sexo: prev.sexo,
+      user_id: userId,
+    }));
+    setErrors({});
+    setFechaInputs({ dia: "", mes: "", ano: "" });
+  };
 
   const { submitEncontrado, loading } = useCreateEncontrado({
     onSuccess: () => {
-      setShowConfirmModal(false);
-      setFormData((prev) => ({
-        ...initialValues,
-        sexo: prev.sexo,
-        user_id: user?.id != null ? String(user.id) : "",
-      }));
-      setErrors({});
-      setFechaInputs({ dia: "", mes: "", ano: "" });
+      if (!isRegisterAndCheckinRef.current) resetFormAfterSave();
+    },
+  });
+
+  const { performCheckin, loading: performingCheckin } = usePerformCheckin({
+    onSuccess: (result) => {
+      if (typeof window !== "undefined" && window.sessionStorage && result) {
+        window.sessionStorage.setItem(
+          PENDING_CHECKIN_RESULT_KEY,
+          JSON.stringify(result),
+        );
+      }
+      resetFormAfterSave();
+      router.push(routes.dashboardCheckin());
     },
   });
 
@@ -211,6 +236,19 @@ export default function DashboardRegistroPage() {
     const result = encontradoSchema.safeParse(formData);
     if (!result.success) return;
     await submitEncontrado(result.data);
+  };
+
+  const handleConfirmAndCheckin = async () => {
+    const result = encontradoSchema.safeParse(formData);
+    if (!result.success || !userId) return;
+    isRegisterAndCheckinRef.current = true;
+    try {
+      const created = await submitEncontrado(result.data);
+      if (!created?.id) return;
+      await performCheckin(created.id, userId);
+    } finally {
+      isRegisterAndCheckinRef.current = false;
+    }
   };
 
   const pageAccent =
@@ -336,8 +374,9 @@ export default function DashboardRegistroPage() {
       <ConfirmRegistroModal
         open={showConfirmModal}
         formData={formData}
-        loading={loading}
+        loading={loading || performingCheckin}
         onConfirm={handleConfirmSave}
+        onConfirmAndCheckin={handleConfirmAndCheckin}
         onCancel={() => setShowConfirmModal(false)}
       />
 

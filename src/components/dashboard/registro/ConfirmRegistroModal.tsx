@@ -1,7 +1,7 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, CalendarCheckIn01Icon } from "@hugeicons/core-free-icons";
 import {
   displayEdad,
   displayValue,
@@ -50,6 +50,8 @@ export interface ConfirmRegistroModalProps {
   formData: EncontradoFormData;
   loading: boolean;
   onConfirm: () => void | Promise<void>;
+  /** Registrar y luego hacer check-in; redirige a la pestaña Check-in con el resultado. */
+  onConfirmAndCheckin?: () => void | Promise<void>;
   onCancel: () => void;
 }
 
@@ -62,6 +64,7 @@ export function ConfirmRegistroModal({
   formData,
   loading,
   onConfirm,
+  onConfirmAndCheckin,
   onCancel,
 }: ConfirmRegistroModalProps) {
   if (!open) return null;
@@ -104,12 +107,12 @@ export function ConfirmRegistroModal({
             </div>
           ))}
         </dl>
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
           <button
             type="button"
             disabled={loading}
             onClick={onCancel}
-            className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-app-selected disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="rounded-xl border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-700"
           >
             Cancelar
           </button>
@@ -117,15 +120,26 @@ export function ConfirmRegistroModal({
             type="button"
             disabled={loading}
             onClick={onConfirm}
-            className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-50 ${
-              formData.sexo === "H"
-                ? "bg-app-primary hover:bg-app-primary/90"
-                : "bg-rose-600 hover:bg-rose-700"
-            }`}
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
           >
             <HugeiconsIcon icon={Add01Icon} size={18} />
             {loading ? "Guardando…" : "Confirmar y guardar"}
           </button>
+          {onConfirmAndCheckin && (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={onConfirmAndCheckin}
+              className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-50 ${
+                formData.sexo === "H"
+                  ? "bg-app-primary hover:bg-app-primary/90"
+                  : "bg-rose-600 hover:bg-rose-700"
+              }`}
+            >
+              <HugeiconsIcon icon={CalendarCheckIn01Icon} size={18} />
+              {loading ? "Guardando…" : "Registrar y hacer check-in"}
+            </button>
+          )}
         </div>
       </div>
     </div>

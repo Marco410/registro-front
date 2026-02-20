@@ -94,7 +94,7 @@ export function CheckinsList({ userId, onSelect, className, checkinSelected }: C
         <h2 className="text-xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-2xl">
           Mis check-ins ({list.length})
         </h2>
-        <div className="relative shrink-0 sm:w-52">
+        <div className="relative shrink-0">
           <HugeiconsIcon
             icon={Search01Icon}
             size={18}
@@ -104,7 +104,7 @@ export function CheckinsList({ userId, onSelect, className, checkinSelected }: C
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nombre"
+            placeholder="Buscar por nombre o clave. Ejem: 'Juan Perez', 'H1' o 'M1'"
             className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:border-app-primary focus:outline-none focus:ring-1 focus:ring-app-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400"
             aria-label="Buscar check-ins por nombre del encontrado"
           />

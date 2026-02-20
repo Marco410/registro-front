@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   CardCheckin,
@@ -16,7 +16,11 @@ import type { PerformCheckinResponse } from "registro/graphql/checkin/mutations"
 import type { CheckinListItem } from "registro/graphql/checkin/queries";
 import { useAuth } from "registro/hooks/use-auth";
 import { routes } from "registro/constants/routes";
-import { getStoredSexo, REGISTRO_SEXO_KEY } from "registro/constants/const";
+import {
+  getStoredSexo,
+  PENDING_CHECKIN_RESULT_KEY,
+  REGISTRO_SEXO_KEY,
+} from "registro/constants/const";
 
 function buildClave(
   sexo: string,
@@ -42,6 +46,19 @@ export default function CheckinPage() {
   const [checkinResult, setCheckinResult] = useState<
     PerformCheckinResponse["performCheckin"] | null
   >(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.sessionStorage) return;
+    try {
+      const stored = window.sessionStorage.getItem(PENDING_CHECKIN_RESULT_KEY);
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as PerformCheckinResponse["performCheckin"];
+      if (parsed?.checkin) setCheckinResult(parsed);
+      window.sessionStorage.removeItem(PENDING_CHECKIN_RESULT_KEY);
+    } catch {
+      window.sessionStorage.removeItem(PENDING_CHECKIN_RESULT_KEY);
+    }
+  }, []);
 
   const handleSelectEncontrado = (item: EncontradoListItem | null) => {
     setSelected(item);
@@ -131,9 +148,17 @@ export default function CheckinPage() {
           checkin.team?.teamNumber,
           checkin.seat?.letter,
         ),
-        nombre: checkin.encontrado.nombre,
-        apellido_p: checkin.encontrado.apellido_p,
-        apellido_m: checkin.encontrado.apellido_m,
+        nombre:
+          [
+            checkin.encontrado.nombre,
+            checkin.encontrado.apellido_p,
+            checkin.encontrado.apellido_m,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .trim() || checkin.encontrado.nombre,
+        apellido_p: checkin.encontrado.apellido_p ?? "",
+        apellido_m: checkin.encontrado.apellido_m ?? null,
         sexo: (checkin.encontrado.sexo === "M" ? "M" : "H") as "H" | "M",
         teamName: checkin.team?.teamName,
         seatLetter: checkin.seat?.letter,

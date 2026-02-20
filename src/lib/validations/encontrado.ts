@@ -7,7 +7,7 @@ export const encontradoSchema = z.object({
   sexo: z.string().min(1, "El sexo es obligatorio"),
   fecha_n: z.string().min(1, "La fecha de nacimiento es obligatoria"),
   estado_c: z.string().min(1, "El estado civil es obligatorio"),
-  religion: z.string().optional(),
+  religion: z.string().min(1, "La religión es obligatoria"),
   telefono: z.string().optional(),
   nom_ref: z
     .string()

@@ -71,7 +71,28 @@ export function RegistrosList({
   const all = data?.encontrados ?? [];
   const searchNorm = search.trim().toLowerCase();
   const list = searchNorm
-    ? all.filter((e) => fullName(e).toLowerCase().includes(searchNorm))
+    ? all.filter((e) => {
+        const nameMatch = fullName(e).toLowerCase().includes(searchNorm);
+        const clave = String(e.clave ?? "").replace(/\s+/g, "");
+        const sexo = (e.sexo ?? "").toUpperCase();
+        let claveMatch = false;
+        if (clave && sexo && ["H", "M"].includes(sexo)) {
+          const clavePattern = new RegExp(`^${sexo.toLowerCase()}${clave}$`);
+          const match = searchNorm.match(/^([hm])(\d+)$/i);
+          if (match) {
+            const [_, sLetra, sNum] = match;
+            claveMatch =
+              sLetra.toUpperCase() === sexo &&
+              clave === sNum;
+          } else {
+            const searchDigits = searchNorm.replace(/^[hm]/, "");
+            if (/^\d+$/.test(searchDigits) && searchDigits === clave) {
+              claveMatch = true;
+            }
+          }
+        }
+        return nameMatch || claveMatch;
+      })
     : all;
 
   if (!userId) return null;
@@ -102,7 +123,7 @@ export function RegistrosList({
         <h2 className="text-2xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
           Registros recientes ({list.length})
         </h2>
-        <div className="relative shrink-0 sm:w-56">
+        <div className="relative shrink-0 sm:w-1/2">
           <HugeiconsIcon
             icon={Search01Icon}
             size={18}
@@ -112,7 +133,7 @@ export function RegistrosList({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nombre"
+            placeholder="Buscar por nombre o clave. Ejem: 'Juan Perez', 'H1' o 'M1'"
             className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:border-app-primary focus:outline-none focus:ring-1 focus:ring-app-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400"
             aria-label="Buscar registros por nombre"
           />
