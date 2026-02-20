@@ -35,7 +35,6 @@ function buildClave(
 export default function CheckinPage() {
   const { user } = useAuth();
   const userId = user?.id != null ? String(user.id) : "";
- 
 
   const [selected, setSelected] = useState<EncontradoListItem | null>(null);
   const [sexoFilter, setSexoFilter] = useState<"H" | "M" | null>(() =>
@@ -52,7 +51,9 @@ export default function CheckinPage() {
     try {
       const stored = window.sessionStorage.getItem(PENDING_CHECKIN_RESULT_KEY);
       if (!stored) return;
-      const parsed = JSON.parse(stored) as PerformCheckinResponse["performCheckin"];
+      const parsed = JSON.parse(
+        stored,
+      ) as PerformCheckinResponse["performCheckin"];
       if (parsed?.checkin) setCheckinResult(parsed);
       window.sessionStorage.removeItem(PENDING_CHECKIN_RESULT_KEY);
     } catch {
@@ -120,7 +121,7 @@ export default function CheckinPage() {
           celular: c.encontrado.celular,
           medicamento: c.encontrado.medicamento,
           nombre: c.encontrado.nombre,
-          apellido_p: c.encontrado.apellido_p ,
+          apellido_p: c.encontrado.apellido_p,
           apellido_m: c.encontrado.apellido_m ?? "",
           sexo: c.encontrado.sexo,
         },
@@ -192,13 +193,17 @@ export default function CheckinPage() {
                   <button
                     type="button"
                     onClick={handleNewCheckin}
-                    className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-app-text-primary shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                    className="rounded-lg border border-green-300 bg-white px-4 py-2.5 text-sm font-medium text-green-600 shadow-sm transition-colors hover:bg-green-50 dark:border-green-600 dark:bg-green-800 dark:text-green-200 dark:hover:bg-green-700"
                   >
                     Hacer otro check-in
                   </button>
                   <Link
                     href={routes.dashboardRegistro()}
-                    className="inline-flex rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-app-text-primary shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                    className={`inline-flex rounded-lg border px-4 py-2.5 text-sm font-medium shadow-sm transition-colors ${
+                      resultData.sexo === "H"
+                        ? "border-app-primary bg-white text-app-primary hover:bg-app-primary/10 dark:border-app-primary-muted dark:bg-transparent dark:text-app-primary-muted dark:hover:bg-app-primary-muted/20"
+                        : "border-pink-500 bg-white text-pink-600 hover:bg-pink-500/10 dark:border-pink-400 dark:bg-transparent dark:text-pink-400 dark:hover:bg-pink-500/20"
+                    }`}
                   >
                     Ir a registro (nuevo encontrado)
                   </Link>

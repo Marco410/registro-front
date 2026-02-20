@@ -65,7 +65,7 @@ export function ReligionCounts({ sex = null }: ReligionCountsProps) {
   };
   const { data, loading, error } = useQuery<EncontradosReligionQueryResponse>(
     ENCONTRADOS_RELIGION_QUERY,
-    { variables: { where } },
+    { variables: { where }, pollInterval: 10000 },
   );
 
   if (loading) {
@@ -104,7 +104,9 @@ export function ReligionCounts({ sex = null }: ReligionCountsProps) {
               className="flex justify-between text-sm text-app-text-primary dark:text-gray-200"
             >
               <span>{name}</span>
-              <span className={valueClass(sex)}>{value.toLocaleString("es")}</span>
+              <span className={valueClass(sex)}>
+                {value.toLocaleString("es")}
+              </span>
             </li>
           ))}
         </ul>
