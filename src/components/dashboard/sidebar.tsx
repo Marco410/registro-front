@@ -16,16 +16,16 @@ import { TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/const";
 const navItems = [
   { href: routes.dashboard(), label: "Inicio", icon: Home01Icon },
   {
-    href: routes.dashboardCheckin(),
-    label: "Check-in",
-    icon: CalendarCheckIn01Icon,
-    tab: TAB_CHECKIN,
-  },
-  {
     href: routes.dashboardRegistro(),
     label: "Registro",
     icon: ClipboardIcon,
     tab: TAB_REGISTRO,
+  },
+  {
+    href: routes.dashboardCheckin(),
+    label: "Check-in",
+    icon: CalendarCheckIn01Icon,
+    tab: TAB_CHECKIN,
   },
   { href: routes.dashboardAforo(), label: "Aforo", icon: SeatSelectorIcon },
   {
@@ -54,7 +54,7 @@ export function Sidebar({
     if ("tab" in item && item.tab) {
       return (
         pathname === routes.dashboard() &&
-        (item.tab === tab || (item.tab === TAB_CHECKIN && tab == null))
+        (item.tab === tab || (item.tab === TAB_REGISTRO && tab == null))
       );
     }
     return pathname === item.href;

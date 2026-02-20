@@ -2,7 +2,6 @@
 
 import {
   AccountSetting01Icon,
-  ArrowLeft01Icon,
   CalendarIcon,
   CancelCircleIcon,
   ChurchIcon,
@@ -44,92 +43,109 @@ export function CheckinOptionsForm({
       ? "border-pink-500 dark:border-pink-400"
       : "border-app-primary dark:border-app-primary-muted";
 
+  const fullName = [
+    selected?.nombre,
+    selected?.apellido_p,
+    selected?.apellido_m,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toUpperCase();
+
   return (
     <section
-      className={`rounded-2xl border-l-4 border-gray-200 bg-app-sidebar p-4 shadow-sm dark:border-gray-700 dark:bg-[#202124] ${borderClass} ${className ?? ""}`.trim()}
+      className={`rounded-2xl border-l-4 border-gray-200 bg-app-sidebar p-6 shadow-sm dark:border-gray-700 dark:bg-[#202124] ${borderClass} ${className ?? ""}`.trim()}
     >
-      <div className="mb-3 flex w-full flex-row items-center justify-between">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300">
+      <div className="mb-6 flex w-full flex-row items-start justify-between gap-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
           Antes del check-in
         </h2>
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm text-app-text-secondary dark:text-gray-400"
+          className="-m-1 rounded-full p-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+          aria-label="Cerrar"
         >
-          <HugeiconsIcon icon={CancelCircleIcon} color="red" />
+          <HugeiconsIcon icon={CancelCircleIcon} color="red" size={22} />
         </button>
       </div>
-      <div className="mb-3 flex flex-col gap-5">
-        <div className={`flex flex-col gap-3`}>
-          <span
-            className={`flex flex-row text-2xl font-semibold items-center gap-2 ${sexo === "M" ? "text-pink-500" : "text-app-primary"}`}
-          >
-            <HugeiconsIcon icon={UserIcon} /> {selected?.nombre.toUpperCase()}{" "}
-            {selected?.apellido_p.toUpperCase()}{" "}
-            {selected?.apellido_m.toUpperCase()}
-          </span>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <span className="flex flex-row items-center gap-2 text-md text-app-text-secondary dark:text-gray-400">
-              <HugeiconsIcon icon={CalendarIcon} />
-              {selected?.edad} años
+
+      {/* Nombre */}
+      <p
+        className={`mb-6 text-xl font-semibold leading-tight ${sexo === "M" ? "text-pink-600 dark:text-pink-400" : "text-app-primary dark:text-app-primary-muted"}`}
+      >
+        {fullName}
+      </p>
+
+      <div className="mb-6 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
+        <div className="flex items-center gap-2 text-sm text-app-text-secondary dark:text-gray-400">
+          <HugeiconsIcon icon={CalendarIcon} size={18} className="shrink-0 opacity-70" />
+          <span>{selected?.edad} años</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-app-text-secondary dark:text-gray-400">
+          <HugeiconsIcon icon={AccountSetting01Icon} size={18} className="shrink-0 opacity-70" />
+          <span>{selected?.estado_c || "N/A"}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-app-text-secondary dark:text-gray-400">
+          <HugeiconsIcon icon={ChurchIcon} size={18} className="shrink-0 opacity-70" />
+          <span>{selected?.religion || "N/A"}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-app-text-secondary dark:text-gray-400">
+          <HugeiconsIcon icon={SmartPhone01Icon} size={18} className="shrink-0 opacity-70" />
+          <span>{selected?.telefono || "N/A"}</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {/* Contacto de emergencia */}
+        <div className="border-t border-gray-200 py-4 dark:border-gray-700">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+            Contacto de emergencia
+          </p>
+          <div className="flex flex-wrap items-center gap-4 text-sm text-app-text-primary dark:text-gray-300">
+            <span className="flex items-center gap-2">
+              <HugeiconsIcon icon={UserIcon} size={16} className="shrink-0 opacity-70" />
+              {selected?.nom_ref || "N/A"}
             </span>
-            <span className="flex flex-row items-center gap-2 text-md text-app-text-secondary dark:text-gray-400">
-              <HugeiconsIcon icon={AccountSetting01Icon} />
-              {selected?.estado_c || "N/A"}
-            </span>
-            <span className="flex flex-row items-center gap-2 text-md text-app-text-secondary dark:text-gray-400">
-              <HugeiconsIcon icon={ChurchIcon} />
-              {selected?.religion || "N/A"}
-            </span>
-            <span className="flex flex-row items-center gap-2 text-md text-app-text-secondary dark:text-gray-400">
-              <HugeiconsIcon icon={SmartPhone01Icon} />{" "}
-              {selected?.telefono || "N/A"}
-            </span>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300">
-              CONTACTO DE EMERGENCIA
-            </h3>
-            <div className="flex flex-row gap-2">
-              <span className="flex flex-row items-center gap-2 text-md text-app-text-secondary dark:text-gray-400">
-                <HugeiconsIcon icon={UserIcon} /> {selected?.nom_ref || "N/A"}
-              </span>
-              <span className="flex flex-row items-center gap-2 text-md text-app-text-secondary dark:text-gray-400">
-                <HugeiconsIcon icon={SmartPhone01Icon} />{" "}
-                {selected?.tel_ref || "N/A"}
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300">
-              ENFERMEDAD / PADECIMIENTO
-            </h3>
-            <span className="flex flex-row items-center gap-2 text-md text-app-text-secondary dark:text-gray-400">
-              {selected?.enfermedad || "N/A"}
+            <span className="flex items-center gap-2">
+              <HugeiconsIcon icon={SmartPhone01Icon} size={16} className="shrink-0 opacity-70" />
+              {selected?.tel_ref || "N/A"}
             </span>
           </div>
         </div>
-        <p className="text-xs text-app-text-secondary dark:text-gray-400">
-          Antes de hacer el check-in, indica si el encontrado tiene celular o
-          medicamento.
-        </p>
+
+        {/* Enfermedad / padecimiento */}
+        <div className="border-t border-gray-200 py-4 dark:border-gray-700">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+            Enfermedad / padecimiento
+          </p>
+          <p className="text-sm text-app-text-primary dark:text-gray-300">
+            {selected?.enfermedad || "N/A"}
+          </p>
+        </div>
       </div>
-      <div className="flex flex-wrap gap-6">
-        <Checkbox
-          sexo={sexo}
-          label="¿Tiene celular?"
-          checked={celular}
-          onChange={(e) => onCelularChange(e.target.checked)}
-          disabled={disabled}
-        />
-        <Checkbox
-          sexo={sexo}
-          label="¿Tiene medicamento?"
-          checked={medicamento}
-          onChange={(e) => onMedicamentoChange(e.target.checked)}
-          disabled={disabled}
-        />
+
+      {/* Opciones celular / medicamento */}
+      <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-700">
+        <p className="mb-4 text-xs text-app-text-secondary dark:text-gray-500">
+          Indica si tiene celular o medicamento antes del check-in.
+        </p>
+        <div className="flex flex-wrap gap-6">
+          <Checkbox
+            sexo={sexo}
+            label="¿Tiene celular?"
+            checked={celular}
+            onChange={(e) => onCelularChange(e.target.checked)}
+            disabled={disabled}
+          />
+          <Checkbox
+            sexo={sexo}
+            label="¿Tiene medicamento?"
+            checked={medicamento}
+            onChange={(e) => onMedicamentoChange(e.target.checked)}
+            disabled={disabled}
+          />
+        </div>
       </div>
     </section>
   );

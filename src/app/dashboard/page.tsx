@@ -15,7 +15,7 @@ type TabValue = (typeof VALID_TABS)[number];
 
 function parseTab(value: string | null): TabValue {
   if (value === TAB_CHECKIN || value === TAB_REGISTRO) return value;
-  return TAB_CHECKIN;
+  return TAB_REGISTRO;
 }
 
 export default function DashboardPage() {

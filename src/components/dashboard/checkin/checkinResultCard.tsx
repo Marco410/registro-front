@@ -84,6 +84,19 @@ export function CheckinResultCard({
     printWindow.close();
   };
 
+  const handlePrintRef = useRef(handlePrint);
+  handlePrintRef.current = handlePrint;
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && e.shiftKey) {
+        e.preventDefault();
+        handlePrintRef.current?.();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
+  }, []);
+
   return (
     <div
       className={`overflow-hidden rounded-2xl border-2 shadow-xl ${cardClass} ${className ?? ""}`.trim()}
@@ -174,18 +187,29 @@ export function CheckinResultCard({
               </span>
             )}
           </div>
-          <button
-            type="button"
-            onClick={handlePrint}
-            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.98] ${
-              isHombre
-                ? "bg-app-primary hover:bg-app-primary/90"
-                : "bg-pink-600 hover:bg-pink-700"
-            }`}
-          >
-            <HugeiconsIcon icon={PrinterIcon} size={20} />
-            Imprimir gafete
-          </button>
+          <div className="flex flex-col items-center">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.98] ${
+                isHombre
+                  ? "bg-app-primary hover:bg-app-primary/90"
+                  : "bg-pink-600 hover:bg-pink-700"
+              }`}
+            >
+              <HugeiconsIcon icon={PrinterIcon} size={20} />
+              Imprimir gafete
+            </button>
+            <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
+              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                Shift
+              </kbd>{" "}
+              +{" "}
+              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                Enter
+              </kbd>
+            </span>
+          </div>
         </div>
       </div>
     </div>

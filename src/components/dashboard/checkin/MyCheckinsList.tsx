@@ -36,7 +36,7 @@ function formatCheckinDate(iso: string): string {
   }
 }
 
-export interface CheckinsListProps {
+export interface MyCheckinsListProps {
   userId: string | undefined;
   onSelect?: (checkin: CheckinListItem) => void;
   className?: string;
@@ -47,7 +47,7 @@ export interface CheckinsListProps {
  * Lista de check-ins realizados por el usuario: nombre del encontrado, fecha y quién lo registró.
  * Búsqueda por nombre y color por sexo (azul H, rosa M).
  */
-export function CheckinsList({ userId, onSelect, className, checkinSelected }: CheckinsListProps) {
+export function MyCheckinsList({ userId, onSelect, className, checkinSelected }: MyCheckinsListProps) {
   const [search, setSearch] = useState("");
 
   const { data, loading, error } = useQuery<

@@ -15,6 +15,7 @@ import {
   type EncontradosQueryResponse,
   type EncontradosQueryVariables,
 } from "registro/graphql/encontrados/queries";
+import { SexoSelector } from "registro/components/shared";
 
 function fullName(e: EncontradoListItem): string {
   const parts = [e.nombre, e.apellido_p, e.apellido_m].filter(Boolean);
@@ -49,6 +50,8 @@ export interface CheckinEncontradoSelectorProps {
   sexo?: "H" | "M";
   /** Filtrar lista por sexo (null = todos). */
   sexoFilter?: "H" | "M" | null;
+  /** Callback al cambiar el filtro por sexo (muestra el control de filtro). */
+  onSexoFilterChange?: (value: "H" | "M") => void;
   className?: string;
 }
 
@@ -61,6 +64,7 @@ export function CheckinEncontradoSelector({
   onSelect,
   sexo = "H",
   sexoFilter = null,
+  onSexoFilterChange,
   className,
 }: CheckinEncontradoSelectorProps) {
   const [search, setSearch] = useState("");
@@ -133,7 +137,31 @@ export function CheckinEncontradoSelector({
       : "border-app-primary focus:ring-app-primary/30";
 
   return (
-    <div className={className}>
+    <section className={className}>
+      {(onSexoFilterChange != null) && (
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300">
+            Seleccionar registro
+          </h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400">
+              Filtrar por sexo
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <SexoSelector
+                value={sexoFilter ?? "H"}
+                onChange={(e) => {
+                  const value = e.target.value as "H" | "M";
+                  onSexoFilterChange(value);
+                }}
+                label=""
+                className="!mb-0"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      <div>
       <div className="relative mb-3">
         <HugeiconsIcon
           icon={Search01Icon}
@@ -281,6 +309,7 @@ export function CheckinEncontradoSelector({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </section>
   );
 }
