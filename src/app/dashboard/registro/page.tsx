@@ -27,6 +27,7 @@ import {
   REGISTRO_SEXO_KEY,
 } from "registro/constants/const";
 import { routes } from "registro/constants/routes";
+import { toast } from "sonner";
 
 const initialValues: EncontradoFormData = {
   nombre: "",
@@ -95,6 +96,7 @@ export default function DashboardRegistroPage() {
   const fechaMesRef = useRef<HTMLInputElement>(null);
   const fechaAnoRef = useRef<HTMLInputElement>(null);
   const isRegisterAndCheckinRef = useRef(false);
+  const checkinErrorHandledRef = useRef(false);
   const hasData = hasFormData(formData);
   const pathname = usePathname();
   const router = useRouter();
@@ -118,6 +120,16 @@ export default function DashboardRegistroPage() {
     },
   });
 
+  const handleCheckinError = () => {
+    if (checkinErrorHandledRef.current) return;
+    checkinErrorHandledRef.current = true;
+    resetFormAfterSave();
+    toast.error(
+      "Hubo un error al hacer check-in pero el encontrado se registró correctamente. Por favor inténtelo de nuevo en la pestaña Check-in.",
+    );
+    router.push(routes.dashboardCheckin());
+  };
+
   const { performCheckin, loading: performingCheckin } = usePerformCheckin({
     onSuccess: (result) => {
       if (typeof window !== "undefined" && window.sessionStorage && result) {
@@ -129,6 +141,7 @@ export default function DashboardRegistroPage() {
       resetFormAfterSave();
       router.push(routes.dashboardCheckin());
     },
+    onError: handleCheckinError,
   });
 
   useEffect(() => {
@@ -242,10 +255,13 @@ export default function DashboardRegistroPage() {
     const result = encontradoSchema.safeParse(formData);
     if (!result.success || !userId) return;
     isRegisterAndCheckinRef.current = true;
+    checkinErrorHandledRef.current = false;
     try {
       const created = await submitEncontrado(result.data);
       if (!created?.id) return;
       await performCheckin(created.id, userId);
+    } catch {
+      handleCheckinError();
     } finally {
       isRegisterAndCheckinRef.current = false;
     }

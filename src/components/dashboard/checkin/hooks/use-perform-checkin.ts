@@ -10,10 +10,11 @@ import {
 
 export interface UsePerformCheckinOptions {
   onSuccess?: (data: PerformCheckinResponse["performCheckin"]) => void;
+  onError?: (error: Error) => void;
 }
 
 export function usePerformCheckin(options: UsePerformCheckinOptions = {}) {
-  const { onSuccess } = options;
+  const { onSuccess, onError } = options;
 
   const [performCheckin, { loading }] = useMutation<
     PerformCheckinResponse,
@@ -30,7 +31,8 @@ export function usePerformCheckin(options: UsePerformCheckinOptions = {}) {
       onSuccess?.(result);
     },
     onError: (err) => {
-      toast.error(err.message ?? "Error al hacer check-in");
+      if (!onError) toast.error(err.message ?? "Error al hacer check-in");
+      onError?.(err);
     },
   });
 
