@@ -190,11 +190,11 @@ export function IdentificationForm({
           />
         </div>
         <div className={`w-full sm:col-span-2 ${fechaDisabledClass}`.trim()}>
-          <fieldset className="flex w-full flex-row flex-nowrap items-end gap-3">
+          <fieldset className="flex w-full flex-row flex-nowrap items-end gap-2">
             <legend className={`${labelClass} shrink-0 pb-0`}>
               Fecha de nacimiento (DD/MM/AAAA)
             </legend>
-            <div className="flex min-w-0 flex-1 flex-row flex-nowrap items-center gap-2">
+            <div className="flex flex-1 flex-row flex-nowrap items-center gap-2">
               <input
                 id="fecha_dia"
                 type="text"

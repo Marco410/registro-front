@@ -95,6 +95,8 @@ export default function DashboardRegistroPage() {
   );
   const fechaMesRef = useRef<HTMLInputElement>(null);
   const fechaAnoRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const clearFormRef = useRef<(() => void) | null>(null);
   const isRegisterAndCheckinRef = useRef(false);
   const checkinErrorHandledRef = useRef(false);
   const hasData = hasFormData(formData);
@@ -102,6 +104,21 @@ export default function DashboardRegistroPage() {
   const router = useRouter();
   const { user } = useAuth();
   const userId = user?.id != null ? String(user.id) : "";
+
+  const handleClearForm = () => {
+    if (hasData) {
+      setShowDiscardModal(true);
+    } else {
+      setFormData((prev) => ({
+        ...initialValues,
+        sexo: prev.sexo,
+        user_id: user?.id != null ? String(user.id) : "",
+      }));
+      setErrors({});
+      setFechaInputs({ dia: "", mes: "", ano: "" });
+    }
+  };
+  clearFormRef.current = handleClearForm;
 
   const resetFormAfterSave = () => {
     setShowConfirmModal(false);
@@ -119,6 +136,27 @@ export default function DashboardRegistroPage() {
       if (!isRegisterAndCheckinRef.current) resetFormAfterSave();
     },
   });
+
+  const loadingRef = useRef(loading);
+  loadingRef.current = loading;
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      console.log("useEffect", e.key, e.shiftKey, loadingRef.current);
+      if (e.key === "Enter" && e.shiftKey && !loadingRef.current) {
+        e.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+      if (
+        (e.key === "Delete" || e.key === "Backspace" || e.key === "Escape") &&
+        e.shiftKey
+      ) {
+        e.preventDefault();
+        clearFormRef.current?.();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, []);
 
   const handleCheckinError = () => {
     if (checkinErrorHandledRef.current) return;
@@ -292,7 +330,7 @@ export default function DashboardRegistroPage() {
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-2">
           <IdentificationForm
             formData={formData}
@@ -330,39 +368,39 @@ export default function DashboardRegistroPage() {
         </div>
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={() => {
-              if (hasData) {
-                setShowDiscardModal(true);
-              } else {
-                setFormData((prev) => ({
-                  ...initialValues,
-                  sexo: prev.sexo,
-                  user_id: user?.id != null ? String(user.id) : "",
-                }));
-                setErrors({});
-                setFechaInputs({ dia: "", mes: "", ano: "" });
-              }
-            }}
-            className={`rounded-xl border px-5 py-2.5 text-sm font-medium text-app-text-primary transition-colors dark:text-gray-300 dark:hover:bg-gray-800 ${formData.sexo === "H" ? "border-gray-300 hover:bg-app-selected dark:border-gray-600" : "hover:bg-pink-500/10 dark:border-pink-400"}`}
-          >
-            Limpiar
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
-              formData.sexo === "H"
-                ? "bg-app-primary hover:bg-app-primary/90 focus:ring-app-primary focus:ring-offset-2 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
-                : "bg-rose-600 hover:bg-rose-700 focus:ring-rose-500 focus:ring-offset-2 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
-            }`}
-          >
-            <HugeiconsIcon icon={Add01Icon} size={18} />
-            {loading
-              ? "Guardando…"
-              : `Registrar ${formData.sexo === "H" ? "encontrado" : "encontrada"} `}
-          </button>
+          <div className="flex flex-col items-center">
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className={`w-full rounded-xl border px-5 py-2.5 text-sm font-medium text-app-text-primary transition-colors dark:text-gray-300 dark:hover:bg-gray-800 ${formData.sexo === "H" ? "border-gray-300 hover:bg-app-selected dark:border-gray-600" : "hover:bg-pink-500/10 dark:border-pink-400"}`}
+              >
+              Limpiar
+            </button>
+            <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
+            <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Shift</kbd> + (<kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Backspace</kbd> o <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">ESC</kbd>)
+            </span>
+          </div>
+          <div className="flex flex-col items-center">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+                formData.sexo === "H"
+                  ? "bg-app-primary hover:bg-app-primary/90 focus:ring-app-primary focus:ring-offset-2 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
+                  : "bg-rose-600 hover:bg-rose-700 focus:ring-rose-500 focus:ring-offset-2 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
+              }`}
+            >
+              <HugeiconsIcon icon={Add01Icon} size={18} />
+              {loading
+                ? "Guardando…"
+                : `Registrar ${
+                    formData.sexo === "H" ? "encontrado" : "encontrada"
+                  } `}
+            </button>
+            <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
+              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Shift</kbd> + <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Enter</kbd>
+            </span>
+          </div>
         </div>
       </form>
 

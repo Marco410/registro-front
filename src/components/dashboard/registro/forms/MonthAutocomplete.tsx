@@ -71,7 +71,7 @@ export function MonthAutocomplete({
   };
 
   return (
-    <div className="relative min-w-0 flex-1">
+    <div className="relative min-w-0 flex-[1.5]">
       <input
         ref={inputRef}
         id={id}
@@ -112,7 +112,7 @@ export function MonthAutocomplete({
         <ul
           id={`${id}_list`}
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-[#202124]"
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-[#202124]"
         >
           {filtered.length === 0 ? (
             <li className="px-3 py-2 text-center text-sm text-app-text-secondary dark:text-gray-400">
