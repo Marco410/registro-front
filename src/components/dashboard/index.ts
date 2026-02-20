@@ -2,10 +2,10 @@ export { Sidebar } from "./sidebar";
 export { MobileMenuButton } from "./mobile-menu-button";
 export { SeatsByTeam } from "./aforo";
 export {
-  EstadoCivilBarChart,
-  type EstadoCivilBarChartProps,
-} from "./EstadoCivilBarChart";
+  EstadoCivilCounts,
+  type EstadoCivilCountsProps,
+} from "./estadisticas/EstadoCivilCounts";
 export {
-  ReligionBarChart,
-  type ReligionBarChartProps,
-} from "./ReligionBarChart";
+  ReligionCounts,
+  type ReligionCountsProps,
+} from "./estadisticas/ReligionCounts";

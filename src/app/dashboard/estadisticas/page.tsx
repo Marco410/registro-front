@@ -1,7 +1,7 @@
 import { AforoCountsCards } from "registro/components/shared";
 import {
-  EstadoCivilBarChart,
-  ReligionBarChart,
+  EstadoCivilCounts,
+  ReligionCounts,
 } from "registro/components/dashboard";
 
 export default function StatisticsPage() {
@@ -16,29 +16,25 @@ export default function StatisticsPage() {
       <div className="mt-8">
         <AforoCountsCards />
       </div>
-      <div className="mt-8 border-t border-gray-200 dark:border-gray-700">
-        <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white mt-5">
+      <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h2 className="text-xl font-semibold tracking-tight text-app-text-primary dark:text-white">
           Estado civil
-        </h1>
+        </h2>
       </div>
-      <div className="mt-8 flex justify-start">
-        <EstadoCivilBarChart />
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <EstadoCivilCounts />
+        <EstadoCivilCounts sex="H" />
+        <EstadoCivilCounts sex="M" />
       </div>
-      <div className="mt-8 flex justify-start gap-4">
-        <EstadoCivilBarChart sex="H" />
-        <EstadoCivilBarChart sex="M" />
-      </div>
-      <div className="mt-8 border-t border-gray-200 dark:border-gray-700">
-        <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white mt-5">
+      <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h2 className="text-xl font-semibold tracking-tight text-app-text-primary dark:text-white">
           Religión
-        </h1>
+        </h2>
       </div>
-      <div className="mt-8 flex justify-start">
-        <ReligionBarChart />
-      </div>
-      <div className="mt-8 flex justify-start gap-4">
-        <ReligionBarChart sex="H" />
-        <ReligionBarChart sex="M" />
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ReligionCounts />
+        <ReligionCounts sex="H" />
+        <ReligionCounts sex="M" />
       </div>
     </div>
   );

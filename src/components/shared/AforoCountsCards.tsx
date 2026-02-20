@@ -17,7 +17,9 @@ const cardBase =
   "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-[#202124]";
 
 export function AforoCountsCards() {
-  const { data, loading, error } = useQuery<AforoResponse>(AFORO_QUERY);
+  const { data, loading, error } = useQuery<AforoResponse>(AFORO_QUERY, {
+    pollInterval: 10000,
+  });
 
   if (loading) {
     return (
@@ -68,6 +70,27 @@ export function AforoCountsCards() {
       label: "Mujeres",
       value: counts.checkinsCountM,
       icon: CalendarCheckIn01Icon,
+      className: "text-pink-600 dark:text-pink-400",
+      iconBg: "bg-pink-500/10 dark:bg-pink-500/20",
+    },
+    {
+      label: "Total encontrados",
+      value: counts.encontradosCount,
+      icon: UserIcon,
+      className: "text-app-text-primary dark:text-gray-200",
+      iconBg: "bg-gray-100 dark:bg-gray-700",
+    },
+    {
+      label: "Hombres encontrados",
+      value: counts.encontradosCountH,
+      icon: UserIcon,
+      className: "text-app-primary dark:text-app-primary-muted",
+      iconBg: "bg-app-primary/10 dark:bg-app-primary-muted/20",
+    },
+    {
+      label: "Mujeres encontradas",
+      value: counts.encontradosCountM,
+      icon: UserIcon,
       className: "text-pink-600 dark:text-pink-400",
       iconBg: "bg-pink-500/10 dark:bg-pink-500/20",
     },

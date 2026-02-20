@@ -77,6 +77,9 @@ export interface SeatsQueryResponse {
 
 export const AFORO_QUERY = gql`
   query DashboardCounts {
+    encontradosCount
+    encontradosCountH: encontradosCount(where: { sexo: { equals: "H" } })
+    encontradosCountM: encontradosCount(where: { sexo: { equals: "M" } })
     checkinsCount
     checkinsCountH: checkinsCount(
       where: { encontrado: { sexo: { equals: "H" } } }
@@ -91,4 +94,7 @@ export interface AforoResponse {
   checkinsCount: number;
   checkinsCountH: number;
   checkinsCountM: number;
+  encontradosCount: number;
+  encontradosCountH: number;
+  encontradosCountM: number;
 }
