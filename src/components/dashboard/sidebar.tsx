@@ -9,11 +9,13 @@ import {
   ClipboardIcon,
   SeatSelectorIcon,
   Chart03Icon,
+  UserSearch01Icon,
 } from "@hugeicons/core-free-icons";
 import { routes } from "registro/constants/routes";
 import { TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/const";
+import { useAuth } from "registro/contexts/auth-context";
 
-const navItems = [
+const baseNavItems = [
   { href: routes.dashboard(), label: "Inicio", icon: Home01Icon },
   {
     href: routes.dashboardRegistro(),
@@ -35,6 +37,12 @@ const navItems = [
   },
 ] as const;
 
+type NavItem = (typeof baseNavItems)[number] | {
+  href: string;
+  label: string;
+  icon: typeof UserSearch01Icon;
+};
+
 interface SidebarProps {
   isCollapsed: boolean;
   isMobileOpen?: boolean;
@@ -49,8 +57,17 @@ export function Sidebar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
+  const { user } = useAuth();
 
-  const isItemActive = (item: (typeof navItems)[number]) => {
+  const isAdmin = user?.roles?.some((role) => role.name === "admin");
+  const navItems: NavItem[] = isAdmin
+    ? [
+        ...baseNavItems,
+        { href: routes.dasboardUsers(), label: "Usuarios", icon: UserSearch01Icon },
+      ]
+    : [...baseNavItems];
+
+  const isItemActive = (item: NavItem) => {
     if ("tab" in item && item.tab) {
       return (
         pathname === routes.dashboard() &&
