@@ -62,7 +62,31 @@ export function CheckinResultCard({
     ? "border-app-primary bg-gradient-to-br from-app-primary/10 to-transparent dark:from-app-primary-muted/15"
     : "border-pink-500 bg-gradient-to-br from-pink-500/10 to-transparent dark:from-pink-500/15 dark:border-pink-400";
 
-  const handlePrint = () => {
+    const handlePrint = async () => { 
+      try { 
+        const response = await fetch("http://localhost:3001/api/imprimir-gafete", { 
+          method: "POST", 
+          headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify({ 
+            nombre: data.nombre, 
+            fila: data.clave, 
+            numCopias: copies, 
+          }), 
+        }); 
+        const result = await response.json(); 
+        if (result.ok) { 
+          //alert("Gafete enviado a la impresora correctamente"); 
+        } else { 
+          alert("Error al imprimir: " + result.error); 
+        } 
+      } catch (err) { 
+        console.error(err); alert("Error de conexión con el servidor"); 
+      } 
+    };
+  
+        /*
+        const handlePrint = () => {
+    
     if (onPrint) {
       onPrint(copies);
       return;
@@ -82,7 +106,9 @@ export function CheckinResultCard({
     printWindow.focus();
     printWindow.print();
     printWindow.close();
-  };
+  
+
+  };*/
 
   return (
     <div
