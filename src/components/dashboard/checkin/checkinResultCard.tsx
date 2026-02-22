@@ -8,6 +8,7 @@ import {
   FirstAidKitIcon,
 } from "@hugeicons/core-free-icons";
 import { usePrintGafete } from "./hooks/use-printer-gafete";
+import { toast } from "sonner";
 
 export interface CheckinResultData {
   clave: string;
@@ -65,7 +66,11 @@ export function CheckinResultCard({
       onPrint(copies);
       return;
     }
-    await PrintGafete(data.nombre, data.clave, copies);
+    try {
+      await PrintGafete(data.nombre, data.clave, copies);
+    } catch {
+      toast.error("No se pudo abrir la impresión");
+    }
   };
 
   const handlePrintRef = useRef(handlePrint);
@@ -174,14 +179,15 @@ export function CheckinResultCard({
             <button
               type="button"
               onClick={handlePrint}
-              className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.98] ${
+              disabled={loading}
+              className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none ${
                 isHombre
                   ? "bg-app-primary hover:bg-app-primary/90"
                   : "bg-pink-600 hover:bg-pink-700"
               }`}
             >
               <HugeiconsIcon icon={PrinterIcon} size={20} />
-              Imprimir gafete
+              {loading ? "Preparando…" : "Imprimir gafete"}
             </button>
             <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
               <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
