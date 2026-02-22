@@ -7,6 +7,7 @@ import {
   SmartPhone01Icon,
   FirstAidKitIcon,
 } from "@hugeicons/core-free-icons";
+import { usePrintGafete } from "./hooks/use-printer-gafete";
 
 export interface CheckinResultData {
   clave: string;
@@ -49,6 +50,7 @@ export function CheckinResultCard({
   const defaultCopies = getDefaultCopies(data);
   const [copies, setCopies] = useState(defaultCopies);
   const printRef = useRef<HTMLDivElement>(null);
+  const { PrintGafete, loading } = usePrintGafete();
 
   useEffect(() => {
     setCopies(getDefaultCopies(data));
@@ -62,53 +64,13 @@ export function CheckinResultCard({
     ? "border-app-primary bg-gradient-to-br from-app-primary/10 to-transparent dark:from-app-primary-muted/15"
     : "border-pink-500 bg-gradient-to-br from-pink-500/10 to-transparent dark:from-pink-500/15 dark:border-pink-400";
 
-    const handlePrint = async () => { 
-      try { 
-        const response = await fetch("http://localhost:3001/api/imprimir-gafete", { 
-          method: "POST", 
-          headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify({ 
-            nombre: data.nombre, 
-            fila: data.clave, 
-            numCopias: copies, 
-          }), 
-        }); 
-        const result = await response.json(); 
-        if (result.ok) { 
-          //alert("Gafete enviado a la impresora correctamente"); 
-        } else { 
-          alert("Error al imprimir: " + result.error); 
-        } 
-      } catch (err) { 
-        console.error(err); alert("Error de conexión con el servidor"); 
-      } 
-    };
-  
-        /*
-        const handlePrint = () => {
-    
+  const handlePrint = async () => {
     if (onPrint) {
       onPrint(copies);
       return;
     }
-    if (!printRef.current) return;
-    const content = printRef.current.innerHTML;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html><head><title>Gafete - ${data.clave}</title></head>
-      <body style="margin:0;padding:1rem;font-family:system-ui;">
-        ${Array(copies).fill(`<div style="margin-bottom:1rem;">${content}</div>`).join("")}
-      </body></html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  
-
-  };*/
+    await PrintGafete(data.nombre, data.clave, copies);
+  };
 
   return (
     <div
@@ -203,14 +165,15 @@ export function CheckinResultCard({
           <button
             type="button"
             onClick={handlePrint}
-            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.98] ${
+            disabled={loading}
+            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed ${
               isHombre
                 ? "bg-app-primary hover:bg-app-primary/90"
                 : "bg-pink-600 hover:bg-pink-700"
             }`}
           >
             <HugeiconsIcon icon={PrinterIcon} size={20} />
-            Imprimir gafete
+            {loading ? "Imprimiendo…" : "Imprimir gafete"}
           </button>
         </div>
       </div>
