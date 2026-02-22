@@ -8,7 +8,7 @@ import {
   CheckinResultCard,
   usePerformCheckin,
   useUpdateCheckinOptions,
-  MyCheckinsList
+  MyCheckinsList,
 } from "registro/components/dashboard/checkin";
 import type { EncontradoListItem } from "registro/graphql/encontrados/queries";
 import type { PerformCheckinResponse } from "registro/graphql/checkin/mutations";
@@ -147,15 +147,7 @@ export default function CheckinPage() {
           checkin.team?.teamNumber,
           checkin.seat?.letter,
         ),
-        nombre:
-          [
-            checkin.encontrado.nombre,
-            checkin.encontrado.apellido_p,
-            checkin.encontrado.apellido_m,
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .trim() || checkin.encontrado.nombre,
+        nombre: checkin.encontrado.nombre,
         apellido_p: checkin.encontrado.apellido_p ?? "",
         apellido_m: checkin.encontrado.apellido_m ?? null,
         sexo: (checkin.encontrado.sexo === "M" ? "M" : "H") as "H" | "M",
