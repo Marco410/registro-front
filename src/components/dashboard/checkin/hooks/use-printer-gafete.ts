@@ -79,9 +79,17 @@ function buildPrintDocument(nombreFinal: string, fila: string, copies: number): 
       height: ${GAFETE_HEIGHT_MM}mm;
       position: relative;
       box-sizing: border-box;
-      background: url(${IMAGE_URL}) no-repeat center;
-      background-size: cover;
       overflow: hidden;
+    }
+    .gafete-formato-img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      z-index: 0;
     }
     .gafete-name {
       position: absolute;
@@ -95,11 +103,13 @@ function buildPrintDocument(nombreFinal: string, fila: string, copies: number): 
       font-size: 29pt;
       color: #000;
       margin: 0;
+      z-index: 1;
     }
     .gafete-fila-wrap {
       position: absolute;
       left: 10px;
       bottom: 18px;
+      z-index: 1;
       display: flex;
       align-items: baseline;
       gap: 6px;
@@ -124,26 +134,52 @@ function buildPrintDocument(nombreFinal: string, fila: string, copies: number): 
   link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@500;800;900&display=swap";
   root.appendChild(link);
 
+  const imageUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${IMAGE_URL}`
+      : IMAGE_URL;
+
   for (let i = 0; i < copies; i++) {
     const page = document.createElement("div");
     page.className = "gafete-page";
-    page.innerHTML = `
-      <p class="gafete-name">${escapeHtml(nombreFinal)}</p>
-      <div class="gafete-fila-wrap">
-        <span class="gafete-fila-label">FILA:</span>
-        <span class="gafete-fila-value">${escapeHtml(fila)}</span>
-      </div>
-    `;
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.alt = "";
+    img.className = "gafete-formato-img";
+    img.setAttribute("loading", "eager");
+    const nameEl = document.createElement("p");
+    nameEl.className = "gafete-name";
+    nameEl.textContent = nombreFinal;
+    const filaWrap = document.createElement("div");
+    filaWrap.className = "gafete-fila-wrap";
+    const filaLabel = document.createElement("span");
+    filaLabel.className = "gafete-fila-label";
+    filaLabel.textContent = "FILA:";
+    const filaValue = document.createElement("span");
+    filaValue.className = "gafete-fila-value";
+    filaValue.textContent = fila;
+    filaWrap.append(filaLabel, filaValue);
+    page.append(img, nameEl, filaWrap);
     root.appendChild(page);
   }
 
   return root;
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+function whenImagesLoaded(root: HTMLDivElement): Promise<void> {
+  const imgs = root.querySelectorAll<HTMLImageElement>("img.gafete-formato-img");
+  if (imgs.length === 0) return Promise.resolve();
+  return Promise.all(
+    Array.from(imgs).map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete) resolve();
+          else img.addEventListener("load", () => resolve(), { once: true });
+          img.addEventListener("error", () => resolve(), { once: true });
+          setTimeout(resolve, 3000);
+        }),
+    ),
+  ).then(() => undefined);
 }
 
 function triggerPrint(): Promise<void> {
@@ -185,6 +221,7 @@ export function usePrintGafete(options: UsePrintGafeteOptions = {}) {
         const nombreFinal = processName(nombre);
         const root = buildPrintDocument(nombreFinal, clave, copies);
         document.body.appendChild(root);
+        await whenImagesLoaded(root);
         await triggerPrint();
         toast.success("Diálogo de impresión abierto");
         onSuccess?.();
