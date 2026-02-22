@@ -57,8 +57,7 @@ export interface EditEncontradoModalProps {
   encontradoId: string | null;
   userId: string;
   onClose: () => void;
-  onSaved?: () => void;
-  /** Si true, muestra alerta y deshabilita sexo y fecha de nacimiento. Si no se pasa, se deduce de los datos del encontrado (checkins). */
+  onSaved?: (updated: EncontradoListItem) => void;
   hasCheckin?: boolean;
 }
 
@@ -97,12 +96,19 @@ export function EditEncontradoModal({
     ano: "",
   });
   const [fechaError, setFechaError] = useState<string | null>(null);
+  const [entered, setEntered] = useState(false);
   const fechaMesRef = useRef<HTMLInputElement>(null);
   const fechaAnoRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (!open) return;
+    const frame = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
+
   const { submitUpdate, loading: updateLoading } = useUpdateEncontrado({
-    onSuccess: () => {
-      onSaved?.();
+    onSuccess: (updated) => {
+      onSaved?.(updated);
       onClose();
     },
   });
@@ -197,14 +203,20 @@ export function EditEncontradoModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm transition-opacity duration-200 ease-out ${
+        entered ? "opacity-100" : "opacity-0"
+      }`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-modal-title"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[94vh] w-full max-w-7xl flex-col rounded-2xl border border-gray-200 bg-app-sidebar shadow-xl dark:border-gray-700 dark:bg-[#202124]"
+        className={`flex max-h-[94vh] w-full max-w-7xl flex-col rounded-2xl border border-gray-200 bg-app-sidebar shadow-xl transition-all duration-200 ease-out dark:border-gray-700 dark:bg-[#202124] ${
+          entered
+            ? "translate-y-0 scale-100 opacity-100"
+            : "translate-y-4 scale-[0.98] opacity-0"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 border-b border-gray-200 px-6 py-4 dark:border-gray-700">

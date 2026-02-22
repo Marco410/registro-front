@@ -5,10 +5,11 @@ import { toast } from "sonner";
 import {
   UPDATE_ENCONTRADO_MUTATION,
 } from "registro/components/dashboard/registro/mutations";
+import type { EncontradoListItem } from "registro/graphql/encontrados/queries";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 
 export interface UseUpdateEncontradoOptions {
-  onSuccess?: () => void;
+  onSuccess?: (updated: EncontradoListItem) => void;
 }
 
 function toUpdateData(data: EncontradoFormData) {
@@ -39,14 +40,14 @@ function toUpdateData(data: EncontradoFormData) {
 export function useUpdateEncontrado(options: UseUpdateEncontradoOptions = {}) {
   const { onSuccess } = options;
 
-  const [updateEncontrado, { loading }] = useMutation(
-    UPDATE_ENCONTRADO_MUTATION,
-    {
-      refetchQueries: ["Encontrados"],
-      onCompleted: () => {
-        toast.success("Registro actualizado correctamente");
-        onSuccess?.();
-      },
+  const [updateEncontrado, { loading }] = useMutation<{
+    updateEncontrado: EncontradoListItem;
+  }>(UPDATE_ENCONTRADO_MUTATION, {
+    refetchQueries: ["Encontrados"],
+    onCompleted: (data) => {
+      toast.success("Registro actualizado correctamente");
+      if (data?.updateEncontrado) onSuccess?.(data.updateEncontrado);
+    },
       onError: (err) => {
         toast.error(err.message ?? "Error al actualizar");
       },

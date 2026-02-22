@@ -9,5 +9,6 @@ export const routes = {
   dashboardRegistro: () => `${DASHBOARD}?tab=${TAB_REGISTRO}`,
   dashboardAforo: () => `${DASHBOARD}/aforo`,
   dashboardEstadisticas: () => `${DASHBOARD}/estadisticas`,
+  dasboardUsers: () => `${DASHBOARD}/usuarios`,
 } as const;
 
