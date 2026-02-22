@@ -7,6 +7,7 @@ import {
   SmartPhone01Icon,
   FirstAidKitIcon,
 } from "@hugeicons/core-free-icons";
+import { usePrintGafete } from "./hooks/use-printer-gafete";
 
 export interface CheckinResultData {
   clave: string;
@@ -30,11 +31,7 @@ export interface CheckinResultCardProps {
  * Copias por defecto: 1 base + 1 si tiene celular + 1 si tiene medicamento.
  */
 function getDefaultCopies(data: CheckinResultData): number {
-  return (
-    1 +
-    (data.celular ? 1 : 0) +
-    (data.medicamento ? 1 : 0)
-  );
+  return 1 + (data.celular ? 1 : 0) + (data.medicamento ? 1 : 0);
 }
 
 /**
@@ -49,6 +46,7 @@ export function CheckinResultCard({
   const defaultCopies = getDefaultCopies(data);
   const [copies, setCopies] = useState(defaultCopies);
   const printRef = useRef<HTMLDivElement>(null);
+  const { PrintGafete, loading } = usePrintGafete();
 
   useEffect(() => {
     setCopies(getDefaultCopies(data));
@@ -62,53 +60,13 @@ export function CheckinResultCard({
     ? "border-app-primary bg-gradient-to-br from-app-primary/10 to-transparent dark:from-app-primary-muted/15"
     : "border-pink-500 bg-gradient-to-br from-pink-500/10 to-transparent dark:from-pink-500/15 dark:border-pink-400";
 
-    const handlePrint = async () => { 
-      try { 
-        const response = await fetch("http://localhost:3001/api/imprimir-gafete", { 
-          method: "POST", 
-          headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify({ 
-            nombre: data.nombre, 
-            fila: data.clave, 
-            numCopias: copies, 
-          }), 
-        }); 
-        const result = await response.json(); 
-        if (result.ok) { 
-          //alert("Gafete enviado a la impresora correctamente"); 
-        } else { 
-          alert("Error al imprimir: " + result.error); 
-        } 
-      } catch (err) { 
-        console.error(err); alert("Error de conexión con el servidor"); 
-      } 
-    };
-  
-        /*
-        const handlePrint = () => {
-    
+  const handlePrint = async () => {
     if (onPrint) {
       onPrint(copies);
       return;
     }
-    if (!printRef.current) return;
-    const content = printRef.current.innerHTML;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html><head><title>Gafete - ${data.clave}</title></head>
-      <body style="margin:0;padding:1rem;font-family:system-ui;">
-        ${Array(copies).fill(`<div style="margin-bottom:1rem;">${content}</div>`).join("")}
-      </body></html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  
-
-  };*/
+    await PrintGafete(data.nombre, data.clave, copies);
+  };
 
   const handlePrintRef = useRef(handlePrint);
   handlePrintRef.current = handlePrint;
@@ -208,8 +166,7 @@ export function CheckinResultCard({
               <span className="text-xs text-app-text-secondary dark:text-gray-500">
                 (1 base
                 {hasCelular && " +1 celular"}
-                {hasMedicamento && " +1 medicamento"}
-                )
+                {hasMedicamento && " +1 medicamento"})
               </span>
             )}
           </div>
