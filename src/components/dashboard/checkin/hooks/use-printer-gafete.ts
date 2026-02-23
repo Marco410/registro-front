@@ -18,27 +18,42 @@ const GAFETE_WIDTH_MM = 100;
 const GAFETE_HEIGHT_MM = 62;
 const IMAGE_URL = "/images/formato.jpeg";
 
-/**
- * Genera el HTML para imprimir el gafete.
- * Configuración recomendada en la impresora (Brother QL-800): papel 62mm, longitud 100mm,
- * orientación horizontal, cortar cada 1 etiqueta, cortar al final.
- * Nota: desde el navegador no se puede ocultar el diálogo de impresión ni fijar opciones
- * del driver; para impresión silenciosa hay que imprimir desde el servidor (backend).
- */
-function buildPrintDocument(nombreFinal: string, fila: string, copies: number): HTMLDivElement {
-  const root = document.createElement("div");
-  root.id = "gafete-print-root";
-  root.setAttribute("aria-hidden", "true");
+function escapeHtml(text: string): string {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
 
-  const style = document.createElement("style");
-  style.textContent = `
-    #gafete-print-root {
-      position: fixed;
-      left: -9999px;
-      top: 0;
-      z-index: -1;
-      pointer-events: none;
-    }
+/**
+ * Genera el HTML completo del documento a imprimir (solo gafetes, sin contenido de la página).
+ * Se imprime en un iframe para que no aparezcan páginas en blanco del body principal.
+ */
+function buildPrintHtml(
+  nombreFinal: string,
+  fila: string,
+  copies: number,
+  imageUrl: string,
+): string {
+  const pagesHtml = Array.from(
+    { length: copies },
+    () => `
+    <div class="gafete-page">
+      <img src="${escapeHtml(imageUrl)}" alt="" class="gafete-formato-img" loading="eager" />
+      <p class="gafete-name">${escapeHtml(nombreFinal)}</p>
+      <div class="gafete-fila-wrap">
+        <span class="gafete-fila-label">FILA:</span>
+        <span class="gafete-fila-value">${escapeHtml(fila)}</span>
+      </div>
+    </div>`,
+  ).join("");
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Gafete</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;800;900&display=swap">
+  <style>
     @media print {
       @page {
         size: ${GAFETE_WIDTH_MM}mm ${GAFETE_HEIGHT_MM}mm;
@@ -48,53 +63,33 @@ function buildPrintDocument(nombreFinal: string, fila: string, copies: number): 
         margin: 0 !important;
         padding: 0 !important;
         width: ${GAFETE_WIDTH_MM}mm !important;
-        height: ${GAFETE_HEIGHT_MM}mm !important;
+        min-height: ${GAFETE_HEIGHT_MM}mm !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-      body * { visibility: hidden; }
-      #gafete-print-root, #gafete-print-root * { visibility: visible; }
-      #gafete-print-root {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        z-index: 99999;
-        width: ${GAFETE_WIDTH_MM}mm !important;
-        height: auto !important;
-        pointer-events: none;
-      }
-      .gafete-page {
-        page-break-after: always;
-        page-break-inside: avoid;
-        width: ${GAFETE_WIDTH_MM}mm !important;
-        height: ${GAFETE_HEIGHT_MM}mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box;
-      }
-      .gafete-page:last-child { page-break-after: auto; }
     }
+    html, body { margin: 0; padding: 0; }
     .gafete-page {
       width: ${GAFETE_WIDTH_MM}mm;
       height: ${GAFETE_HEIGHT_MM}mm;
       position: relative;
       box-sizing: border-box;
       overflow: hidden;
+      page-break-after: always;
+      page-break-inside: avoid;
     }
+    .gafete-page:last-child { page-break-after: auto; }
     .gafete-formato-img {
       position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
       object-fit: cover;
       object-position: center;
       z-index: 0;
     }
     .gafete-name {
       position: absolute;
-      left: 50%;
-      top: 40%;
+      left: 50%; top: 40%;
       transform: translate(-50%, -50%);
       width: calc(100% - 10mm);
       text-align: center;
@@ -107,67 +102,31 @@ function buildPrintDocument(nombreFinal: string, fila: string, copies: number): 
     }
     .gafete-fila-wrap {
       position: absolute;
-      left: 10px;
-      bottom: 18px;
+      left: 10px; bottom: 18px;
       z-index: 1;
       display: flex;
       align-items: baseline;
       gap: 6px;
     }
-    .gafete-fila-label {
+    .gafete-fila-label, .gafete-fila-value {
       font-family: 'Montserrat', Arial, sans-serif;
-      font-weight: 500;
       font-size: 23pt;
       color: #000;
     }
-    .gafete-fila-value {
-      font-family: 'Montserrat', Arial, sans-serif;
-      font-weight: 800;
-      font-size: 23pt;
-      color: #000;
-    }
-  `;
-  root.appendChild(style);
-
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@500;800;900&display=swap";
-  root.appendChild(link);
-
-  const imageUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${IMAGE_URL}`
-      : IMAGE_URL;
-
-  for (let i = 0; i < copies; i++) {
-    const page = document.createElement("div");
-    page.className = "gafete-page";
-    const img = document.createElement("img");
-    img.src = imageUrl;
-    img.alt = "";
-    img.className = "gafete-formato-img";
-    img.setAttribute("loading", "eager");
-    const nameEl = document.createElement("p");
-    nameEl.className = "gafete-name";
-    nameEl.textContent = nombreFinal;
-    const filaWrap = document.createElement("div");
-    filaWrap.className = "gafete-fila-wrap";
-    const filaLabel = document.createElement("span");
-    filaLabel.className = "gafete-fila-label";
-    filaLabel.textContent = "FILA:";
-    const filaValue = document.createElement("span");
-    filaValue.className = "gafete-fila-value";
-    filaValue.textContent = fila;
-    filaWrap.append(filaLabel, filaValue);
-    page.append(img, nameEl, filaWrap);
-    root.appendChild(page);
-  }
-
-  return root;
+    .gafete-fila-label { font-weight: 500; }
+    .gafete-fila-value { font-weight: 800; }
+  </style>
+</head>
+<body>
+${pagesHtml}
+</body>
+</html>`;
 }
 
-function whenImagesLoaded(root: HTMLDivElement): Promise<void> {
-  const imgs = root.querySelectorAll<HTMLImageElement>("img.gafete-formato-img");
+function whenIframeImagesLoaded(iframe: HTMLIFrameElement): Promise<void> {
+  const doc = iframe.contentDocument;
+  if (!doc) return Promise.resolve();
+  const imgs = doc.querySelectorAll<HTMLImageElement>("img.gafete-formato-img");
   if (imgs.length === 0) return Promise.resolve();
   return Promise.all(
     Array.from(imgs).map(
@@ -182,25 +141,45 @@ function whenImagesLoaded(root: HTMLDivElement): Promise<void> {
   ).then(() => undefined);
 }
 
-function triggerPrint(): Promise<void> {
-  return new Promise((resolve) => {
-    const root = document.getElementById("gafete-print-root");
-    if (!root) {
-      resolve();
+/**
+ * Imprime el gafete en un iframe aislado para que solo salgan N páginas (una por copia),
+ * sin páginas en blanco del documento principal.
+ */
+function printInIframe(html: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.cssText =
+      "position:fixed;left:-9999px;top:0;width:100mm;height:62mm;border:0;";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
+    if (!doc) {
+      iframe.remove();
+      reject(new Error("No se pudo crear el documento de impresión"));
       return;
     }
-    const onAfterPrint = () => {
-      window.removeEventListener("afterprint", onAfterPrint);
-      root.remove();
-      resolve();
-    };
-    window.addEventListener("afterprint", onAfterPrint);
-    window.print();
-    setTimeout(() => {
-      window.removeEventListener("afterprint", onAfterPrint);
-      root.remove();
-      resolve();
-    }, 1000);
+
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    whenIframeImagesLoaded(iframe).then(() => {
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (e) {
+        reject(e);
+      }
+      const cleanup = () => {
+        window.removeEventListener("afterprint", onAfterPrint);
+        iframe.remove();
+        resolve();
+      };
+      const onAfterPrint = () => cleanup();
+      window.addEventListener("afterprint", onAfterPrint);
+      setTimeout(cleanup, 1500);
+    });
   });
 }
 
@@ -219,11 +198,9 @@ export function usePrintGafete(options: UsePrintGafeteOptions = {}) {
       setLoading(true);
       try {
         const nombreFinal = processName(nombre);
-        const root = buildPrintDocument(nombreFinal, clave, copies);
-        document.body.appendChild(root);
-        await whenImagesLoaded(root);
-        await triggerPrint();
-        toast.success("Diálogo de impresión abierto");
+        const imageUrl = `${window.location.origin}${IMAGE_URL}`;
+        const html = buildPrintHtml(nombreFinal, clave, copies, imageUrl);
+        await printInIframe(html);
         onSuccess?.();
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
@@ -231,7 +208,6 @@ export function usePrintGafete(options: UsePrintGafeteOptions = {}) {
         onError?.(error);
       } finally {
         setLoading(false);
-        document.getElementById("gafete-print-root")?.remove();
       }
     },
     [onSuccess, onError],
