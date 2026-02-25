@@ -37,6 +37,24 @@ cloudflared tunnel create registro-ayr
 
 Guarda el **UUID** que te muestre; lo usarás en el archivo de configuración.
 
+**Si aparece "tunnel with name already exists"** es que ese túnel ya existe. Puedes:
+
+- **Usarlo tal cual:** sigue en el PASO 4 y usa el túnel `registro-ayr` (el UUID está en `~/.cloudflared/` en un archivo `.json`).
+- **Eliminarlo y crear uno nuevo:** borra el túnel y luego créalo otra vez:
+
+```bash
+# Listar túneles para ver nombre y UUID
+cloudflared tunnel list
+
+# Eliminar el túnel por nombre (te pedirá confirmación)
+cloudflared tunnel delete registro-ayr
+
+# Opcional: crear de nuevo
+cloudflared tunnel create registro-ayr
+```
+
+Tras eliminar, si creas uno nuevo guarda el nuevo UUID para el `config.yml`.
+
 ---
 
 ## PASO 4 — Crear subdominio apuntando al túnel
