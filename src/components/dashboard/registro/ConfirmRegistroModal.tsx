@@ -76,7 +76,7 @@ export function ConfirmRegistroModal({
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && e.shiftKey) {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         if (onConfirmAndCheckinRef.current && !loadingRef.current) {
           onConfirmAndCheckinRef.current();
@@ -88,7 +88,7 @@ export function ConfirmRegistroModal({
           onCancel();
         }
       }
-      if (e.key === "S" && e.shiftKey) {
+      if ((e.key === "S" || e.key === "s") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onConfirm();
       }
@@ -144,11 +144,13 @@ export function ConfirmRegistroModal({
               disabled={loading}
               onClick={onCancel}
               className="rounded-xl border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-700"
-              >
+            >
               Cancelar
             </button>
             <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">ESC</kbd>
+              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
+                ESC
+              </kbd>
             </span>
           </div>
           <div className="flex flex-col items-center">
@@ -157,12 +159,18 @@ export function ConfirmRegistroModal({
               disabled={loading}
               onClick={onConfirm}
               className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-              >
+            >
               <HugeiconsIcon icon={Add01Icon} size={18} />
               {loading ? "Guardando…" : "Confirmar y guardar"}
             </button>
             <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Shift</kbd> + <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">S</kbd>
+              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                Ctrl
+              </kbd>{" "}
+              +{" "}
+              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                S
+              </kbd>
             </span>
           </div>
           {onConfirmAndCheckin && (
@@ -181,7 +189,13 @@ export function ConfirmRegistroModal({
                 {loading ? "Guardando…" : "Registrar y hacer check-in"}
               </button>
               <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-                <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Shift</kbd> + <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Enter</kbd>
+                <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                  Ctrl
+                </kbd>{" "}
+                +{" "}
+                <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                  Enter
+                </kbd>
               </span>
             </div>
           )}

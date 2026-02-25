@@ -12,7 +12,7 @@ export interface CheckinActionsProps {
 }
 
 /**
- * Acciones tras un check-in: hacer otro check-in (Shift+C) e ir a registro (Shift+R).
+ * Acciones tras un check-in: hacer otro check-in (Ctrl+C) e ir a registro (Ctrl+R).
  */
 export function CheckinActions({
   resultData,
@@ -26,11 +26,11 @@ export function CheckinActions({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "C" || e.key === "c") && e.shiftKey) {
+      if ((e.key === "C" || e.key === "c") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onNewCheckinRef.current?.();
       }
-      if ((e.key === "R" || e.key === "r") && e.shiftKey) {
+      if ((e.key === "R" || e.key === "r") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         goToRegistroRef.current?.();
       }
@@ -57,7 +57,7 @@ export function CheckinActions({
           </button>
           <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
             <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
-              Shift
+              Ctrl
             </kbd>{" "}
             +{" "}
             <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
@@ -78,7 +78,7 @@ export function CheckinActions({
           </Link>
           <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
             <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
-              Shift
+              Ctrl
             </kbd>{" "}
             +{" "}
             <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">

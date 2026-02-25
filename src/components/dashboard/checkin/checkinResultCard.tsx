@@ -77,7 +77,7 @@ export function CheckinResultCard({
   handlePrintRef.current = handlePrint;
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && e.shiftKey) {
+      if ((e.key === "p" || e.key === "P") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         handlePrintRef.current?.();
       }
@@ -191,11 +191,11 @@ export function CheckinResultCard({
             </button>
             <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
               <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
-                Shift
+                Ctrl
               </kbd>{" "}
               +{" "}
               <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
-                Enter
+                P
               </kbd>
             </span>
           </div>

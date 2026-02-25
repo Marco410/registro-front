@@ -141,14 +141,17 @@ export default function DashboardRegistroPage() {
   loadingRef.current = loading;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      console.log("useEffect", e.key, e.shiftKey, loadingRef.current);
-      if (e.key === "Enter" && e.shiftKey && !loadingRef.current) {
+      if (
+        e.key === "Enter" &&
+        (e.ctrlKey || e.metaKey) &&
+        !loadingRef.current
+      ) {
         e.preventDefault();
         formRef.current?.requestSubmit();
       }
       if (
         (e.key === "Delete" || e.key === "Backspace" || e.key === "Escape") &&
-        e.shiftKey
+        (e.ctrlKey || e.metaKey)
       ) {
         e.preventDefault();
         clearFormRef.current?.();
@@ -373,11 +376,22 @@ export default function DashboardRegistroPage() {
               type="button"
               onClick={handleClearForm}
               className={`w-full rounded-xl border px-5 py-2.5 text-sm font-medium text-app-text-primary transition-colors dark:text-gray-300 dark:hover:bg-gray-800 ${formData.sexo === "H" ? "border-gray-300 hover:bg-app-selected dark:border-gray-600" : "hover:bg-pink-500/10 dark:border-pink-400"}`}
-              >
+            >
               Limpiar
             </button>
             <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-            <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Shift</kbd> + (<kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Backspace</kbd> o <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">ESC</kbd>)
+              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
+                Ctrl
+              </kbd>{" "}
+              + (
+              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
+                Backspace
+              </kbd>{" "}
+              o{" "}
+              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
+                ESC
+              </kbd>
+              )
             </span>
           </div>
           <div className="flex flex-col items-center">
@@ -398,7 +412,13 @@ export default function DashboardRegistroPage() {
                   } `}
             </button>
             <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Shift</kbd> + <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Enter</kbd>
+              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
+                Ctrl
+              </kbd>{" "}
+              +{" "}
+              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
+                Enter
+              </kbd>
             </span>
           </div>
         </div>
