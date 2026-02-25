@@ -59,13 +59,14 @@ Tras eliminar, si creas uno nuevo guarda el nuevo UUID para el `config.yml`.
 
 ## PASO 4 — Crear subdominio apuntando al túnel
 
-Asocia un hostname (subdominio) a ese túnel. Ejemplo para `registroayr.kadesh.mx`:
+Asocia cada hostname (subdominio) a ese túnel. Ejemplo con front y back:
 
 ```bash
 cloudflared tunnel route dns registro-ayr registroayr.kadesh.mx
+cloudflared tunnel route dns registro-ayr backayr.kadesh.mx
 ```
 
-Sustituye `registroayr.kadesh.mx` por el subdominio que quieras usar.
+Sustituye los hostnames por los que quieras usar; cada uno apuntará al mismo túnel (luego en el config indicas el puerto local de cada uno).
 
 ---
 
@@ -84,6 +85,8 @@ credentials-file: /Users/TU_USUARIO/.cloudflared/UUID.json
 ingress:
   - hostname: registroayr.kadesh.mx
     service: http://localhost:3000
+  - hostname: backayr.kadesh.mx
+    service: http://localhost:3001
   - service: http_status:404
 ```
 
@@ -92,8 +95,9 @@ Reemplaza:
 - `UUID-QUE-TE-DIO` → el UUID del túnel (Paso 3).
 - `TU_USUARIO` → tu usuario de macOS (ej. `marcocastaneda`).
 - `UUID.json` → el nombre del archivo de credenciales en `~/.cloudflared/` (suele ser `UUID-TUNNEL.json`).
-- `registroayr.kadesh.mx` → el hostname que configuraste en el Paso 4.
-- `http://localhost:3000` → el puerto donde corre tu app (Next.js por defecto es 3000).
+- `registroayr.kadesh.mx` → hostname del front (Next.js).
+- `backayr.kadesh.mx` → hostname del back (API/Keystone).
+- `http://localhost:3000` → puerto del front; `http://localhost:3001` → puerto del back.
 
 El último bloque `service: http_status:404` hace que cualquier otra petición no coincidente devuelva 404.
 
@@ -111,11 +115,53 @@ El nombre `registro-ayr` debe coincidir con el que usaste en el Paso 3.
 
 ---
 
+## Error: "Rule #2 is matching the hostname ''"
+
+Si al ejecutar `cloudflared tunnel run` ves:
+
+```text
+Rule #2 is matching the hostname '', but this will match every hostname, meaning the rules which follow it will never be triggered.
+```
+
+**Qué significa:** Una regla de `ingress` tiene el hostname vacío (o sin definir). Esa regla hace de “catch-all” y coincide con todo, por eso las reglas que vengan **después** nunca se usan.
+
+**Qué hacer:**
+
+1. Abre `~/.cloudflared/config.yml`.
+2. Revisa el orden de las reglas en `ingress`:
+   - **Primero:** todas las reglas con `hostname` concreto (ej. `registroayr.kadesh.mx`, `backayr.kadesh.mx`).
+   - **Al final:** una sola regla de catch-all **sin** `hostname`, solo `service: http_status:404`.
+
+3. **Ejemplo correcto con un solo hostname:**
+
+```yaml
+ingress:
+  - hostname: registroayr.kadesh.mx
+    service: http://localhost:3000
+  - service: http_status:404
+```
+
+4. **Ejemplo correcto con dos hostnames:**
+
+```yaml
+ingress:
+  - hostname: registroayr.kadesh.mx
+    service: http://localhost:3000
+  - hostname: backayr.kadesh.mx
+    service: http://localhost:3001
+  - service: http_status:404
+```
+
+No pongas `hostname:` vacío en ninguna regla y no pongas la regla `service: http_status:404` en medio; siempre debe ser la **última**.
+
+---
+
 ## Resumen
 
 Cuando el túnel está corriendo:
 
-- Las peticiones a `https://registroayr.kadesh.mx` (o el hostname que configuraste) llegan a tu **localhost:3000**.
+- `https://registroayr.kadesh.mx` → **localhost:3000** (front).
+- `https://backayr.kadesh.mx` → **localhost:3001** (back).
 - No necesitas abrir puertos en el router ni IP pública; Cloudflare se encarga del tráfico.
 
 Para que siga funcionando, mantén la terminal abierta con `cloudflared tunnel run registro-ayr` o configura el túnel como servicio (systemd/launchd) para que se inicie automáticamente.

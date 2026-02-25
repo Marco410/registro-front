@@ -1,0 +1,12 @@
+# Copia este contenido a ~/.cloudflared/config.yml
+# La regla "service: http_status:404" DEBE ser la ÚLTIMA (solo una vez).
+
+tunnel: 84680445-1cd7-44ba-88dc-4e3f146811f8
+credentials-file: /Users/marcocastaneda/.cloudflared/84680445-1cd7-44ba-88dc-4e3f146811f8.json
+
+ingress:
+  - hostname: registroayr.kadesh.mx
+    service: http://localhost:3000
+  - hostname: backayr.kadesh.mx
+    service: http://localhost:3001
+  - service: http_status:404
