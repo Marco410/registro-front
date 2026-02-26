@@ -89,7 +89,7 @@ function buildPrintHtml(
     }
     .gafete-name {
       position: absolute;
-      left: 50%; top: 40%;
+      left: 50%; top: 50%;
       transform: translate(-50%, -50%);
       width: calc(100% - 10mm);
       text-align: center;
