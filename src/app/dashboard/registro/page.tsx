@@ -239,7 +239,7 @@ export default function DashboardRegistroPage() {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     let nextValue: string | boolean =
-      type === "checkbox" ? checked : type === "date" ? value || "" : value;
+      type === "checkbox" ? checked : type === "date" ? value || "" : value.toUpperCase();
     if (
       type !== "checkbox" &&
       type !== "date" &&
