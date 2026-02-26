@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback } from "react";
 import type { ChangeEvent } from "react";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 import {
@@ -31,18 +30,7 @@ export function ContactForm({
   const telRef = formData.tel_ref ?? "";
   const inputClass = getInputClass(sexo);
 
-  const onChangeUppercase = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      const upper = value.toUpperCase();
   
-      onChange({
-        target: { name, value: upper },
-        currentTarget: { name, value: upper },
-      } as unknown as React.ChangeEvent<HTMLInputElement>);
-    },
-    [onChange],
-  );
 
   return (
     <section
@@ -69,7 +57,7 @@ export function ContactForm({
             name="nom_ref"
             type="text"
             value={nomRef}
-            onChange={onChangeUppercase}
+            onChange={onChange}
             className={inputClass}
             placeholder="Contacto de emergencia"
           />

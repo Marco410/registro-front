@@ -125,18 +125,7 @@ export function IdentificationForm({
     [onFechaNChange, onFechaError, onClearFechaError],
   );
 
-  const onChangeUppercase = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      const upper = value.toUpperCase();
-  
-      onChange({
-        target: { name, value: upper },
-        currentTarget: { name, value: upper },
-      } as unknown as React.ChangeEvent<HTMLInputElement>);
-    },
-    [onChange],
-  );
+
 
 
   return (
@@ -158,7 +147,7 @@ export function IdentificationForm({
             name="nombre"
             type="text"
             value={formData.nombre}
-            onChange={onChangeUppercase}
+            onChange={onChange}
             className={`${inputClass} ${errors.nombre ? inputError : ""}`}
             placeholder="Nombre(s)"
           />
@@ -179,7 +168,7 @@ export function IdentificationForm({
             name="apellido_p"
             type="text"
             value={formData.apellido_p}
-            onChange={onChangeUppercase}
+            onChange={onChange}
             className={`${inputClass} ${errors.apellido_p ? inputError : ""}`}
             placeholder="Apellido paterno"
           />
@@ -198,7 +187,7 @@ export function IdentificationForm({
             name="apellido_m"
             type="text"
             value={formData.apellido_m}
-            onChange={onChangeUppercase}
+            onChange={onChange}
             className={inputClass}
             placeholder="Apellido materno"
           />
