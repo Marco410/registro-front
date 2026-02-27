@@ -3,3 +3,4 @@ export type {
   PerformReassignSeatVariables,
   PerformReassignSeatResponse,
 } from "./use-reassign-seat";
+export { useExportSeatsExcel } from "./use-export-seats-excel";

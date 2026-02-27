@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { Seat } from "registro/graphql/aforo/queries";
+import { useExportSeatsExcel } from "./hooks";
 
 export interface TeamSeatsModalProps {
   open: boolean;
@@ -46,6 +47,7 @@ export function TeamSeatsModal({
   const [aux3, setAux3] = useState(initialAux3);
 
   const [updateTeam, { loading: saving }] = useMutation(UPDATE_TEAM_MUTATION);
+  const { exportSeatsToExcel } = useExportSeatsExcel();
 
   const getEncontradoNombre = (seat: Seat) => {
     if (!seat.encontrado) return "—";
@@ -68,6 +70,20 @@ export function TeamSeatsModal({
         },
       });
     } catch {}
+  };
+
+  const handleExportExcel = () => {
+    exportSeatsToExcel({
+      filteredSeats,
+      teamLabel,
+      sex,
+      getEncontradoNombre,
+      teamNumber: teamInfo?.teamNumber ?? undefined,
+      captain,
+      aux1,
+      aux2,
+      aux3,
+    });
   };
 
   return (
@@ -172,21 +188,38 @@ export function TeamSeatsModal({
           </div>
         </div>
 
-        <div className="mt-4 max-h-[60vh] overflow-auto rounded-xl border border-gray-200 bg-white text-xs shadow-sm dark:border-gray-700 dark:bg-[#151515] sm:text-sm">
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            disabled={filteredSeats.length === 0}
+            className="inline-flex items-center rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-app-text-primary shadow-sm transition-colors hover:bg-app-selected disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-[#151515] dark:text-gray-100 dark:hover:bg-gray-800 sm:text-sm"
+          >
+            Exportar a Excel
+          </button>
+        </div>
+
+        <div className="mt-2 max-h-[60vh] overflow-auto rounded-xl border border-gray-200 bg-white text-xs shadow-sm dark:border-gray-700 dark:bg-[#151515] sm:text-sm">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-[#1e1e1e]">
               <tr>
                 <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Letra
+                  Clave
                 </th>
                 <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Género
+                  Encontrado
                 </th>
                 <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
                   Estado
                 </th>
                 <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Encontrado
+                  Celular
+                </th>
+                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
+                  Medicamento
+                </th>
+                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
+                  Bautizo
                 </th>
               </tr>
             </thead>
@@ -214,13 +247,9 @@ export function TeamSeatsModal({
                       }
                     >
                       <td className="whitespace-nowrap px-3 py-2 text-xs font-medium text-app-text-primary dark:text-gray-100 sm:px-4 sm:py-2.5 sm:text-sm">
+                        {seat.encontrado?.sexo}
+                        {teamInfo?.teamNumber}
                         {seat.letter}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
-                        {seat.gender}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
-                        {seat.occupied ? "Ocupado" : "Libre"}
                       </td>
                       <td className="px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-100 sm:px-4 sm:py-2.5 sm:text-xs">
                         {tieneEncontrado ? (
@@ -232,6 +261,18 @@ export function TeamSeatsModal({
                             Sin encontrado
                           </span>
                         )}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
+                        {seat.occupied ? "Ocupado" : "Libre"}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
+                        {seat.encontrado?.celular ? "Si" : "No"}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
+                        {seat.encontrado?.medicamento ? "Si" : "No"}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
+                        {seat.encontrado?.bautizo ? "Si" : "No"}
                       </td>
                     </tr>
                   );
