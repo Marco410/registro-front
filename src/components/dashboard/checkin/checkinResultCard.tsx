@@ -6,6 +6,9 @@ import {
   PrinterIcon,
   SmartPhone01Icon,
   FirstAidKitIcon,
+  CalendarIcon,
+  AccountSetting01Icon,
+  ChurchIcon,
 } from "@hugeicons/core-free-icons";
 import { usePrintGafete } from "./hooks/use-printer-gafete";
 import { toast } from "sonner";
@@ -20,6 +23,10 @@ export interface CheckinResultData {
   seatLetter?: string;
   celular?: boolean;
   medicamento?: boolean;
+  edad?: number | null;
+  estado_c?: string | null;
+  religion?: string | null;
+  telefono?: string | null;
 }
 
 export interface CheckinResultCardProps {
@@ -56,6 +63,11 @@ export function CheckinResultCard({
   const isHombre = data.sexo === "H";
   const hasCelular = data.celular === true;
   const hasMedicamento = data.medicamento === true;
+  const hasExtraFields =
+    data.edad != null ||
+    (data.estado_c != null && data.estado_c !== "") ||
+    (data.religion != null && data.religion !== "") ||
+    (data.telefono != null && data.telefono !== "");
 
   const cardClass = isHombre
     ? "border-app-primary bg-gradient-to-br from-app-primary/10 to-transparent dark:from-app-primary-muted/15"
@@ -99,48 +111,153 @@ export function CheckinResultCard({
               : "border-pink-500/30 dark:border-pink-400/30"
           }`}
         >
-          <p className="text-sm font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400">
-            {data.nombre} {data.apellido_p} {data.apellido_m}
-          </p>
-          <p
-            className={`mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl ${
-              isHombre ? "text-app-primary" : "text-pink-600 dark:text-pink-400"
-            }`}
-          >
-            {data.clave}
-          </p>
-          {(data.teamName != null || data.seatLetter != null) && (
-            <p className="mt-2 text-sm text-app-text-secondary dark:text-gray-400">
-              {data.teamName ?? ""}
-              {data.teamName != null && data.seatLetter != null && " · "}
-              {data.seatLetter != null ? `Asiento ${data.seatLetter}` : ""}
-            </p>
-          )}
-          {/* Indicadores celular / medicamento (solo visualización en gafete) */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            {hasCelular && (
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium ${
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400">
+                {data.nombre} {data.apellido_p} {data.apellido_m}
+              </p>
+              <p
+                className={`mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl ${
                   isHombre
-                    ? "bg-app-primary/15 text-app-primary ~dark:bg-app-primary-muted/20"
-                    : "bg-pink-500/15 text-pink-700 dark:bg-pink-400/20 dark:text-pink-300"
+                    ? "text-app-primary"
+                    : "text-pink-600 dark:text-pink-400"
                 }`}
               >
-                <HugeiconsIcon icon={SmartPhone01Icon} size={14} />
-                Celular
-              </span>
-            )}
-            {hasMedicamento && (
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium ${
+                {data.clave}
+              </p>
+              {(data.teamName != null || data.seatLetter != null) && (
+                <p className="mt-2 text-sm text-app-text-secondary dark:text-gray-400">
+                  {data.teamName ?? ""}
+                  {data.teamName != null && data.seatLetter != null && " · "}
+                  {data.seatLetter != null ? `Asiento ${data.seatLetter}` : ""}
+                </p>
+              )}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {hasCelular && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium ${
+                      isHombre
+                        ? "bg-app-primary/15 text-app-primary dark:bg-app-primary-muted/20"
+                        : "bg-pink-500/15 text-pink-700 dark:bg-pink-400/20 dark:text-pink-300"
+                    }`}
+                  >
+                    <HugeiconsIcon icon={SmartPhone01Icon} size={14} />
+                    Celular
+                  </span>
+                )}
+                {hasMedicamento && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium ${
+                      isHombre
+                        ? "bg-app-primary/15 text-app-primary dark:bg-app-primary-muted/20"
+                        : "bg-pink-500/15 text-pink-700 dark:bg-pink-400/20 dark:text-pink-300"
+                    }`}
+                  >
+                    <HugeiconsIcon icon={FirstAidKitIcon} size={14} />
+                    Medicamento
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {hasExtraFields && (
+              <div
+                className={`shrink-0 rounded-xl border px-4 py-3 sm:border-l sm:border-t-0 sm:border-r-0 sm:border-b-0 sm:pl-6 sm:pr-0 ${
                   isHombre
-                    ? "bg-app-primary/15 text-app-primary dark:bg-app-primary-muted/20"
-                    : "bg-pink-500/15 text-pink-700 dark:bg-pink-400/20 dark:text-pink-300"
+                    ? "border-app-primary/20 bg-app-primary/5 dark:border-app-primary-muted/20 dark:bg-app-primary-muted/5"
+                    : "border-pink-500/20 bg-pink-500/5 dark:border-pink-400/20 dark:bg-pink-500/10"
                 }`}
               >
-                <HugeiconsIcon icon={FirstAidKitIcon} size={14} />
-                Medicamento
-              </span>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-app-text-secondary dark:text-gray-400">
+                  Datos
+                </p>
+                <div className="grid min-w-[12rem] grid-cols-2 gap-x-6 gap-y-3 p-4">
+                  {data.edad != null && (
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                          isHombre
+                            ? "bg-app-primary/15 text-app-primary dark:bg-app-primary-muted/20"
+                            : "bg-pink-500/15 text-pink-600 dark:bg-pink-400/20 dark:text-pink-400"
+                        }`}
+                      >
+                        <HugeiconsIcon icon={CalendarIcon} size={16} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+                          Edad
+                        </p>
+                        <p className="text-sm font-medium text-app-text-primary dark:text-gray-200">
+                          {data.edad} años
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {data.estado_c != null && data.estado_c !== "" && (
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                          isHombre
+                            ? "bg-app-primary/15 text-app-primary dark:bg-app-primary-muted/20"
+                            : "bg-pink-500/15 text-pink-600 dark:bg-pink-400/20 dark:text-pink-400"
+                        }`}
+                      >
+                        <HugeiconsIcon icon={AccountSetting01Icon} size={16} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+                          Estado civil
+                        </p>
+                        <p className="truncate text-sm font-medium text-app-text-primary dark:text-gray-200">
+                          {data.estado_c}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {data.religion != null && data.religion !== "" && (
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                          isHombre
+                            ? "bg-app-primary/15 text-app-primary dark:bg-app-primary-muted/20"
+                            : "bg-pink-500/15 text-pink-600 dark:bg-pink-400/20 dark:text-pink-400"
+                        }`}
+                      >
+                        <HugeiconsIcon icon={ChurchIcon} size={16} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+                          Religión
+                        </p>
+                        <p className="truncate text-sm font-medium text-app-text-primary dark:text-gray-200">
+                          {data.religion}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {data.telefono != null && data.telefono !== "" && (
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                          isHombre
+                            ? "bg-app-primary/15 text-app-primary dark:bg-app-primary-muted/20"
+                            : "bg-pink-500/15 text-pink-600 dark:bg-pink-400/20 dark:text-pink-400"
+                        }`}
+                      >
+                        <HugeiconsIcon icon={SmartPhone01Icon} size={16} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+                          Teléfono
+                        </p>
+                        <p className="truncate text-sm font-medium font-mono text-app-text-primary dark:text-gray-200">
+                          {data.telefono}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>

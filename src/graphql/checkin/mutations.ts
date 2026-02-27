@@ -5,8 +5,16 @@ import { gql } from "@apollo/client";
  * Backend: performCheckin(encontradoId: ID!, userId: ID!, responsejson: JSON): CheckinResult
  */
 export const PERFORM_CHECKIN_MUTATION = gql`
-  mutation PerformCheckin($encontradoId: ID!, $userId: ID!, $responsejson: JSON) {
-    performCheckin(encontradoId: $encontradoId, userId: $userId, responsejson: $responsejson) {
+  mutation PerformCheckin(
+    $encontradoId: ID!
+    $userId: ID!
+    $responsejson: JSON
+  ) {
+    performCheckin(
+      encontradoId: $encontradoId
+      userId: $userId
+      responsejson: $responsejson
+    ) {
       alreadyCheckedIn
       unassignedGroup
       overflow
@@ -25,6 +33,10 @@ export const PERFORM_CHECKIN_MUTATION = gql`
           sexo
           celular
           medicamento
+          edad
+          estado_c
+          religion
+          telefono
         }
         seat {
           id
@@ -49,8 +61,20 @@ export interface PerformCheckinResponse {
       id: string;
       checkinAt: string;
       ageGroup: { id: string; label: string };
-        encontrado: { id: string; nombre: string; apellido_p: string; apellido_m: string; sexo: string; celular: boolean; medicamento: boolean };
-        seat: { id: string; letter: string };
+      encontrado: {
+        id: string;
+        nombre: string;
+        apellido_p: string;
+        apellido_m: string;
+        sexo: string;
+        celular: boolean;
+        medicamento: boolean;
+        edad: number | null;
+        estado_c: string | null;
+        religion: string | null;
+        telefono: string | null;
+      };
+      seat: { id: string; letter: string };
       team: { id: string; teamNumber: number; teamName: string };
     } | null;
   };

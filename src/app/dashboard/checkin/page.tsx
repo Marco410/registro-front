@@ -122,6 +122,10 @@ export default function CheckinPage() {
           apellido_p: c.encontrado.apellido_p,
           apellido_m: c.encontrado.apellido_m ?? "",
           sexo: c.encontrado.sexo,
+          edad: c.encontrado.edad,
+          estado_c: c.encontrado.estado_c,
+          religion: c.encontrado.religion,
+          telefono: c.encontrado.telefono,
         },
         seat: c.seat ?? { id: "", letter: "" },
         team: c.team ?? { id: "", teamNumber: 0, teamName: "" },
@@ -155,6 +159,10 @@ export default function CheckinPage() {
         seatLetter: checkin.seat?.letter,
         celular: checkin.encontrado.celular,
         medicamento: checkin.encontrado.medicamento,
+        edad: checkin.encontrado.edad ?? undefined,
+        estado_c: checkin.encontrado.estado_c ?? undefined,
+        religion: checkin.encontrado.religion ?? undefined,
+        telefono: checkin.encontrado.telefono ?? undefined,
       }
     : null;
 

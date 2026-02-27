@@ -19,6 +19,10 @@ export const CHECKINS_QUERY = gql`
         nombre
         apellido_p
         apellido_m
+        edad
+        estado_c
+        religion
+        telefono
         sexo
         celular
         medicamento
@@ -53,6 +57,10 @@ export interface CheckinListItem {
     nombre: string;
     apellido_p: string;
     apellido_m: string;
+    edad?: number | null;
+    estado_c: string;
+    religion?: string | null;
+    telefono?: string | null;
     sexo: string;
     celular: boolean;
     medicamento: boolean;
