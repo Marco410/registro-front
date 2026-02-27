@@ -28,7 +28,8 @@ export const UPDATE_SEAT_MUTATION = gql`
   }
 `;
 
-export interface UpdateSeatVariables {
+/** Variables para dar de baja (abandoned). */
+export interface UpdateSeatDarDeBajaVariables {
   where: { id: string };
   data: {
     abandoned: boolean;
@@ -36,3 +37,18 @@ export interface UpdateSeatVariables {
     abandonedBy: { connect: { id: string } };
   };
 }
+
+/** Variables para asignar un encontrado al asiento. */
+export interface UpdateSeatAsignarVariables {
+  where: { id: string };
+  data: {
+    encontrado: { connect: { id: string } };
+    occupied: boolean;
+    abandoned?: boolean;
+    abandonedBy?: { disconnect?: boolean };
+  };
+}
+
+export type UpdateSeatVariables =
+  | UpdateSeatDarDeBajaVariables
+  | UpdateSeatAsignarVariables;

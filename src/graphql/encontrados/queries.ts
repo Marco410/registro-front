@@ -36,6 +36,15 @@ export const ENCONTRADOS_QUERY = gql`
       checkins {
         id
         checkinAt
+        seat {
+          id
+          letter
+        }
+        team {
+          id
+          teamName
+          teamNumber
+        }
       }
     }
     encontradosCount(where: $where)
@@ -62,13 +71,20 @@ export interface EncontradoListItem {
   celular: boolean;
   medicamento: boolean;
   user?: { id: string; name?: string | null } | null;
-  checkins?: { id: string; checkinAt: string } | null;
+  checkins?: {
+    id: string;
+    checkinAt: string;
+    seat?: { id: string; letter: string } | null;
+    team?: { id: string; teamName: string; teamNumber: number } | null;
+  } | null;
 }
 
 export interface EncontradosQueryVariables {
   where: {
     user?: { id?: { equals?: string } };
     sexo?: { equals?: string };
+    /** Solo encontrados con al menos un check-in. */
+    checkins?: { id?: { not?: null } };
     OR?: Array<
       | { nombre?: { contains?: string; mode?: string } }
       | { apellido_p?: { contains?: string; mode?: string } }

@@ -73,7 +73,7 @@ export function AforoCountsCards() {
       className: "text-pink-600 dark:text-pink-400",
       iconBg: "bg-pink-500/10 dark:bg-pink-500/20",
     },
-    {
+    /*  {
       label: "Total encontrados",
       value: counts.encontradosCount,
       icon: UserIcon,
@@ -93,7 +93,7 @@ export function AforoCountsCards() {
       icon: UserIcon,
       className: "text-pink-600 dark:text-pink-400",
       iconBg: "bg-pink-500/10 dark:bg-pink-500/20",
-    },
+    }, */
   ];
 
   return (

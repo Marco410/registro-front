@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { useMutation } from "@apollo/client";
 import { Seat, SEATS_QUERY } from "registro/graphql/aforo/queries";
 import {
   UPDATE_SEAT_MUTATION,
   type UpdateSeatVariables,
 } from "registro/graphql/aforo/mutations";
+import { ConfirmDarDeBajaModal } from "registro/components/dashboard/aforo/ConfirmDarDeBajaModal";
+import { AsignarAsientoModal } from "registro/components/dashboard/aforo/AsignarAsientoModal";
 
 const TEAM_LABEL_WIDTH = "min-w-[5.5rem] w-[5.5rem]";
 
@@ -55,9 +58,19 @@ function ocupadoPor(seat: Seat): string {
   return `${e.nombre} ${e.apellido_p} ${e.apellido_m}`.trim();
 }
 
+const MENU_OFFSET = 4;
+const VIEWPORT_PADDING = 8;
+
 function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showAsignar, setShowAsignar] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const [updateSeat, { loading: updating }] = useMutation<
     unknown,
@@ -102,10 +115,37 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
     setShowConfirm(false);
   };
 
+  useLayoutEffect(() => {
+    if (!menuOpen || !buttonRef.current || !menuRef.current) {
+      setMenuPosition(null);
+      return;
+    }
+    const btn = buttonRef.current.getBoundingClientRect();
+    const menu = menuRef.current.getBoundingClientRect();
+    const vw = typeof window !== "undefined" ? window.innerWidth : 0;
+    const vh = typeof window !== "undefined" ? window.innerHeight : 0;
+
+    let top = btn.bottom + MENU_OFFSET;
+    let left = btn.left;
+
+    if (top + menu.height > vh - VIEWPORT_PADDING) {
+      top = btn.top - menu.height - MENU_OFFSET;
+    }
+    if (top < VIEWPORT_PADDING) top = VIEWPORT_PADDING;
+
+    if (left + menu.width > vw - VIEWPORT_PADDING) {
+      left = vw - menu.width - VIEWPORT_PADDING;
+    }
+    if (left < VIEWPORT_PADDING) left = VIEWPORT_PADDING;
+
+    setMenuPosition({ top, left });
+  }, [menuOpen]);
+
   return (
     <>
       <div className="group relative inline-flex">
         <button
+          ref={buttonRef}
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
           className={`flex shrink-0 cursor-pointer items-center justify-center rounded border ${SEAT_SIZE} ${SEAT_TEXT} font-medium transition-colors hover:ring-2 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 dark:focus:ring-gray-500 ${filledClass}`}
@@ -128,40 +168,91 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
           </span>
         )}
 
-        {menuOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              aria-hidden
-              onClick={() => setMenuOpen(false)}
-            />
-            <div
-              role="menu"
-              className="absolute bottom-full left-0 z-50 mb-1 min-w-[12rem] rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-[#202124]"
-            >
-              {occupied && seat.encontrado ? (
-                <div
-                  role="none"
-                  className="border-b border-gray-100 px-3 py-2 text-xs text-app-text-secondary dark:border-gray-700 dark:text-gray-400"
-                >
-                  Asiento ocupado por: {ocupadoPor(seat)}
-                </div>
-              ) : null}
-              <button
-                type="button"
-                role="menuitem"
-                disabled={!canDarDeBaja}
-                onClick={() => {
-                  setMenuOpen(false);
-                  if (canDarDeBaja) setShowConfirm(true);
+        {menuOpen &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                aria-hidden
+                onClick={() => setMenuOpen(false)}
+              />
+              <div
+                ref={menuRef}
+                role="menu"
+                className="fixed z-50 min-w-[5rem] rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-[#202124]"
+                style={{
+                  top: menuPosition?.top ?? -9999,
+                  left: menuPosition?.left ?? -9999,
+                  visibility: menuPosition ? "visible" : "hidden",
                 }}
-                className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
               >
-                Dar de baja
-              </button>
-            </div>
-          </>
-        )}
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={async () => {
+                    if (!seat.id) return;
+                    try {
+                      await navigator.clipboard.writeText(seat.id);
+                      setMenuOpen(false);
+                    } catch {}
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  Copiar ID del asiento
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={!seat.encontrado?.id}
+                  onClick={async () => {
+                    if (!seat.encontrado?.id) return;
+                    try {
+                      await navigator.clipboard.writeText(seat.encontrado.id);
+                      setMenuOpen(false);
+                    } catch {}
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  Copiar ID del encontrado
+                </button>
+                {occupied && seat.encontrado ? (
+                  <div
+                    role="none"
+                    className="border-b border-gray-100 px-3 py-2 text-xs text-app-text-secondary dark:border-gray-700 dark:text-gray-400"
+                  >
+                    Asiento ocupado por: {ocupadoPor(seat)}
+                  </div>
+                ) : null}
+
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={occupied}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShowAsignar(true);
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  Asignar a otro
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={!canDarDeBaja}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    if (canDarDeBaja) setShowConfirm(true);
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  Dar de baja
+                </button>
+              </div>
+            </>,
+            document.body,
+          )}
       </div>
 
       {showConfirm && (
@@ -173,69 +264,16 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
           onCancel={() => setShowConfirm(false)}
         />
       )}
+
+      {showAsignar && (
+        <AsignarAsientoModal
+          open={showAsignar}
+          seat={{ id: seat.id, letter: seat.letter, team: seat.team }}
+          sex={sex}
+          onSuccess={() => setShowAsignar(false)}
+          onCancel={() => setShowAsignar(false)}
+        />
+      )}
     </>
-  );
-}
-
-interface ConfirmDarDeBajaModalProps {
-  open: boolean;
-  ocupadoPor: string;
-  loading: boolean;
-  onConfirm: () => void | Promise<void>;
-  onCancel: () => void;
-}
-
-function ConfirmDarDeBajaModal({
-  open,
-  ocupadoPor,
-  loading,
-  onConfirm,
-  onCancel,
-}: ConfirmDarDeBajaModalProps) {
-  if (!open) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="dar-de-baja-modal-title"
-      onClick={() => !loading && onCancel()}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2
-          id="dar-de-baja-modal-title"
-          className="text-lg font-semibold text-app-text-primary dark:text-white"
-        >
-          ¿Dar de baja este asiento?
-        </h2>
-        <p className="mt-2 text-sm text-app-text-secondary dark:text-gray-400">
-          Se marcará el asiento como abandonado y se desocupará. El encontrado{" "}
-          {ocupadoPor ? <strong>{ocupadoPor}</strong> : "asignado"} quedará
-          registrado como quien abandonó el asiento.
-        </p>
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-app-selected disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={() => onConfirm()}
-            disabled={loading}
-            className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50 dark:bg-red-600 dark:hover:bg-red-700"
-          >
-            {loading ? "Guardando…" : "Dar de baja"}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
