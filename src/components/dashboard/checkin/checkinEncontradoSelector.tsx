@@ -146,12 +146,20 @@ export function CheckinEncontradoSelector({
             <button
               type="button"
               onClick={() => refetch()}
-              className="text-app-text-secondary dark:text-gray-400"
+              aria-label="Actualizar registros"
+              className={`
+                flex items-center justify-center rounded-lg border border-transparent
+                p-2 transition-colors hover:bg-app-primary/10 focus:outline-none focus:ring-2
+                ${sexo === "M" ? "focus:ring-pink-400/60" : "focus:ring-app-primary/40"}
+                text-app-text-secondary dark:text-gray-400
+              `}
+              title="Actualizar registros"
             >
               <HugeiconsIcon
                 icon={RefreshIcon}
-                size={18}
-                className="text-app-text-secondary dark:text-gray-400"
+                size={20}
+                className="transition-transform group-hover:rotate-90"
+                aria-hidden="true"
               />
             </button>
             <span className="text-xs font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400">
