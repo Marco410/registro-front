@@ -190,7 +190,7 @@ export function CheckinEncontradoSelector({
             type="search"
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Buscar por nombre o clave. Ejem: 'Juan Perez', 'H1' o 'M1'"
+            placeholder="Buscar por nombre o ID. Ejem: 'Juan Perez', 'H1' o 'M1'"
             className={`w-full rounded-xl border bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400 ${borderClass}`}
             aria-label="Buscar por nombre"
           />
@@ -226,10 +226,13 @@ export function CheckinEncontradoSelector({
                     Edad
                   </th>
                   <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                    Clave
+                    ID
                   </th>
                   <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
                     Check-in
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                    Clave
                   </th>
                 </tr>
               </thead>
@@ -264,6 +267,7 @@ export function CheckinEncontradoSelector({
                         {e.sexo}
                         {e.clave ?? "—"}
                       </td>
+
                       <td className="px-4 py-3">
                         {checkinAt ? (
                           <span className="inline-flex items-center gap-1.5 text-sm">
@@ -286,6 +290,13 @@ export function CheckinEncontradoSelector({
                             —
                           </span>
                         )}
+                      </td>
+                      <td
+                        className={`px-4 py-3 font-semibold ${isHombre ? "text-app-primary dark:text-app-primary-muted" : "text-pink-600 dark:text-pink-400"}`}
+                      >
+                        {e.sexo}
+                        {e.checkins?.team?.teamNumber}
+                        {e.checkins?.seat?.letter}
                       </td>
                     </tr>
                   );
