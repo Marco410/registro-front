@@ -272,7 +272,7 @@ export function IdentificationForm({
           <select
             id="estado_c"
             name="estado_c"
-            value={formData.estado_c}
+            value={formData.estado_c ?? ""}
             onChange={onChange}
             className={inputClass}
             aria-label="Estado civil"

@@ -39,7 +39,7 @@ export interface CheckinResultCardProps {
  * Copias por defecto: 1 base + 1 si tiene celular + 1 si tiene medicamento.
  */
 function getDefaultCopies(data: CheckinResultData): number {
-  return 1 + (data.celular ? 1 : 0) + (data.medicamento ? 1 : 0);
+  return 2 + (data.celular ? 1 : 0) + (data.medicamento ? 1 : 0);
 }
 
 /**
