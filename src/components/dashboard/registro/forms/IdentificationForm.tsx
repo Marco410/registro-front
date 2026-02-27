@@ -18,7 +18,7 @@ export interface FechaInputs {
 }
 
 const CURRENT_YEAR = new Date().getFullYear();
-const MIN_BIRTH_YEAR = 1920;
+const MIN_BIRTH_YEAR = 1800;
 
 function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
@@ -124,9 +124,6 @@ export function IdentificationForm({
     },
     [onFechaNChange, onFechaError, onClearFechaError],
   );
-
-
-
 
   return (
     <section

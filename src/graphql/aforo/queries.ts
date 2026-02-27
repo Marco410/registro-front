@@ -26,9 +26,14 @@ export const SEATS_QUERY = gql`
         sexo
       }
       team {
+        id
         teamName
         teamNumber
         order
+        captain
+        auxiliar1
+        auxiliar2
+        auxiliar3
         ageGroup {
           label
         }
@@ -46,9 +51,14 @@ export interface SeatEncontrado {
 }
 
 export interface SeatTeam {
+  id: string;
   teamName: string;
   teamNumber: number;
   order?: number | null;
+  captain?: string | null;
+  auxiliar1?: string | null;
+  auxiliar2?: string | null;
+  auxiliar3?: string | null;
   ageGroup: { label: string };
 }
 

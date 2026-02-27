@@ -10,6 +10,7 @@ import {
 } from "registro/graphql/aforo/mutations";
 import { ConfirmDarDeBajaModal } from "registro/components/dashboard/aforo/ConfirmDarDeBajaModal";
 import { AsignarAsientoModal } from "registro/components/dashboard/aforo/AsignarAsientoModal";
+import { TeamSeatsModal } from "./TeamSeatsModal";
 
 const TEAM_LABEL_WIDTH = "min-w-[5.5rem] w-[5.5rem]";
 
@@ -24,18 +25,22 @@ export function TeamGenderBlock({
   seats: Seat[];
   sex: "H" | "M";
 }) {
+  const [showSeatsModal, setShowSeatsModal] = useState(false);
   const teamLabel = team
     ? `Eq. ${team.teamNumber}${team.ageGroup?.label ? ` (${team.ageGroup.label})` : ""}`
     : "Sin equipo";
 
   return (
     <div key={`${teamKey}-${sex}`} className="flex w-full items-center gap-3">
-      <p
-        className={`shrink-0 truncate text-right text-[10px] font-medium leading-tight text-app-text-secondary dark:text-gray-400 ${TEAM_LABEL_WIDTH}`}
-        title={teamLabel}
+      <button
+        type="button"
+        onClick={team ? () => setShowSeatsModal(true) : undefined}
+        className={`shrink-0 truncate text-right text-[10px] font-medium leading-tight text-app-text-secondary underline-offset-2 hover:underline dark:text-gray-400 ${TEAM_LABEL_WIDTH}`}
+        title={team ? "Ver asientos y encontrados de este equipo" : teamLabel}
+        disabled={!team}
       >
         {teamLabel}
-      </p>
+      </button>
       <div className="min-w-0 flex-1 flex flex-wrap gap-1">
         {seats.length === 0 ? (
           <span className="text-[10px] text-app-text-secondary dark:text-gray-400">
@@ -45,6 +50,13 @@ export function TeamGenderBlock({
           seats.map((seat) => <SeatBox key={seat.id} seat={seat} sex={sex} />)
         )}
       </div>
+      <TeamSeatsModal
+        open={showSeatsModal}
+        onClose={() => setShowSeatsModal(false)}
+        teamLabel={teamLabel}
+        seats={seats}
+        sex={sex}
+      />
     </div>
   );
 }

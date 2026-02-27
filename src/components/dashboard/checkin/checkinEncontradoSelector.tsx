@@ -8,6 +8,7 @@ import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
   CheckmarkCircle01Icon,
+  RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import {
   ENCONTRADOS_QUERY,
@@ -93,10 +94,8 @@ export function CheckinEncontradoSelector({
       firstUpper === "H" || firstUpper === "M"
         ? trimmed.slice(1).trim()
         : trimmed;
-    const searchNum =
-      afterSexo.length > 0 ? parseInt(afterSexo, 10) : NaN;
-    const isNumeric =
-      !Number.isNaN(searchNum) && /^\d+$/.test(afterSexo);
+    const searchNum = afterSexo.length > 0 ? parseInt(afterSexo, 10) : NaN;
+    const isNumeric = !Number.isNaN(searchNum) && /^\d+$/.test(afterSexo);
     const orConditions: EncontradosQueryVariables["where"]["OR"] = [
       { nombre: { contains: searchNorm, mode: "insensitive" } },
       { apellido_p: { contains: searchNorm, mode: "insensitive" } },
@@ -108,7 +107,7 @@ export function CheckinEncontradoSelector({
     return { ...base, OR: orConditions };
   })();
 
-  const { data, loading, error } = useQuery<
+  const { data, loading, error, refetch } = useQuery<
     EncontradosQueryResponse,
     EncontradosQueryVariables
   >(ENCONTRADOS_QUERY, {
@@ -138,12 +137,23 @@ export function CheckinEncontradoSelector({
 
   return (
     <section className={className}>
-      {(onSexoFilterChange != null) && (
+      {onSexoFilterChange != null && (
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300">
             Seleccionar registro
           </h2>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-5">
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="text-app-text-secondary dark:text-gray-400"
+            >
+              <HugeiconsIcon
+                icon={RefreshIcon}
+                size={18}
+                className="text-app-text-secondary dark:text-gray-400"
+              />
+            </button>
             <span className="text-xs font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400">
               Filtrar por sexo
             </span>
@@ -162,153 +172,153 @@ export function CheckinEncontradoSelector({
         </div>
       )}
       <div>
-      <div className="relative mb-3">
-        <HugeiconsIcon
-          icon={Search01Icon}
-          size={18}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-secondary dark:text-gray-400"
-        />
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Buscar por nombre o clave. Ejem: 'Juan Perez', 'H1' o 'M1'"
-          className={`w-full rounded-xl border bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400 ${borderClass}`}
-          aria-label="Buscar por nombre"
-        />
-      </div>
-
-      {error ? (
-        <p className="text-sm text-red-600 dark:text-red-400">
-          Error al cargar registros
-        </p>
-      ) : list.length === 0 && !loading ? (
-        <p className="text-sm text-app-text-secondary dark:text-gray-400">
-          {searchNorm ? "Ningún registro coincide" : "No hay registros"}
-        </p>
-      ) : (
-        <div className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-          {loading && (
-            <div
-              className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 dark:bg-gray-900/80"
-              aria-hidden="true"
-            >
-              <span className="text-sm font-medium text-app-text-secondary dark:text-gray-400">
-                Cargando…
-              </span>
-            </div>
-          )}
-          <table className="w-full text-left text-sm bg-white">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/80">
-                <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                  Nombre
-                </th>
-                <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                  Edad
-                </th>
-                <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                  Clave
-                </th>
-                <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                  Check-in
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((e) => {
-                const isSelected = selectedId === e.id;
-                const isHombre = e.sexo === "H";
-                const checkinAt = getCheckinAt(e);
-                const rowClass = isSelected
-                  ? isHombre
-                    ? "bg-app-primary/10 ring-inset ring-2 ring-app-primary dark:bg-app-primary-muted/20 rounded-xl"
-                    : "bg-pink-500/10 ring-inset ring-2 ring-pink-500 dark:bg-pink-500/20 rounded-xl"
-                  : isHombre
-                    ? "hover:bg-app-primary/5 dark:hover:bg-app-primary-muted/10 text-app-text-primary"
-                    : "hover:bg-pink-500/5 dark:hover:bg-pink-500/10 text-app-text-primary";
-                return (
-                  <tr
-                    key={e.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => onSelect(e)}
-                    onKeyDown={(ev) =>
-                      (ev.key === "Enter" || ev.key === " ") && onSelect(e)
-                    }
-                    className={`cursor-pointer border-b border-gray-100 transition-colors last:border-b-0 dark:border-gray-700/80 ${rowClass}`}
-                  >
-                    <td className="px-4 py-3 font-medium">{fullName(e)}</td>
-                    <td className="px-4 py-3 font-medium">{e.edad} años</td>
-                    <td
-                      className={`px-4 py-3 font-semibold ${isHombre ? "text-app-primary dark:text-app-primary-muted" : "text-pink-600 dark:text-pink-400"}`}
-                    >
-                      {e.sexo}
-                      {e.clave ?? "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {checkinAt ? (
-                        <span className="inline-flex items-center gap-1.5 text-sm">
-                          <HugeiconsIcon
-                            icon={CheckmarkCircle01Icon}
-                            size={18}
-                            className={
-                              isHombre
-                                ? "text-app-primary"
-                                : "text-pink-500 dark:text-pink-400"
-                            }
-                            aria-hidden
-                          />
-                          <span className="text-app-text-secondary dark:text-gray-400">
-                            {formatCheckinAt(checkinAt)}
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="text-app-text-secondary dark:text-gray-400">
-                          —
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="relative mb-3">
+          <HugeiconsIcon
+            icon={Search01Icon}
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-secondary dark:text-gray-400"
+          />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Buscar por nombre o clave. Ejem: 'Juan Perez', 'H1' o 'M1'"
+            className={`w-full rounded-xl border bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400 ${borderClass}`}
+            aria-label="Buscar por nombre"
+          />
         </div>
-      )}
 
-      {total > 0 && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-3 dark:border-gray-700">
-          <p className="text-sm text-app-text-secondary dark:text-gray-400">
-            {from}-{to} de {total} registros
+        {error ? (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Error al cargar registros
           </p>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={goPrev}
-              disabled={page <= 1}
-              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
-              aria-label="Página anterior"
-            >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
-              Anterior
-            </button>
-            <span className="px-2 text-sm text-app-text-secondary dark:text-gray-400">
-              Página {page} de {totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={goNext}
-              disabled={page >= totalPages}
-              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
-              aria-label="Página siguiente"
-            >
-              Siguiente
-              <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
-            </button>
+        ) : list.length === 0 && !loading ? (
+          <p className="text-sm text-app-text-secondary dark:text-gray-400">
+            {searchNorm ? "Ningún registro coincide" : "No hay registros"}
+          </p>
+        ) : (
+          <div className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+            {loading && (
+              <div
+                className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 dark:bg-gray-900/80"
+                aria-hidden="true"
+              >
+                <span className="text-sm font-medium text-app-text-secondary dark:text-gray-400">
+                  Cargando…
+                </span>
+              </div>
+            )}
+            <table className="w-full text-left text-sm bg-white">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/80">
+                  <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                    Nombre
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                    Edad
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                    Clave
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                    Check-in
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((e) => {
+                  const isSelected = selectedId === e.id;
+                  const isHombre = e.sexo === "H";
+                  const checkinAt = getCheckinAt(e);
+                  const rowClass = isSelected
+                    ? isHombre
+                      ? "bg-app-primary/10 ring-inset ring-2 ring-app-primary dark:bg-app-primary-muted/20 rounded-xl"
+                      : "bg-pink-500/10 ring-inset ring-2 ring-pink-500 dark:bg-pink-500/20 rounded-xl"
+                    : isHombre
+                      ? "hover:bg-app-primary/5 dark:hover:bg-app-primary-muted/10 text-app-text-primary"
+                      : "hover:bg-pink-500/5 dark:hover:bg-pink-500/10 text-app-text-primary";
+                  return (
+                    <tr
+                      key={e.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onSelect(e)}
+                      onKeyDown={(ev) =>
+                        (ev.key === "Enter" || ev.key === " ") && onSelect(e)
+                      }
+                      className={`cursor-pointer border-b border-gray-100 transition-colors last:border-b-0 dark:border-gray-700/80 ${rowClass}`}
+                    >
+                      <td className="px-4 py-3 font-medium">{fullName(e)}</td>
+                      <td className="px-4 py-3 font-medium">{e.edad} años</td>
+                      <td
+                        className={`px-4 py-3 font-semibold ${isHombre ? "text-app-primary dark:text-app-primary-muted" : "text-pink-600 dark:text-pink-400"}`}
+                      >
+                        {e.sexo}
+                        {e.clave ?? "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {checkinAt ? (
+                          <span className="inline-flex items-center gap-1.5 text-sm">
+                            <HugeiconsIcon
+                              icon={CheckmarkCircle01Icon}
+                              size={18}
+                              className={
+                                isHombre
+                                  ? "text-app-primary"
+                                  : "text-pink-500 dark:text-pink-400"
+                              }
+                              aria-hidden
+                            />
+                            <span className="text-app-text-secondary dark:text-gray-400">
+                              {formatCheckinAt(checkinAt)}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-app-text-secondary dark:text-gray-400">
+                            —
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
+        )}
+
+        {total > 0 && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-3 dark:border-gray-700">
+            <p className="text-sm text-app-text-secondary dark:text-gray-400">
+              {from}-{to} de {total} registros
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={goPrev}
+                disabled={page <= 1}
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                aria-label="Página anterior"
+              >
+                <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+                Anterior
+              </button>
+              <span className="px-2 text-sm text-app-text-secondary dark:text-gray-400">
+                Página {page} de {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={goNext}
+                disabled={page >= totalPages}
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                aria-label="Página siguiente"
+              >
+                Siguiente
+                <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
