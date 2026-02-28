@@ -66,7 +66,9 @@ export function TeamSeatsModal({
   const getEncontradoNombre = (seat: Seat) => {
     if (!seat.encontrado) return "—";
     const { nombre, apellido_p, apellido_m } = seat.encontrado;
-    return [nombre, apellido_p, apellido_m].filter(Boolean).join(" ");
+    return [nombre.trim(), apellido_p.trim(), apellido_m.trim()]
+      .filter(Boolean)
+      .join(" ");
   };
 
   const handleSaveTeam = async () => {

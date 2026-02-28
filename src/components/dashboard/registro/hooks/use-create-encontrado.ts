@@ -11,9 +11,9 @@ export interface UseCreateEncontradoOptions {
 
 function toMutationData(data: EncontradoFormData) {
   return {
-    nombre: data.nombre,
-    apellido_p: data.apellido_p || undefined,
-    apellido_m: data.apellido_m || undefined,
+    nombre: data.nombre.trim(),
+    apellido_p: data.apellido_p.trim() || undefined,
+    apellido_m: data.apellido_m?.trim() || undefined,
     sexo: data.sexo || undefined,
     fecha_n: data.fecha_n || undefined,
     estado_c: data.estado_c || undefined,

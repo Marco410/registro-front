@@ -5,3 +5,4 @@ export type {
 } from "./use-reassign-seat";
 export { useExportSeatsExcel } from "./use-export-seats-excel";
 export { useExportBautizosExcel } from "./use-export-bautizos-excel";
+export { useExportListaBautizos } from "./use-export-lista-bautizos";

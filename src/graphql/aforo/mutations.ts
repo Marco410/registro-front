@@ -52,3 +52,29 @@ export interface UpdateSeatAsignarVariables {
 export type UpdateSeatVariables =
   | UpdateSeatDarDeBajaVariables
   | UpdateSeatAsignarVariables;
+
+/** Crear foráneo bautizado. */
+export const CREATE_BAUTIZO_FORANEO_MUTATION = gql`
+  mutation CreateBautizoForaneo($data: BautizoForaneoCreateInput!) {
+    createBautizoForaneo(data: $data) {
+      id
+      nombre
+      apellido_p
+      apellido_m
+      gender
+      telefono
+      notes
+      create_at
+      update_at
+    }
+  }
+`;
+
+/** Eliminar foráneo bautizado. */
+export const DELETE_BAUTIZO_FORANEO_MUTATION = gql`
+  mutation DeleteBautizoForaneo($where: BautizoForaneoWhereUniqueInput!) {
+    deleteBautizoForaneo(where: $where) {
+      id
+    }
+  }
+`;

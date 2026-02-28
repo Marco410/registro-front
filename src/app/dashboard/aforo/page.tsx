@@ -1,5 +1,8 @@
 import { SeatsByTeam } from "registro/components/dashboard";
-import { AforoCountsCards } from "registro/components/shared";
+import {
+  AforoCountsCards,
+  BautizoCountsCards,
+} from "registro/components/shared";
 
 export default function AforoPage() {
   return (
@@ -15,6 +18,7 @@ export default function AforoPage() {
       </div>
       <AforoCountsCards />
       <SeatsByTeam />
+      <BautizoCountsCards />
     </div>
   );
 }

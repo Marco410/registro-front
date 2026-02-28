@@ -2,9 +2,7 @@
 
 import { useMutation } from "@apollo/client";
 import { toast } from "sonner";
-import {
-  UPDATE_ENCONTRADO_MUTATION,
-} from "registro/components/dashboard/registro/mutations";
+import { UPDATE_ENCONTRADO_MUTATION } from "registro/components/dashboard/registro/mutations";
 import type { EncontradoListItem } from "registro/graphql/encontrados/queries";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 
@@ -14,9 +12,9 @@ export interface UseUpdateEncontradoOptions {
 
 function toUpdateData(data: EncontradoFormData) {
   return {
-    nombre: data.nombre,
-    apellido_p: data.apellido_p || undefined,
-    apellido_m: data.apellido_m || undefined,
+    nombre: data.nombre.trim(),
+    apellido_p: data.apellido_p.trim() || undefined,
+    apellido_m: data.apellido_m?.trim() || undefined,
     sexo: data.sexo || undefined,
     fecha_n: data.fecha_n || undefined,
     estado_c: data.estado_c || undefined,
@@ -27,9 +25,7 @@ function toUpdateData(data: EncontradoFormData) {
     enfermedad: data.enfermedad || undefined,
     celular: data.celular,
     medicamento: data.medicamento,
-    user: data.user_id
-      ? { connect: { id: data.user_id } }
-      : undefined,
+    user: data.user_id ? { connect: { id: data.user_id } } : undefined,
   };
 }
 
@@ -48,11 +44,10 @@ export function useUpdateEncontrado(options: UseUpdateEncontradoOptions = {}) {
       toast.success("Registro actualizado correctamente");
       if (data?.updateEncontrado) onSuccess?.(data.updateEncontrado);
     },
-      onError: (err) => {
-        toast.error(err.message ?? "Error al actualizar");
-      },
+    onError: (err) => {
+      toast.error(err.message ?? "Error al actualizar");
     },
-  );
+  });
 
   const submitUpdate = async (
     encontradoId: string,

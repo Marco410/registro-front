@@ -161,7 +161,7 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
         </button>
         {hasBautizo && (
           <span
-            className="absolute -right-0.5 top-1 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-green-500 ring-2 ring-white dark:ring-[#202124]"
+            className="absolute -right-0 top-1 h-2 w-2 -translate-y-1/2 rounded-full bg-green-500 ring-2 ring-white dark:ring-[#202124]"
             aria-hidden
           />
         )}
