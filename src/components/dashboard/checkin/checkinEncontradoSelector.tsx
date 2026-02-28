@@ -262,7 +262,7 @@ export function CheckinEncontradoSelector({
                       <td className="px-4 py-3 font-medium">{fullName(e)}</td>
                       <td className="px-4 py-3 font-medium">{e.edad} años</td>
                       <td
-                        className={`px-4 py-3 font-semibold ${isHombre ? "text-app-primary dark:text-app-primary-muted" : "text-pink-600 dark:text-pink-400"}`}
+                        className={`px-4 py-3 font-semibold text-app-text-secondary dark:text-gray-400`}
                       >
                         {e.sexo}
                         {e.clave ?? "—"}

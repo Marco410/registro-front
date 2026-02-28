@@ -44,7 +44,14 @@ export function useExportSeatsExcel() {
       [empty, empty, empty, empty, empty],
     ];
 
-    const header = ["Clave", "Encontrado", "Celular", "Medi", "Bautizo"];
+    const header = [
+      "Clave",
+      "Encontrado",
+      "Celular",
+      "Medi",
+      "Bautizo",
+      "Observaciones",
+    ];
 
     const rows = filteredSeats.map((seat) => {
       const tieneEncontrado = Boolean(seat.encontrado);
@@ -54,7 +61,7 @@ export function useExportSeatsExcel() {
       const medicamento = seat.encontrado?.medicamento ? "Si" : "No";
       const bautizo = "";
 
-      return [clave, encontradoNombre, celular, medicamento, bautizo];
+      return [clave, encontradoNombre, celular, medicamento, bautizo, empty];
     });
 
     const escapeCell = (value: unknown) => {
