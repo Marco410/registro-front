@@ -56,6 +56,7 @@ export const UPDATE_ENCONTRADO_MUTATION = gql`
       update_at
       celular
       medicamento
+      bautizo
       user {
         id
         name

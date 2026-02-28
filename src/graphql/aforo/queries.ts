@@ -28,6 +28,11 @@ export const SEATS_QUERY = gql`
         medicamento
         bautizo
         edad
+        checkins {
+          id
+          checkinAt
+          claveOld
+        }
       }
       team {
         id
@@ -38,6 +43,10 @@ export const SEATS_QUERY = gql`
         auxiliar1
         auxiliar2
         auxiliar3
+        captain_h
+        auxiliar1_h
+        auxiliar2_h
+        auxiliar3_h
         ageGroup {
           label
         }
@@ -56,6 +65,11 @@ export interface SeatEncontrado {
   celular: boolean;
   medicamento: boolean;
   bautizo: boolean;
+  checkins: {
+    id: string;
+    checkinAt: string;
+    claveOld: string;
+  };
 }
 
 export interface SeatTeam {
@@ -67,6 +81,10 @@ export interface SeatTeam {
   auxiliar1?: string | null;
   auxiliar2?: string | null;
   auxiliar3?: string | null;
+  captain_h?: string | null;
+  auxiliar1_h?: string | null;
+  auxiliar2_h?: string | null;
+  auxiliar3_h?: string | null;
   ageGroup: { label: string };
 }
 
@@ -98,6 +116,13 @@ export const AFORO_QUERY = gql`
     encontradosCount
     encontradosCountH: encontradosCount(where: { sexo: { equals: "H" } })
     encontradosCountM: encontradosCount(where: { sexo: { equals: "M" } })
+    encontradosBautizoCount: encontradosCount(where: { bautizo: { equals: true } })
+    encontradosBautizoCountH: encontradosCount(
+      where: { bautizo: { equals: true }, sexo: { equals: "H" } }
+    )
+    encontradosBautizoCountM: encontradosCount(
+      where: { bautizo: { equals: true }, sexo: { equals: "M" } }
+    )
     checkinsCount
     checkinsCountH: checkinsCount(
       where: { encontrado: { sexo: { equals: "H" } } }
@@ -115,4 +140,7 @@ export interface AforoResponse {
   encontradosCount: number;
   encontradosCountH: number;
   encontradosCountM: number;
+  encontradosBautizoCount: number;
+  encontradosBautizoCountH: number;
+  encontradosBautizoCountM: number;
 }

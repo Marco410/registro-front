@@ -3,11 +3,13 @@
 import { useState, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useMutation } from "@apollo/client";
+import { toast } from "sonner";
 import { Seat, SEATS_QUERY } from "registro/graphql/aforo/queries";
 import {
   UPDATE_SEAT_MUTATION,
   type UpdateSeatVariables,
 } from "registro/graphql/aforo/mutations";
+import { UPDATE_ENCONTRADO_MUTATION } from "registro/components/dashboard/registro/mutations";
 import { ConfirmDarDeBajaModal } from "registro/components/dashboard/aforo/ConfirmDarDeBajaModal";
 import { AsignarAsientoModal } from "registro/components/dashboard/aforo/AsignarAsientoModal";
 import { TeamSeatsModal } from "./TeamSeatsModal";
@@ -91,6 +93,11 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
     refetchQueries: [{ query: SEATS_QUERY }],
   });
 
+  const [updateEncontradoBautizo, { loading: updatingBautizo }] = useMutation(
+    UPDATE_ENCONTRADO_MUTATION,
+    { refetchQueries: [{ query: SEATS_QUERY }] },
+  );
+
   const occupied = seat.occupied;
   const abandoned = seat.abandoned;
   const isMale = sex === "H";
@@ -125,6 +132,25 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
       },
     });
     setShowConfirm(false);
+  };
+
+  const hasBautizo = Boolean(seat.encontrado?.bautizo);
+  const handleToggleBautizo = async () => {
+    if (!seat.encontrado?.id) return;
+    try {
+      await updateEncontradoBautizo({
+        variables: {
+          where: { id: seat.encontrado.id },
+          data: { bautizo: !hasBautizo },
+        },
+      });
+      toast.success(
+        hasBautizo ? "Bautizo removido con éxito" : "Bautizo aplicado con éxito",
+      );
+      setMenuOpen(false);
+    } catch {
+      // Error ya manejado por la mutación si aplica
+    }
   };
 
   useLayoutEffect(() => {
@@ -199,6 +225,14 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
                   visibility: menuPosition ? "visible" : "hidden",
                 }}
               >
+                {occupied && seat.encontrado ? (
+                  <div
+                    role="none"
+                    className="border-b border-gray-100 px-3 py-2 text-xs text-app-text-secondary dark:border-gray-700 dark:text-gray-400"
+                  >
+                    Asiento ocupado por: {ocupadoPor(seat)}
+                  </div>
+                ) : null}
                 <button
                   type="button"
                   role="menuitem"
@@ -228,15 +262,6 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
                 >
                   Copiar ID del encontrado
                 </button>
-                {occupied && seat.encontrado ? (
-                  <div
-                    role="none"
-                    className="border-b border-gray-100 px-3 py-2 text-xs text-app-text-secondary dark:border-gray-700 dark:text-gray-400"
-                  >
-                    Asiento ocupado por: {ocupadoPor(seat)}
-                  </div>
-                ) : null}
-
                 <button
                   type="button"
                   role="menuitem"
@@ -252,12 +277,21 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
                 <button
                   type="button"
                   role="menuitem"
+                  disabled={!seat.encontrado?.id || updatingBautizo}
+                  onClick={handleToggleBautizo}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  {hasBautizo ? "Quitar bautizo" : "Aplicar bautizo"}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
                   disabled={!canDarDeBaja}
                   onClick={() => {
                     setMenuOpen(false);
                     if (canDarDeBaja) setShowConfirm(true);
                   }}
-                  className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-red-500 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
                 >
                   Dar de baja
                 </button>

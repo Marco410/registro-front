@@ -4,8 +4,6 @@ import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   UserIcon,
-  Male02Icon,
-  Female02Icon,
   CalendarCheckIn01Icon,
 } from "@hugeicons/core-free-icons";
 import {
@@ -47,6 +45,9 @@ export function AforoCountsCards() {
     checkinsCount: 0,
     encontradosCountH: 0,
     encontradosCountM: 0,
+    encontradosBautizoCount: 0,
+    encontradosBautizoCountH: 0,
+    encontradosBautizoCountM: 0,
     checkinsCountH: 0,
     checkinsCountM: 0,
   };
@@ -73,27 +74,27 @@ export function AforoCountsCards() {
       className: "text-pink-600 dark:text-pink-400",
       iconBg: "bg-pink-500/10 dark:bg-pink-500/20",
     },
-    /*  {
-      label: "Total encontrados",
-      value: counts.encontradosCount,
+    {
+      label: "Total bautizados",
+      value: counts.encontradosBautizoCount,
       icon: UserIcon,
       className: "text-app-text-primary dark:text-gray-200",
       iconBg: "bg-gray-100 dark:bg-gray-700",
     },
     {
-      label: "Hombres encontrados",
-      value: counts.encontradosCountH,
+      label: "Hombres bautizados",
+      value: counts.encontradosBautizoCountH,
       icon: UserIcon,
       className: "text-app-primary dark:text-app-primary-muted",
       iconBg: "bg-app-primary/10 dark:bg-app-primary-muted/20",
     },
     {
-      label: "Mujeres encontradas",
-      value: counts.encontradosCountM,
+      label: "Mujeres bautizadas",
+      value: counts.encontradosBautizoCountM,
       icon: UserIcon,
       className: "text-pink-600 dark:text-pink-400",
       iconBg: "bg-pink-500/10 dark:bg-pink-500/20",
-    }, */
+    },
   ];
 
   return (

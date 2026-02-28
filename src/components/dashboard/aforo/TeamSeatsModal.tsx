@@ -21,6 +21,10 @@ const UPDATE_TEAM_MUTATION = gql`
       auxiliar1
       auxiliar2
       auxiliar3
+      captain_h
+      auxiliar1_h
+      auxiliar2_h
+      auxiliar3_h
     }
   }
 `;
@@ -36,10 +40,19 @@ export function TeamSeatsModal({
 
   const filteredSeats = seats?.filter((seat) => seat.gender === sex) ?? [];
   const teamInfo = seats[0]?.team ?? null;
-  const initialCaptain = teamInfo?.captain ?? "";
-  const initialAux1 = teamInfo?.auxiliar1 ?? "";
-  const initialAux2 = teamInfo?.auxiliar2 ?? "";
-  const initialAux3 = teamInfo?.auxiliar3 ?? "";
+  const isHombres = sex === "H";
+  const initialCaptain = isHombres
+    ? (teamInfo?.captain_h ?? "")
+    : (teamInfo?.captain ?? "");
+  const initialAux1 = isHombres
+    ? (teamInfo?.auxiliar1_h ?? "")
+    : (teamInfo?.auxiliar1 ?? "");
+  const initialAux2 = isHombres
+    ? (teamInfo?.auxiliar2_h ?? "")
+    : (teamInfo?.auxiliar2 ?? "");
+  const initialAux3 = isHombres
+    ? (teamInfo?.auxiliar3_h ?? "")
+    : (teamInfo?.auxiliar3 ?? "");
 
   const [captain, setCaptain] = useState(initialCaptain);
   const [aux1, setAux1] = useState(initialAux1);
@@ -58,15 +71,24 @@ export function TeamSeatsModal({
   const handleSaveTeam = async () => {
     if (!teamInfo?.id) return;
     try {
+      const data =
+        sex === "H"
+          ? {
+              captain_h: captain,
+              auxiliar1_h: aux1,
+              auxiliar2_h: aux2,
+              auxiliar3_h: aux3,
+            }
+          : {
+              captain,
+              auxiliar1: aux1,
+              auxiliar2: aux2,
+              auxiliar3: aux3,
+            };
       await updateTeam({
         variables: {
           where: { id: teamInfo.id },
-          data: {
-            captain,
-            auxiliar1: aux1,
-            auxiliar2: aux2,
-            auxiliar3: aux3,
-          },
+          data,
         },
       });
     } catch {}
@@ -221,6 +243,9 @@ export function TeamSeatsModal({
                 <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
                   Bautizo
                 </th>
+                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
+                  Clave Antigua
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -262,17 +287,20 @@ export function TeamSeatsModal({
                           </span>
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
                         {seat.occupied ? "Ocupado" : "Libre"}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
-                        {seat.encontrado?.celular ? "Si" : "No"}
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
+                        {seat.encontrado?.celular ? "✅" : "❌"}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
-                        {seat.encontrado?.medicamento ? "Si" : "No"}
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
+                        {seat.encontrado?.medicamento ? "✅" : "❌"}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs">
-                        {seat.encontrado?.bautizo ? "Si" : "No"}
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
+                        {seat.encontrado?.bautizo ? "✅" : "❌"}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
+                        {seat.encontrado?.checkins?.claveOld ?? ""}
                       </td>
                     </tr>
                   );
