@@ -3,14 +3,29 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
-/** Misma lógica que el backend para mostrar el nombre en el gafete. */
+/**
+ * Formatea el nombre para el gafete:
+ * - Si el primer nombre tiene más de 4 letras → solo el primero.
+ * - Si el primero tiene menos de 3 letras → primero y segundo; si el segundo tiene menos de 3 → primero, segundo y tercero; si el tercero tiene menos de 3 → primero, segundo, tercero y cuarto.
+ */
 function processName(nombre: string): string {
-  const partes = nombre.trim().split(/\s+/);
-  if (partes.length > 1) {
-    if (partes[0].length > 12) return partes[0];
-    return `${partes[0]} ${partes[1][0]}.`;
-  }
-  return nombre.length > 13 ? `${nombre}.` : nombre;
+  const normalized = nombre.trim().replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+  const names = normalized.split(" ").filter(Boolean);
+  if (names.length === 0) return "";
+
+  const first = names[0];
+
+  // Primer nombre con 3 o 4 letras → solo el primero
+  if (first.length >= 4) return first;
+
+  // Primer nombre con menos de 3 letras → ir añadiendo según longitud del siguiente
+  if (names.length === 1) return first;
+  if (names[1].length >= 3) return `${names[0]} ${names[1]}`;
+  if (names.length === 2) return `${names[0]} ${names[1]}`;
+  if (names[2].length >= 3) return `${names[0]} ${names[1]} ${names[2]}`;
+  if (names.length === 3) return `${names[0]} ${names[1]} ${names[2]}`;
+  return `${names[0]} ${names[1]} ${names[2]} ${names[3]}`;
 }
 
 /** Tamaño de etiqueta Brother QL-800: 62mm ancho × 100mm largo, orientación horizontal. */
@@ -34,12 +49,16 @@ function buildPrintHtml(
   copies: number,
   imageUrl: string,
 ): string {
+  const nameHtml = nombreFinal
+    .split("\n")
+    .map((line) => escapeHtml(line))
+    .join("<br/>");
   const pagesHtml = Array.from(
     { length: copies },
     () => `
     <div class="gafete-page">
       <img src="${escapeHtml(imageUrl)}" alt="" class="gafete-formato-img" loading="eager" />
-      <p class="gafete-name">${escapeHtml(nombreFinal)}</p>
+      <p class="gafete-name">${nameHtml}</p>
       <div class="gafete-fila-wrap">
         <span class="gafete-fila-label">FILA:</span>
         <span class="gafete-fila-value">${escapeHtml(fila)}</span>

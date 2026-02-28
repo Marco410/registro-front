@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { Seat } from "registro/graphql/aforo/queries";
-import { useExportSeatsExcel } from "./hooks";
+import { useExportBautizosExcel, useExportSeatsExcel } from "./hooks";
 
 export interface TeamSeatsModalProps {
   open: boolean;
@@ -61,6 +61,7 @@ export function TeamSeatsModal({
 
   const [updateTeam, { loading: saving }] = useMutation(UPDATE_TEAM_MUTATION);
   const { exportSeatsToExcel } = useExportSeatsExcel();
+  const { exportBautizosToExcel } = useExportBautizosExcel();
 
   const getEncontradoNombre = (seat: Seat) => {
     if (!seat.encontrado) return "—";
@@ -105,6 +106,16 @@ export function TeamSeatsModal({
       aux1,
       aux2,
       aux3,
+    });
+  };
+
+  const handleExportBautizosExcel = () => {
+    exportBautizosToExcel({
+      filteredSeats,
+      teamLabel,
+      sex,
+      getEncontradoNombre,
+      teamNumber: teamInfo?.teamNumber ?? undefined,
     });
   };
 
@@ -210,7 +221,15 @@ export function TeamSeatsModal({
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={handleExportBautizosExcel}
+            disabled={filteredSeats.length === 0}
+            className="inline-flex items-center rounded-xl border border-green-500 bg-white px-3 py-1.5 text-xs font-medium text-black shadow-sm transition-colors hover:bg-app-selected disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-[#151515] dark:text-gray-100 dark:hover:bg-gray-800 sm:text-sm"
+          >
+            Exportar bautizados
+          </button>
           <button
             type="button"
             onClick={handleExportExcel}

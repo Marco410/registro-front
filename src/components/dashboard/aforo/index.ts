@@ -1,2 +1,2 @@
-export { SeatsByTeam } from "./seats-by-team";
+export { SeatsByTeam } from "./SeatsByTeam";
 export { TeamGenderBlock } from "./TeamGenderBlock";

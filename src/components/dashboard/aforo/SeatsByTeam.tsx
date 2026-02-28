@@ -158,6 +158,12 @@ export function SeatsByTeam() {
             Libre
           </span>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-green-500/90" />
+          <span className="text-xs text-app-text-secondary dark:text-gray-400">
+            Bautizado
+          </span>
+        </div>
       </div>
     </div>
   );
