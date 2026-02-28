@@ -28,6 +28,7 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <RedirectIfAuthenticated>
@@ -61,15 +62,61 @@ export default function LoginPage() {
               >
                 Contraseña
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full rounded-lg border border-brown-200 px-3 py-2 dark:border-brown-600 dark:bg-brown-900 dark:text-blue-100"
-                placeholder="Contraseña"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-brown-200 px-3 py-2 pr-10 dark:border-brown-600 dark:bg-brown-900 dark:text-blue-100"
+                  placeholder="Contraseña"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+                  onClick={() => setShowPassword((v: boolean) => !v)}
+                >
+                  {showPassword ? (
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4-9-7 0-1.074.298-2.077.835-2.975M9.88 9.882A3 3 0 1116.12 16.12M7.05 7.05l9.9 9.9"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-.155.512-.35 1.013-.582 1.497"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
             {error && (
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>

@@ -27,6 +27,7 @@ export const SEATS_QUERY = gql`
         celular
         medicamento
         bautizo
+        edad
       }
       team {
         id
@@ -50,6 +51,7 @@ export interface SeatEncontrado {
   nombre: string;
   apellido_p: string;
   apellido_m: string;
+  edad: number;
   sexo: string;
   celular: boolean;
   medicamento: boolean;

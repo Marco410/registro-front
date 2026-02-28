@@ -109,7 +109,7 @@ function SeatBox({ seat, sex }: { seat: Seat; sex: "H" | "M" }) {
       ? `Baja: ${seat.abandonedBy.nombre} ${seat.abandonedBy.apellido_p} ${seat.abandonedBy.apellido_m}`
       : "Dado de baja"
     : occupied && seat.encontrado
-      ? `${seat.encontrado.nombre} ${seat.encontrado.apellido_p} ${seat.encontrado.apellido_m} | ${seat.gender}${seat.team?.teamNumber}${seat.letter}`
+      ? `${seat.encontrado.nombre} ${seat.encontrado.apellido_p} ${seat.encontrado.apellido_m} | ${seat.gender}${seat.team?.teamNumber}${seat.letter} | Edad: ${seat.encontrado.edad}`
       : null;
 
   const handleDarDeBaja = async () => {
