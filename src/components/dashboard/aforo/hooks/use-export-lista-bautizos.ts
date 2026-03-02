@@ -36,9 +36,9 @@ export function useExportListaBautizos() {
         data.checkins.forEach((c) => {
           const e = c.encontrado;
           const nombre = fullName(
-            e.nombre,
-            e.apellido_p ?? null,
-            e.apellido_m ?? null,
+            e.nombre.trim(),
+            e.apellido_p?.trim() ?? null,
+            e.apellido_m?.trim() ?? null,
           );
           rows.push([c.clave, nombre]);
         });

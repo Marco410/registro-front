@@ -13,7 +13,7 @@ const cardBase =
 
 export function AforoCountsCards() {
   const { data, loading, error } = useQuery<AforoResponse>(AFORO_QUERY, {
-    pollInterval: 10000,
+    //pollInterval: 10000,
   });
 
   if (loading) {

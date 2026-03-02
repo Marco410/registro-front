@@ -48,7 +48,7 @@ function splitByGender(seats: Seat[]): { hombres: Seat[]; mujeres: Seat[] } {
 
 export function SeatsByTeam() {
   const { data, loading, error } = useQuery<SeatsQueryResponse>(SEATS_QUERY, {
-    pollInterval: 10000,
+    //pollInterval: 10000,
   });
 
   if (loading) {

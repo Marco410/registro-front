@@ -20,7 +20,7 @@ export function BautizoCountsCards() {
   const { data, loading, error } = useQuery<BautizoCountsResponse>(
     BAUTIZO_COUNTS_QUERY,
     {
-      pollInterval: 10000,
+      //pollInterval: 10000,
     },
   );
 
@@ -185,7 +185,7 @@ export function BautizoCountsCards() {
           onClick={() => setForaneosModalOpen(true)}
           className="rounded-xl bg-app-primary px-4 py-2 text-sm font-medium text-white hover:bg-app-primary/90 dark:bg-app-primary-muted dark:hover:bg-app-primary-muted/90"
         >
-          Registrar foraneo bautizado
+          Bautizos foráneos
         </button>
       </div>
       <BautizoForaneosModal
