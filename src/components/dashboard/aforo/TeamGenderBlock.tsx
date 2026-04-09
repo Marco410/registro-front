@@ -19,10 +19,11 @@ export function TeamGenderBlock({
   sex: "H" | "M";
 }) {
   const [showSeatsModal, setShowSeatsModal] = useState(false);
-  const teamLabel = team
+  let teamLabel = team
     ? `Eq. ${team.teamNumber}${team.ageGroup?.label ? ` (${team.ageGroup.label})` : ""}`
     : "Sin equipo";
 
+  teamLabel = `${team?.teamName ?? ""} (${team?.ageGroup?.label ?? ""})`;
   return (
     <div key={`${teamKey}-${sex}`} className="flex w-full items-center gap-3">
       <button
