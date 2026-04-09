@@ -22,6 +22,7 @@ import {
 import { usePerformCheckin } from "registro/components/dashboard/checkin";
 import { useAuth } from "registro/hooks/use-auth";
 import {
+  DEFAULT_CELULAR,
   getStoredSexo,
   PENDING_CHECKIN_RESULT_KEY,
   REGISTRO_SEXO_KEY,
@@ -41,7 +42,7 @@ const initialValues: EncontradoFormData = {
   nom_ref: "",
   tel_ref: "",
   enfermedad: "",
-  celular: true,
+  celular: DEFAULT_CELULAR,
   medicamento: false,
   user_id: "",
 };

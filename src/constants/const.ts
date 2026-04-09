@@ -17,3 +17,5 @@ export function getStoredSexo(): "H" | "M" {
 
 /** Clave de sessionStorage para pasar el resultado de check-in desde Registro a la pestaña Check-in. */
 export const PENDING_CHECKIN_RESULT_KEY = "registro_pending_checkin_result";
+
+export const DEFAULT_CELULAR = false;

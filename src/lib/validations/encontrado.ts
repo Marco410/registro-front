@@ -1,3 +1,4 @@
+import { DEFAULT_CELULAR } from "registro/constants/const";
 import { z } from "zod";
 
 export const encontradoSchema = z.object({
@@ -19,7 +20,7 @@ export const encontradoSchema = z.object({
     .string()
     .min(1, "El teléfono del contacto de emergencia es obligatorio"),
   enfermedad: z.string().optional(),
-  celular: z.boolean().default(true),
+  celular: z.boolean().default(DEFAULT_CELULAR),
   medicamento: z.boolean().default(false),
   user_id: z.string().min(1, "El ID del usuario es obligatorio"),
 });

@@ -29,6 +29,9 @@ export const SEATS_QUERY = gql`
         medicamento
         bautizo
         edad
+        fecha_n
+        nom_ref
+        tel_ref
         checkins {
           id
           checkinAt
@@ -67,6 +70,9 @@ export interface SeatEncontrado {
   celular: boolean;
   medicamento: boolean;
   bautizo: boolean;
+  fecha_n?: string | null;
+  nom_ref?: string | null;
+  tel_ref?: string | null;
   checkins: {
     id: string;
     checkinAt: string;

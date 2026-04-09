@@ -1,12 +1,15 @@
 "use client";
 
 import { useQuery } from "@apollo/client";
+import { Download01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SEATS_QUERY,
   type Seat,
   type SeatsQueryResponse,
 } from "registro/graphql/aforo/queries";
 import { TeamGenderBlock } from "./TeamGenderBlock";
+import { useExportEncontradosExcel } from "./hooks";
 
 function getSeatSex(seat: Seat): "H" | "M" {
   const sex = seat.gender || seat.encontrado?.sexo || "";
@@ -50,6 +53,7 @@ export function SeatsByTeam() {
   const { data, loading, error } = useQuery<SeatsQueryResponse>(SEATS_QUERY, {
     //pollInterval: 10000,
   });
+  const { exportEncontradosToExcel } = useExportEncontradosExcel();
 
   if (loading) {
     return (
@@ -85,11 +89,19 @@ export function SeatsByTeam() {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-[#202124]">
-      {/* Escenario */}
-      <div className="flex items-center justify-center border-b border-gray-200 bg-gray-100 py-3 dark:border-gray-700 dark:bg-gray-800/80 py-5">
+      {/* Escenario + botón exportar */}
+      <div className="flex items-center justify-between border-b border-gray-200 bg-gray-100 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/80 md:py-5">
         <span className="text-xs font-semibold uppercase tracking-widest text-app-text-secondary dark:text-gray-400">
           Altar
         </span>
+        <button
+          type="button"
+          onClick={() => exportEncontradosToExcel(seats)}
+          className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+          <HugeiconsIcon icon={Download01Icon} size={16} />
+          Exportar encontrados (Excel)
+        </button>
       </div>
       {/* Sala: izquierda = hombres, derecha = mujeres (vista desde el escenario); mujeres con más ancho */}
       <div className="grid grid-cols-1 gap-2 p-4 md:grid-cols-[1fr_1.4fr] md:gap-5">
