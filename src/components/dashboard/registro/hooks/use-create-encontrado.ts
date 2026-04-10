@@ -19,6 +19,7 @@ function toMutationData(data: EncontradoFormData) {
     estado_c: data.estado_c || undefined,
     religion: data.religion || undefined,
     telefono: data.telefono || undefined,
+    address: data.address?.trim() || undefined,
     nom_ref: data.nom_ref || undefined,
     tel_ref: data.tel_ref || undefined,
     enfermedad: data.enfermedad || undefined,

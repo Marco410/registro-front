@@ -21,6 +21,7 @@ export const CREATE_ENCONTRADO_MUTATION = gql`
       sexo
       tel_ref
       telefono
+      address
       update_at
       user {
         id
@@ -53,6 +54,7 @@ export const UPDATE_ENCONTRADO_MUTATION = gql`
       sexo
       tel_ref
       telefono
+      address
       update_at
       celular
       medicamento

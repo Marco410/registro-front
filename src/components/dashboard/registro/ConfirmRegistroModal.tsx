@@ -9,11 +9,13 @@ import {
   formatFechaDisplay,
 } from "registro/lib/helpers/encontrado-display";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
+import { useIsNinosEvent } from "registro/contexts/active-event-context";
 
 function buildConfirmRows(
   formData: EncontradoFormData,
+  isNinosEvent: boolean,
 ): { label: string; value: string }[] {
-  return [
+  const base: { label: string; value: string }[] = [
     { label: "Nombre", value: displayValue(formData.nombre) },
     { label: "Apellido paterno", value: displayValue(formData.apellido_p) },
     { label: "Apellido materno", value: displayValue(formData.apellido_m) },
@@ -26,9 +28,21 @@ function buildConfirmRows(
       value: formatFechaDisplay(formData.fecha_n),
     },
     { label: "Edad", value: displayEdad(formData.fecha_n) },
-    { label: "Estado civil", value: displayValue(formData.estado_c) },
-    { label: "Religión", value: displayValue(formData.religion) },
-    { label: "Teléfono", value: displayValue(formData.telefono) },
+  ];
+  if (isNinosEvent) {
+    base.push({
+      label: "Dirección",
+      value: displayValue(formData.address),
+    });
+  } else {
+    base.push(
+      { label: "Estado civil", value: displayValue(formData.estado_c) },
+      { label: "Religión", value: displayValue(formData.religion) },
+      { label: "Teléfono", value: displayValue(formData.telefono) },
+    );
+  }
+  return [
+    ...base,
     { label: "Nombre del referido", value: displayValue(formData.nom_ref) },
     { label: "Teléfono del referido", value: displayValue(formData.tel_ref) },
     {
@@ -68,6 +82,7 @@ export function ConfirmRegistroModal({
   onConfirmAndCheckin,
   onCancel,
 }: ConfirmRegistroModalProps) {
+  const isNinosEvent = useIsNinosEvent();
   const loadingRef = useRef(loading);
   const onConfirmAndCheckinRef = useRef(onConfirmAndCheckin);
   loadingRef.current = loading;
@@ -99,7 +114,7 @@ export function ConfirmRegistroModal({
 
   if (!open) return null;
 
-  const rows = buildConfirmRows(formData);
+  const rows = buildConfirmRows(formData, isNinosEvent);
 
   return (
     <div

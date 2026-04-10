@@ -72,6 +72,8 @@ export interface ActiveEventContextValue {
   eventId: string | null;
   eventName: string | null;
   eventType: EventTypeValue | null;
+  /** `true` cuando el evento activo es de tipo niños (formulario y validación específicos). */
+  isNinosEvent: boolean;
   setActiveEvent: (payload: {
     id: string;
     name: string;
@@ -127,6 +129,7 @@ export function ActiveEventProvider({ children }: { children: React.ReactNode })
       eventId,
       eventName,
       eventType,
+      isNinosEvent: eventType === "ninos",
       setActiveEvent,
       clearActiveEvent,
       clearIfMatches,
@@ -154,4 +157,8 @@ export function useActiveEvent(): ActiveEventContextValue {
     throw new Error("useActiveEvent must be used within ActiveEventProvider");
   }
   return ctx;
+}
+
+export function useIsNinosEvent(): boolean {
+  return useActiveEvent().isNinosEvent;
 }

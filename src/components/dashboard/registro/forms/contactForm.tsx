@@ -6,6 +6,7 @@ import {
   getInputClass,
   labelClass,
 } from "registro/components/shared/FormInputStyles";
+import { useActiveEvent } from "registro/contexts/active-event-context";
 
 export interface ContactFormProps {
   formData: Pick<EncontradoFormData, "sexo" | "nom_ref" | "tel_ref">;
@@ -30,7 +31,6 @@ export function ContactForm({
   const telRef = formData.tel_ref ?? "";
   const inputClass = getInputClass(sexo);
 
-  
 
   return (
     <section

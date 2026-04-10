@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
-import { encontradoSchema } from "registro/lib/validations/encontrado";
+import { getEncontradoSchema } from "registro/lib/validations/encontrado";
+import { useActiveEvent } from "registro/contexts/active-event-context";
 import {
   ENCONTRADO_BY_ID_QUERY,
   type EncontradoByIdQueryResponse,
@@ -43,6 +44,7 @@ function encontradoToFormData(
     estado_c: e.estado_c ?? "",
     religion: e.religion ?? "",
     telefono: e.telefono ?? "",
+    address: e.address ?? "",
     nom_ref: e.nom_ref ?? "",
     tel_ref: e.tel_ref ?? "",
     enfermedad: e.enfermedad ?? "",
@@ -70,6 +72,7 @@ const emptyFormData: EncontradoFormData = {
   estado_c: "",
   religion: "",
   telefono: "",
+  address: "",
   nom_ref: "",
   tel_ref: "",
   enfermedad: "",
@@ -86,6 +89,11 @@ export function EditEncontradoModal({
   onSaved,
   hasCheckin: hasCheckinProp,
 }: EditEncontradoModalProps) {
+  const { eventType } = useActiveEvent();
+  const encontradoSchema = useMemo(
+    () => getEncontradoSchema(eventType),
+    [eventType],
+  );
   const [formData, setFormData] = useState<EncontradoFormData>(emptyFormData);
   const [errors, setErrors] = useState<
     Partial<Record<keyof EncontradoFormData, string>>
@@ -162,8 +170,17 @@ export function EditEncontradoModal({
   ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
+    const isSelect = e.target.tagName === "SELECT";
     let nextValue: string | boolean =
-      type === "checkbox" ? checked : type === "date" ? value || "" : value;
+      type === "checkbox"
+        ? checked
+        : type === "date"
+          ? value || ""
+          : isSelect
+            ? value
+            : name === "address"
+              ? value
+              : value.toUpperCase();
     if (
       type !== "checkbox" &&
       type !== "date" &&

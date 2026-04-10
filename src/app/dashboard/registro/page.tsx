@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import {
-  encontradoSchema,
+  getEncontradoSchema,
   type EncontradoFormData,
 } from "registro/lib/validations/encontrado";
+import { useActiveEvent } from "registro/contexts/active-event-context";
 import {
   ContactForm,
   DiscardChangesModal,
@@ -39,6 +40,7 @@ const initialValues: EncontradoFormData = {
   estado_c: "",
   religion: "",
   telefono: "",
+  address: "",
   nom_ref: "",
   tel_ref: "",
   enfermedad: "",
@@ -66,6 +68,7 @@ function hasFormData(data: EncontradoFormData): boolean {
     Boolean(data.estado_c?.trim()) ||
     Boolean(data.religion?.trim()) ||
     Boolean(data.telefono?.trim()) ||
+    Boolean(data.address?.trim()) ||
     Boolean(data.nom_ref?.trim()) ||
     Boolean(data.tel_ref?.trim()) ||
     Boolean(data.enfermedad?.trim())
@@ -104,6 +107,11 @@ export default function DashboardRegistroPage() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
+  const { eventType } = useActiveEvent();
+  const encontradoSchema = useMemo(
+    () => getEncontradoSchema(eventType),
+    [eventType],
+  );
   const userId = user?.id != null ? String(user.id) : "";
 
   const handleClearForm = () => {
@@ -247,7 +255,9 @@ export default function DashboardRegistroPage() {
           ? value || ""
           : isSelect
             ? value
-            : value.toUpperCase();
+            : name === "address"
+              ? value
+              : value.toUpperCase();
     if (
       type !== "checkbox" &&
       type !== "date" &&
