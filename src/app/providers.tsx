@@ -1,6 +1,7 @@
 "use client";
 
 import { ApolloProvider } from "@apollo/client";
+import { ActiveEventProvider } from "registro/contexts/active-event-context";
 import { AuthProvider } from "registro/contexts/auth-context";
 import client from "registro/hooks/apollo-client";
 import { Toaster } from "sonner";
@@ -11,7 +12,7 @@ import { Toaster } from "sonner";
  * Provides the following contexts in order:
  * - ApolloProvider: GraphQL client for data fetching
  * - AuthProvider: Authentication state management
- * - FontSizeProvider: Font scaling preferences
+ * - ActiveEventProvider: Evento activo (nombre y tipo) persistido en localStorage
  * - Toaster: Toast notifications
  *
  * Note: ThemeProvider is moved to [locale]/layout.tsx to avoid script injection issues
@@ -29,8 +30,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ApolloProvider client={client}>
       <AuthProvider>
-        {children}
-        <Toaster position="top-center" />
+        <ActiveEventProvider>
+          {children}
+          <Toaster position="top-center" />
+        </ActiveEventProvider>
       </AuthProvider>
     </ApolloProvider>
   );

@@ -10,5 +10,6 @@ export const routes = {
   dashboardAforo: () => `${DASHBOARD}/aforo`,
   dashboardEstadisticas: () => `${DASHBOARD}/estadisticas`,
   dasboardUsers: () => `${DASHBOARD}/usuarios`,
+  dasboardEvents: () => `${DASHBOARD}/eventos`,
 } as const;
 

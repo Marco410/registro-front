@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "registro/hooks/use-auth";
+import { useActiveEvent } from "registro/contexts/active-event-context";
 import { MobileMenuButton } from "registro/components/dashboard/mobile-menu-button";
+import { typeLabels } from "./events/events-grid";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -13,6 +15,7 @@ interface HeaderProps {
 
 export function Header({ onToggleSidebar, onOpenMobileMenu }: HeaderProps) {
   const { user, logout } = useAuth();
+  const { eventName, eventType } = useActiveEvent();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const initial = user?.name?.[0] ?? user?.email?.[0] ?? "?";
@@ -34,12 +37,13 @@ export function Header({ onToggleSidebar, onOpenMobileMenu }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 flex min-h-[64px] items-center justify-between border-b border-gray-200 bg-app-sidebar px-4 dark:border-gray-700 dark:bg-[#202124]">
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 max-w-[min(100%,28rem)] flex-1 items-center gap-2 sm:max-w-none sm:flex-none lg:max-w-none">
         <MobileMenuButton onClick={onOpenMobileMenu} />
+       
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="hidden rounded-lg p-2 text-app-text-secondary hover:bg-app-selected hover:text-app-primary dark:text-gray-400 dark:hover:bg-gray-800 lg:block"
+          className="hidden shrink-0 rounded-lg p-2 text-app-text-secondary hover:bg-app-selected hover:text-app-primary dark:text-gray-400 dark:hover:bg-gray-800 lg:block"
           aria-label="Colapsar menú"
         >
           <svg
@@ -56,6 +60,14 @@ export function Header({ onToggleSidebar, onOpenMobileMenu }: HeaderProps) {
             />
           </svg>
         </button>
+        {eventName ? (
+          <span
+            className="min-w-0 truncate text-md font-bold text-app-text-primary dark:text-gray-200"
+            title={eventName}
+          >
+            {eventName} - {eventType ? typeLabels[eventType] : ""}
+          </span>
+        ) : null}
       </div>
       <div className="relative" ref={menuRef}>
         <button
