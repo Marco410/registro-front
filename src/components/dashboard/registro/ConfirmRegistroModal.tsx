@@ -65,8 +65,8 @@ export interface ConfirmRegistroModalProps {
   formData: EncontradoFormData;
   loading: boolean;
   onConfirm: () => void | Promise<void>;
-  /** Registrar y luego hacer check-in; redirige a la pestaña Check-in con el resultado. */
   onConfirmAndCheckin?: () => void | Promise<void>;
+  onConfirmAndPrint?: () => void | Promise<void>;
   onCancel: () => void;
 }
 
@@ -80,11 +80,13 @@ export function ConfirmRegistroModal({
   loading,
   onConfirm,
   onConfirmAndCheckin,
+  onConfirmAndPrint,
   onCancel,
 }: ConfirmRegistroModalProps) {
   const isNinosEvent = useIsNinosEvent();
   const loadingRef = useRef(loading);
   const onConfirmAndCheckinRef = useRef(onConfirmAndCheckin);
+  const onConfirmAndPrintRef = useRef(onConfirmAndPrint);
   loadingRef.current = loading;
   onConfirmAndCheckinRef.current = onConfirmAndCheckin;
 
@@ -107,6 +109,13 @@ export function ConfirmRegistroModal({
         e.preventDefault();
         onConfirm();
       }
+      if ((e.key === "P" || e.key === "p") && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        if (onConfirmAndPrintRef.current && !loadingRef.current) {
+          onConfirmAndPrintRef.current();
+          
+        }
+      }
     };
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
@@ -125,7 +134,7 @@ export function ConfirmRegistroModal({
       onClick={() => !loading && onCancel()}
     >
       <div
-        className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
+        className="w-full max-w-6xl rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
         onClick={(e) => e.stopPropagation()}
       >
         <h1
@@ -188,6 +197,28 @@ export function ConfirmRegistroModal({
               </kbd>
             </span>
           </div>
+          {isNinosEvent && (
+          <div className="flex flex-col items-center">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={onConfirmAndPrint}
+              className="flex items-center justify-center gap-2 rounded-xl border border-green-300 bg-white px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-green-50 disabled:opacity-50 dark:border-green-600 dark:bg-green-800 dark:text-green-200 dark:hover:bg-green-700 text-green-600"
+            >
+              <HugeiconsIcon icon={Add01Icon} size={18} />
+              {loading ? "Guardando…" : "Guardar e imprimir"}
+            </button>
+            <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
+              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                Ctrl
+              </kbd>{" "}
+              +{" "}
+              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                P
+                </kbd>
+              </span>
+            </div>
+          )}
           {onConfirmAndCheckin && (
             <div className="flex flex-col items-center">
               <button

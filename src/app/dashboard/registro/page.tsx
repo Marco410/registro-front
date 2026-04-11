@@ -30,6 +30,7 @@ import {
 } from "registro/constants/const";
 import { routes } from "registro/constants/routes";
 import { toast } from "sonner";
+import { usePrintGafete } from "registro/components/dashboard/checkin/hooks/use-printer-gafete";
 
 const initialValues: EncontradoFormData = {
   nombre: "",
@@ -326,6 +327,21 @@ export default function DashboardRegistroPage() {
     }
   };
 
+  const { PrintGafete, loading: printingGafete } = usePrintGafete();
+
+
+  const handleConfirmAndPrint = async () => {
+    const result = encontradoSchema.safeParse(formData);
+    if (!result.success || !userId) return;
+    const created = await submitEncontrado(result.data);
+    if (!created?.id) return;
+    try {
+      await PrintGafete(formData.nombre, formData.sexo + formData.apellido_p, 1);
+    } catch {
+      toast.error("No se pudo abrir la impresión");
+    }
+  };
+
   const pageAccent =
     formData.sexo === "M"
       ? "border-pink-500 dark:border-pink-400"
@@ -469,6 +485,7 @@ export default function DashboardRegistroPage() {
         loading={loading || performingCheckin}
         onConfirm={handleConfirmSave}
         onConfirmAndCheckin={handleConfirmAndCheckin}
+        onConfirmAndPrint={handleConfirmAndPrint} 
         onCancel={() => setShowConfirmModal(false)}
       />
 
