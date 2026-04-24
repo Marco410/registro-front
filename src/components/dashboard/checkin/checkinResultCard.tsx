@@ -79,7 +79,12 @@ export function CheckinResultCard({
       return;
     }
     try {
-      await PrintGafete(data.nombre, data.clave, copies);
+      await PrintGafete(
+        data.nombre,
+        data.clave,
+        data.teamName ?? "S/E",
+        copies,
+      );
     } catch {
       toast.error("No se pudo abrir la impresión");
     }

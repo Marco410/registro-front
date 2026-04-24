@@ -43,12 +43,19 @@ function escapeHtml(text: string): string {
  * Genera el HTML completo del documento a imprimir (solo gafetes, sin contenido de la página).
  * Se imprime en un iframe para que no aparezcan páginas en blanco del body principal.
  */
-function buildPrintHtml(
-  nombreFinal: string,
-  fila: string,
-  copies: number,
-  imageUrl: string,
-): string {
+function buildPrintHtml({
+  nombreFinal,
+  clave,
+  equipo,
+  copies,
+  imageUrl,
+}: {
+  nombreFinal: string;
+  clave: string;
+  equipo: string;
+  copies: number;
+  imageUrl: string;
+}): string {
   const nameHtml = nombreFinal
     .split("\n")
     .map((line) => escapeHtml(line))
@@ -59,9 +66,15 @@ function buildPrintHtml(
     <div class="gafete-page">
       <img src="${escapeHtml(imageUrl)}" alt="" class="gafete-formato-img" loading="eager" />
       <p class="gafete-name">${nameHtml}</p>
-      <div class="gafete-fila-wrap">
-        <span class="gafete-fila-label">FILA:</span>
-        <span class="gafete-fila-value">${escapeHtml(fila)}</span>
+      <div class="gafete-meta">
+        <div class="gafete-fila-wrap gafete-fila-clave">
+          <span class="gafete-fila-label">Clave:</span>
+          <span class="gafete-fila-value">${escapeHtml(clave)}</span>
+        </div>
+        <div class="gafete-fila-wrap gafete-fila-tribu">
+          <span class="gafete-fila-label">Tribu:</span>
+          <span class="gafete-fila-value">${escapeHtml(equipo)}</span>
+        </div>
       </div>
     </div>`,
   ).join("");
@@ -119,18 +132,31 @@ function buildPrintHtml(
       margin: 0;
       z-index: 1;
     }
-    .gafete-fila-wrap {
+    .gafete-meta {
       position: absolute;
-      left: 10px; bottom: 18px;
+      left: 10px;
+      bottom: 25px;
       z-index: 1;
       display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .gafete-fila-wrap {
+      display: flex;
       align-items: baseline;
-      gap: 6px;
+      gap: 3px;
     }
     .gafete-fila-label, .gafete-fila-value {
       font-family: 'Montserrat', Arial, sans-serif;
-      font-size: 23pt;
       color: #000;
+    }
+    .gafete-fila-tribu .gafete-fila-label,
+    .gafete-fila-tribu .gafete-fila-value {
+      font-size: 23pt;
+    }
+    .gafete-fila-clave .gafete-fila-label,
+    .gafete-fila-clave .gafete-fila-value {
+      font-size: 12pt;
     }
     .gafete-fila-label { font-weight: 500; }
     .gafete-fila-value { font-weight: 800; }
@@ -212,13 +238,19 @@ export function usePrintGafete(options: UsePrintGafeteOptions = {}) {
   const [loading, setLoading] = useState(false);
 
   const PrintGafete = useCallback(
-    async (nombre: string, clave: string, copies: number) => {
+    async (nombre: string, clave: string, equipo: string, copies: number) => {
       if (typeof window === "undefined") return;
       setLoading(true);
       try {
         const nombreFinal = processName(nombre);
         const imageUrl = `${window.location.origin}${IMAGE_URL}`;
-        const html = buildPrintHtml(nombreFinal, clave, copies, imageUrl);
+        const html = buildPrintHtml({
+          nombreFinal,
+          clave,
+          equipo,
+          copies,
+          imageUrl,
+        });
         await printInIframe(html);
         onSuccess?.();
       } catch (err) {
