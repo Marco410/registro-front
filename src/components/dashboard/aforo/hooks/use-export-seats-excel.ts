@@ -32,7 +32,7 @@ export function useExportSeatsExcel() {
     const metaRows: (string | null)[][] = [
       [
         "Equipo",
-        `${teamNumber ?? ""} de ${sex === "H" ? "Hombres" : "Mujeres"}`,
+        `${teamLabel ?? ""}  ${sex === "H" ? "Hombres" : "Mujeres"}`,
         ``,
         empty,
         empty,

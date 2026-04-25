@@ -40,8 +40,8 @@ function getCapitan(seat: Seat): string {
 function getEquipo(seat: Seat): string {
   const sexo = seat.encontrado?.sexo ?? seat.gender ?? "";
   return sexo === "M"
-    ? `M${seat.team?.teamNumber ?? ""}`
-    : `H${seat.team?.teamNumber ?? ""}`;
+    ? `M${seat.team?.teamName ?? ""}`
+    : `H${seat.team?.teamName ?? ""}`;
 }
 
 /**
