@@ -18,6 +18,7 @@ import {
 import { useAuth } from "registro/hooks/use-auth";
 import type { Seat } from "registro/graphql/aforo/queries";
 import { useReassignSeat } from "registro/components/dashboard/aforo/hooks";
+import { GlassModal } from "registro/components/shared/GlassModal";
 
 function fullName(e: EncontradoListItem): string {
   const parts = [e.nombre, e.apellido_p, e.apellido_m].filter(Boolean);
@@ -86,23 +87,19 @@ export function AsignarAsientoModal({
     return () => clearTimeout(t);
   }, [search]);
 
-  if (!open) return null;
-
   const seatLabel = seat.team
     ? `Eq. ${seat.team.teamNumber}${seat.team.ageGroup?.label ? ` (${seat.team.ageGroup.label})` : ""} - ${seat.letter}`
     : `Asiento ${seat.letter}`;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="asignar-asiento-modal-title"
-      onClick={() => !submitting && onCancel()}
-    >
-      <div
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-gray-200 bg-app-sidebar shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-        onClick={(e) => e.stopPropagation()}
+    <>
+      <GlassModal
+        open={open}
+        onClose={onCancel}
+        ariaLabelledBy="asignar-asiento-modal-title"
+        panelClassName="flex max-h-[min(90vh,calc(100dvh-2rem))] max-w-2xl min-h-0 flex-col overflow-hidden"
+        disableBackdropClose={submitting}
+        zIndex={50}
       >
         <div className="shrink-0 border-b border-gray-200 px-4 py-4 dark:border-gray-700">
           <h2
@@ -187,7 +184,7 @@ export function AsignarAsientoModal({
             Asignar a este asiento
           </button>
         </div>
-      </div>
+      </GlassModal>
 
       {showConfirmAsignar && selectedEncontrado && (
         <ConfirmAsignarModal
@@ -210,7 +207,7 @@ export function AsignarAsientoModal({
           onCancel={() => setShowConfirmAsignar(false)}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -231,20 +228,15 @@ function ConfirmAsignarModal({
   onConfirm,
   onCancel,
 }: ConfirmAsignarModalProps) {
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-asignar-modal-title"
-      onClick={() => !loading && onCancel()}
+    <GlassModal
+      open={open}
+      onClose={onCancel}
+      ariaLabelledBy="confirm-asignar-modal-title"
+      panelClassName="max-w-sm p-6"
+      disableBackdropClose={loading}
+      zIndex={70}
     >
-      <div
-        className="w-full max-w-sm rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-        onClick={(e) => e.stopPropagation()}
-      >
         <h2
           id="confirm-asignar-modal-title"
           className="text-lg font-semibold text-app-text-primary dark:text-white"
@@ -273,8 +265,7 @@ function ConfirmAsignarModal({
             {loading ? "Guardando…" : "Confirmar"}
           </button>
         </div>
-      </div>
-    </div>
+    </GlassModal>
   );
 }
 

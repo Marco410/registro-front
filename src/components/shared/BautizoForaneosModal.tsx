@@ -15,6 +15,7 @@ import {
   CREATE_BAUTIZO_FORANEO_MUTATION,
   DELETE_BAUTIZO_FORANEO_MUTATION,
 } from "registro/graphql/aforo/mutations";
+import { GlassModal } from "registro/components/shared/GlassModal";
 
 const inputClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-app-text-primary shadow-sm outline-none transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted";
@@ -119,23 +120,18 @@ export function BautizoForaneosModal({
     });
   };
 
-  if (!open) return null;
-
   const list = data?.bautizoForaneos ?? [];
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="bautizo-foraneos-modal-title"
-        onClick={() => !creating && onClose()}
+      <GlassModal
+        open={open}
+        onClose={onClose}
+        ariaLabelledBy="bautizo-foraneos-modal-title"
+        panelClassName="flex max-h-[min(90vh,calc(100dvh-2rem))] max-w-3xl min-h-0 flex-col overflow-hidden"
+        disableBackdropClose={creating}
+        zIndex={50}
       >
-        <div
-          className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border border-gray-200 bg-app-sidebar shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-          onClick={(e) => e.stopPropagation()}
-        >
           <div className="border-b border-gray-200 p-4 dark:border-gray-700">
             <h2
               id="bautizo-foraneos-modal-title"
@@ -337,22 +333,16 @@ export function BautizoForaneosModal({
               Cerrar
             </button>
           </div>
-        </div>
-      </div>
+      </GlassModal>
 
-      {/* Modal de confirmación de eliminar */}
-      {deleteTarget && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-delete-foraneo-title"
-          onClick={() => !deleting && setDeleteTarget(null)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-            onClick={(e) => e.stopPropagation()}
-          >
+      <GlassModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        ariaLabelledBy="confirm-delete-foraneo-title"
+        panelClassName="max-w-sm p-6"
+        disableBackdropClose={deleting}
+        zIndex={70}
+      >
             <h2
               id="confirm-delete-foraneo-title"
               className="text-lg font-semibold text-app-text-primary dark:text-white"
@@ -360,7 +350,7 @@ export function BautizoForaneosModal({
               ¿Eliminar registro?
             </h2>
             <p className="mt-2 text-sm text-app-text-secondary dark:text-gray-400">
-              Se eliminará a <strong>{getNombreCompleto(deleteTarget)}</strong>{" "}
+              Se eliminará a <strong>{deleteTarget ? getNombreCompleto(deleteTarget) : ""}</strong>{" "}
               de la lista de foráneos bautizados. Esta acción no se puede
               deshacer.
             </p>
@@ -382,9 +372,7 @@ export function BautizoForaneosModal({
                 {deleting ? "Eliminando…" : "Eliminar"}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+      </GlassModal>
     </>
   );
 }

@@ -25,7 +25,7 @@ export function TeamGenderBlock({
 
   teamLabel = `${team?.teamName ?? ""} (${team?.ageGroup?.label ?? ""})`;
   return (
-    <div key={`${teamKey}-${sex}`} className="flex w-full items-center gap-3">
+    <div key={`${teamKey}-${sex}`} className="flex w-fit max-w-full items-center gap-3">
       <button
         type="button"
         onClick={team ? () => setShowSeatsModal(true) : undefined}
@@ -35,7 +35,7 @@ export function TeamGenderBlock({
       >
         {teamLabel}
       </button>
-      <div className="min-w-0 flex-1 flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1">
         {seats.length === 0 ? (
           <span className="text-[10px] text-app-text-secondary dark:text-gray-400">
             Sin asientos

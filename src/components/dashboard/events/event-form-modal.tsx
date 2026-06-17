@@ -10,6 +10,7 @@ import {
 } from "registro/graphql/events/mutations";
 import { EVENTS_QUERY, type EventListItem } from "registro/graphql/events/queries";
 import { useActiveEvent } from "registro/contexts/active-event-context";
+import { GlassModal } from "registro/components/shared/GlassModal";
 
 const inputClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-app-text-primary shadow-sm outline-none transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted";
@@ -150,23 +151,18 @@ export function EventFormModal({
     });
   };
 
-  if (!open) return null;
-
   const title =
     mode === "create" ? "Nuevo evento" : `Editar: ${event?.name ?? ""}`;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="event-form-modal-title"
-      onClick={() => !busy && onClose()}
+    <GlassModal
+      open={open}
+      onClose={onClose}
+      ariaLabelledBy="event-form-modal-title"
+      panelClassName="max-w-md overflow-hidden"
+      disableBackdropClose={busy}
+      zIndex={50}
     >
-      <div
-        className="w-full max-w-md rounded-2xl border border-gray-200 bg-app-sidebar shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-        onClick={(e) => e.stopPropagation()}
-      >
         <div className="border-b border-gray-200 p-4 dark:border-gray-700">
           <h2
             id="event-form-modal-title"
@@ -274,7 +270,6 @@ export function EventFormModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </GlassModal>
   );
 }

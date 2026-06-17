@@ -4,6 +4,7 @@ import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { Seat } from "registro/graphql/aforo/queries";
 import { useExportBautizosExcel, useExportSeatsExcel } from "./hooks";
+import { GlassModal } from "registro/components/shared/GlassModal";
 
 export interface TeamSeatsModalProps {
   open: boolean;
@@ -36,8 +37,6 @@ export function TeamSeatsModal({
   seats,
   sex,
 }: TeamSeatsModalProps) {
-  if (!open) return null;
-
   const filteredSeats = seats?.filter((seat) => seat.gender === sex) ?? [];
   const teamInfo = seats[0]?.team ?? null;
   const isHombres = sex === "H";
@@ -122,17 +121,13 @@ export function TeamSeatsModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="team-seats-modal-title"
-      onClick={onClose}
+    <GlassModal
+      open={open}
+      onClose={onClose}
+      ariaLabelledBy="team-seats-modal-title"
+      panelClassName="max-h-[min(90vh,calc(100dvh-2rem))] max-w-3xl overflow-y-auto overscroll-contain p-4 sm:p-6"
+      zIndex={50}
     >
-      <div
-        className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-app-sidebar p-4 shadow-xl dark:border-gray-700 dark:bg-[#202124] sm:p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2
@@ -330,7 +325,6 @@ export function TeamSeatsModal({
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+    </GlassModal>
   );
 }

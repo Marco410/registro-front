@@ -20,6 +20,7 @@ import {
   IdentificationForm,
 } from "../forms/IdentificationForm";
 import { SexoSelector } from "registro/components/shared";
+import { GlassModal } from "registro/components/shared/GlassModal";
 import { useUpdateEncontrado } from "../hooks";
 
 function parseFechaN(
@@ -81,6 +82,9 @@ const emptyFormData: EncontradoFormData = {
   user_id: "",
 };
 
+const kbdClass =
+  "rounded-md border border-white/50 bg-white/60 px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm backdrop-blur-sm dark:border-white/15 dark:bg-white/10";
+
 export function EditEncontradoModal({
   open,
   encontradoId,
@@ -104,15 +108,11 @@ export function EditEncontradoModal({
     ano: "",
   });
   const [fechaError, setFechaError] = useState<string | null>(null);
-  const [entered, setEntered] = useState(false);
   const fechaMesRef = useRef<HTMLInputElement>(null);
   const fechaAnoRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const frame = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(frame);
-  }, [open]);
+  const formRef = useRef<HTMLFormElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   const { submitUpdate, loading: updateLoading } = useUpdateEncontrado({
     onSuccess: (updated) => {
@@ -136,6 +136,26 @@ export function EditEncontradoModal({
   const encontrado = data?.encontrado ?? null;
   const hasCheckin =
     hasCheckinProp ?? (encontrado != null && !!encontrado.checkins);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !updateLoading) {
+        e.preventDefault();
+        onCloseRef.current();
+      }
+      if (
+        (e.key === "s" || e.key === "S") &&
+        (e.ctrlKey || e.metaKey) &&
+        !updateLoading
+      ) {
+        e.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [open, updateLoading]);
 
   useEffect(() => {
     if (!open || !encontradoId) return;
@@ -216,27 +236,14 @@ export function EditEncontradoModal({
     await submitUpdate(encontradoId, { ...formData, user_id: userId });
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm transition-opacity duration-200 ease-out ${
-        entered ? "opacity-100" : "opacity-0"
-      }`}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-modal-title"
-      onClick={onClose}
+    <GlassModal
+      open={open}
+      onClose={onClose}
+      ariaLabelledBy="edit-modal-title"
+      panelClassName="flex max-h-[min(94vh,calc(100dvh-2rem))] max-w-7xl min-h-0 flex-col overflow-hidden"
     >
-      <div
-        className={`flex max-h-[94vh] w-full max-w-7xl flex-col rounded-2xl border border-gray-200 bg-app-sidebar shadow-xl transition-all duration-200 ease-out dark:border-gray-700 dark:bg-[#202124] ${
-          entered
-            ? "translate-y-0 scale-100 opacity-100"
-            : "translate-y-4 scale-[0.98] opacity-0"
-        }`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="shrink-0 border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+        <div className="shrink-0 border-b border-white/30 px-6 py-4 dark:border-white/10">
           <h2
             id="edit-modal-title"
             className="text-lg font-semibold text-app-text-primary dark:text-white"
@@ -263,29 +270,30 @@ export function EditEncontradoModal({
         </div>
 
         {queryLoading ? (
-          <div className="flex flex-1 items-center justify-center p-8">
+          <div className="flex min-h-0 flex-1 items-center justify-center p-8">
             <p className="text-sm text-app-text-secondary dark:text-gray-400">
               Cargando…
             </p>
           </div>
         ) : queryError ? (
-          <div className="flex flex-1 items-center justify-center p-8">
+          <div className="flex min-h-0 flex-1 items-center justify-center p-8">
             <p className="text-sm text-red-600 dark:text-red-400">
               Error al cargar el registro
             </p>
           </div>
         ) : !encontrado ? (
-          <div className="flex flex-1 items-center justify-center p-8">
+          <div className="flex min-h-0 flex-1 items-center justify-center p-8">
             <p className="text-sm text-app-text-secondary dark:text-gray-400">
               No se encontró el registro
             </p>
           </div>
         ) : (
           <form
+            ref={formRef}
             onSubmit={handleSubmit}
-            className="flex flex-1 flex-col overflow-hidden"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
           >
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
               <div className="mb-6 w-min">
                 <SexoSelector
                   value={formData.sexo === "M" ? "M" : "H"}
@@ -334,7 +342,7 @@ export function EditEncontradoModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-app-selected dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded-xl border border-white/50 bg-white/50 px-4 py-2.5 text-sm font-medium text-app-text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-white/70 disabled:opacity-50 dark:border-white/15 dark:bg-white/10 dark:text-gray-200 dark:hover:bg-white/15"
               >
                 Cancelar
               </button>
@@ -352,7 +360,6 @@ export function EditEncontradoModal({
             </div>
           </form>
         )}
-      </div>
-    </div>
+    </GlassModal>
   );
 }

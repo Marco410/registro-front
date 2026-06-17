@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { GlassModal } from "registro/components/shared/GlassModal";
 
 export interface DiscardChangesModalProps {
   open: boolean;
   onClose: () => void;
   onConfirmDiscard: () => void;
 }
+
+const kbdClass =
+  "rounded-md border border-white/50 bg-white/60 px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm backdrop-blur-sm dark:border-white/15 dark:bg-white/10";
 
 /**
  * Modal para confirmar si el usuario desea descartar los cambios del formulario
@@ -34,58 +40,62 @@ export function DiscardChangesModal({
     };
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [open]);
-
-  if (!open) return null;
+  }, [open, onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="discard-modal-title"
-      onClick={onClose}
+    <GlassModal
+      open={open}
+      onClose={onClose}
+      ariaLabelledBy="discard-modal-title"
+      panelClassName="max-w-md overflow-hidden p-0"
     >
-      <div
-        className="w-full max-w-sm rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2
-          id="discard-modal-title"
-          className="text-lg font-semibold text-app-text-primary dark:text-white"
-        >
-          ¿Descartar cambios?
-        </h2>
-        <p className="mt-2 text-sm text-app-text-secondary dark:text-gray-400">
-          Hay datos en el formulario. ¿Desea descartarlos o seguir editando?
-        </p>
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <div className="flex flex-col items-center">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-app-selected dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
-              Seguir editando
-            </button>
-            <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-                <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Backspace</kbd> o <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">ESC</kbd>
-            </span>
-          </div>
-          <div className="flex flex-col items-center">
-            <button
-              type="button"
-              onClick={onConfirmDiscard}
-              className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
-              >
-              Descartar cambios
-            </button>
-            <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">Enter</kbd>
-            </span>
+      <div className="border-b border-white/30 px-6 py-5 dark:border-white/10">
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+            <HugeiconsIcon icon={AlertCircleIcon} size={22} />
+          </span>
+          <div className="min-w-0">
+            <h2
+              id="discard-modal-title"
+              className="text-lg font-semibold leading-snug text-app-text-primary dark:text-white"
+            >
+              ¿Descartar cambios?
+            </h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-app-text-secondary dark:text-gray-400">
+              Hay datos en el formulario. ¿Desea descartarlos o seguir editando?
+            </p>
           </div>
         </div>
       </div>
-    </div>
+
+      <div className="grid gap-4 px-6 py-4 sm:grid-cols-2">
+        <div className="flex flex-col items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full rounded-xl border border-white/50 bg-white/50 px-4 py-2.5 text-sm font-medium text-app-text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-white/70 dark:border-white/15 dark:bg-white/10 dark:text-gray-200 dark:hover:bg-white/15"
+          >
+            Seguir editando
+          </button>
+          <span className="select-none text-center text-xs text-app-text-secondary dark:text-gray-400">
+            <kbd className={kbdClass}>Backspace</kbd>
+            {" o "}
+            <kbd className={kbdClass}>ESC</kbd>
+          </span>
+        </div>
+        <div className="flex flex-col items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onConfirmDiscard}
+            className="w-full rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+          >
+            Descartar cambios
+          </button>
+          <span className="select-none text-xs text-app-text-secondary dark:text-gray-400">
+            <kbd className={kbdClass}>Enter</kbd>
+          </span>
+        </div>
+      </div>
+    </GlassModal>
   );
 }

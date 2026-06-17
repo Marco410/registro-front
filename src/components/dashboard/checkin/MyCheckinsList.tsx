@@ -11,6 +11,8 @@ import {
   type CheckinsQueryVariables,
 } from "registro/graphql/checkin/queries";
 import { PerformCheckinResponse } from "registro/graphql/checkin/mutations";
+import { AnimatedMount } from "registro/components/shared";
+import { getGlassCardClass } from "registro/components/shared/FormInputStyles";
 
 function fullName(c: CheckinListItem): string {
   const e = c.encontrado;
@@ -110,19 +112,21 @@ export function MyCheckinsList({ userId, onSelect, className, checkinSelected }:
           />
         </div>
       </div>
+      <AnimatedMount
+        show
+        animationKey={'my-checkins-list'}
+        className="space-y-6"
+      >
       {list.length === 0 ? (
-        <p className="text-sm text-app-text-secondary dark:text-gray-400">
-          {searchNorm
-            ? "Ningún check-in coincide con la búsqueda"
-            : "Aún no hay check-ins"}
-        </p>
-      ) : (
+          <p className="text-sm text-app-text-secondary dark:text-gray-400">
+            {searchNorm
+              ? "Ningún check-in coincide con la búsqueda"
+              : "Aún no hay check-ins"}
+          </p>
+        ) : (
         <div className="flex flex-col gap-3">
           {list.map((c) => {
-            const isHombre = c.encontrado?.sexo === "H";
-            const badgeClass = isHombre
-              ? "border-app-primary text-app-primary dark:bg-app-primary-muted/20 dark:border-app-primary-muted dark:text-app-primary-muted"
-              : "border-pink-500 text-pink-600 dark:bg-pink-500/20 dark:border-pink-400 dark:text-pink-400";
+            const sexo = c.encontrado?.sexo === "M" ? "M" : "H";
             const registradoPor = c.encontrado?.user?.name ?? "—";
             const isSelected = checkinSelected?.checkin?.id === c.id;
             return (
@@ -137,13 +141,11 @@ export function MyCheckinsList({ userId, onSelect, className, checkinSelected }:
                         (ev.key === "Enter" || ev.key === " ") && onSelect(c)
                     : undefined
                 }
-                className={`rounded-xl border px-4 py-3 flex flex-row justify-between ${badgeClass} ${onSelect ? "cursor-pointer transition-opacity hover:opacity-90" : ""} ${
-                  isSelected
-                    ? isHombre
-                      ? "bg-app-primary/10 dark:bg-app-primary-muted/20"
-                      : "bg-pink-500/10 dark:bg-pink-500/20"
-                    : ""
-                }`.trim()}
+                className={getGlassCardClass(sexo, {
+                  selected: isSelected,
+                  interactive: !!onSelect,
+                  className: "flex flex-row justify-between",
+                })}
               >
                 <div>
                   <p className="font-medium">{fullName(c)}</p>
@@ -170,6 +172,7 @@ export function MyCheckinsList({ userId, onSelect, className, checkinSelected }:
           })}
         </div>
       )}
+      </AnimatedMount>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete02Icon, UserEdit01Icon } from "@hugeicons/core-free-icons";
 import type { EventListItem, EventTypeValue } from "registro/graphql/events/queries";
+import { AnimatedMount } from "registro/components/shared";
 
 export const typeLabels: Record<EventTypeValue, string> = {
   retiro: "Retiro",
@@ -56,6 +57,7 @@ export function EventsGrid({
         loading ? "opacity-60" : ""
       }`}
     >
+      <AnimatedMount show={true} animationKey="events-grid">
       {events.map((ev) => (
         <article
           key={ev.id}
@@ -110,8 +112,9 @@ export function EventsGrid({
               Eliminar
             </button>
           </div>
-        </article>
-      ))}
+          </article>
+        ))}
+      </AnimatedMount>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
 } from "registro/lib/helpers/encontrado-display";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 import { useIsNinosEvent } from "registro/contexts/active-event-context";
+import { GlassModal } from "registro/components/shared/GlassModal";
 
 function buildConfirmRows(
   formData: EncontradoFormData,
@@ -121,22 +122,16 @@ export function ConfirmRegistroModal({
     return () => document.removeEventListener("keydown", handleKeyDown, true);
   }, [open]);
 
-  if (!open) return null;
-
   const rows = buildConfirmRows(formData, isNinosEvent);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-modal-title"
-      onClick={() => !loading && onCancel()}
+    <GlassModal
+      open={open}
+      onClose={onCancel}
+      ariaLabelledBy="confirm-modal-title"
+      panelClassName="max-w-6xl max-h-[min(94vh,calc(100dvh-2rem))] overflow-y-auto overscroll-contain p-6"
+      disableBackdropClose={loading}
     >
-      <div
-        className="w-full max-w-6xl rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-        onClick={(e) => e.stopPropagation()}
-      >
         <h1
           id="confirm-modal-title"
           className="text-lg font-semibold text-app-text-primary dark:text-white"
@@ -246,7 +241,6 @@ export function ConfirmRegistroModal({
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </GlassModal>
   );
 }
