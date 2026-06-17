@@ -7,6 +7,7 @@ import {
   AFORO_QUERY,
   type AforoResponse,
 } from "registro/graphql/aforo/queries";
+import { AnimatedMount } from ".";
 
 const cardBase =
   "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-[#202124]";
@@ -71,25 +72,27 @@ export function AforoCountsCards() {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {cards.map(({ label, value, icon: Icon, className, iconBg }) => (
-        <div key={label} className={cardBase}>
-          <div className="flex items-start justify-between">
-            <p className="text-sm font-medium text-app-text-secondary dark:text-gray-400">
-              {label}
+    <AnimatedMount show={true} animationKey="aforo-counts-cards">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map(({ label, value, icon: Icon, className, iconBg }) => (
+          <div key={label} className={cardBase}>
+            <div className="flex items-start justify-between">
+              <p className="text-sm font-medium text-app-text-secondary dark:text-gray-400">
+                {label}
+              </p>
+              <span
+                className={`inline-flex rounded-lg p-2 ${iconBg} ${className}`}
+                aria-hidden
+              >
+                <HugeiconsIcon icon={Icon} size={22} />
+              </span>
+            </div>
+            <p className={`mt-2 text-2xl font-bold tabular-nums ${className}`}>
+              {value.toLocaleString("es")}
             </p>
-            <span
-              className={`inline-flex rounded-lg p-2 ${iconBg} ${className}`}
-              aria-hidden
-            >
-              <HugeiconsIcon icon={Icon} size={22} />
-            </span>
           </div>
-          <p className={`mt-2 text-2xl font-bold tabular-nums ${className}`}>
-            {value.toLocaleString("es")}
-          </p>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </AnimatedMount>
   );
 }

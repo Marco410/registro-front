@@ -1,6 +1,7 @@
 import { SeatsByTeam } from "registro/components/dashboard";
 import {
   AforoCountsCards,
+  AnimatedMount,
   BautizoCountsCards,
 } from "registro/components/shared";
 
@@ -18,7 +19,9 @@ export default function AforoPage() {
       </div>
       <AforoCountsCards />
       <SeatsByTeam />
-      <BautizoCountsCards />
+      <AnimatedMount show={true} animationKey="bautizo-counts-cards">
+        <BautizoCountsCards />
+      </AnimatedMount>
     </div>
   );
 }

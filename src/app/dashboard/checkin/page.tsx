@@ -13,6 +13,7 @@ import {
 import type { EncontradoListItem } from "registro/graphql/encontrados/queries";
 import type { PerformCheckinResponse } from "registro/graphql/checkin/mutations";
 import type { CheckinListItem } from "registro/graphql/checkin/queries";
+import { AnimatedMount } from "registro/components/shared";
 import { useAuth } from "registro/hooks/use-auth";
 import {
   getStoredSexo,
@@ -181,35 +182,39 @@ export default function CheckinPage() {
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr,minmax(300px,380px)]">
         <div className="min-w-0">
           {resultData ? (
-            <div className="space-y-6">
+            <AnimatedMount
+              show
+              animationKey={resultData.clave}
+              className="space-y-6"
+            >
               <CheckinResultCard data={resultData} />
               <CheckinActions
                 resultData={resultData}
                 onNewCheckin={handleNewCheckin}
               />
-            </div>
+            </AnimatedMount>
           ) : (
             <div className="flex flex-col gap-6">
-              {selected && (
-                <CardBeforeCheckin
-                  selected={selected}
-                  sexo={sexo}
-                  celular={celular}
-                  medicamento={medicamento}
-                  onCelularChange={setCelular}
-                  onMedicamentoChange={setMedicamento}
-                  onSaveOptions={handleSaveOptions}
-                  onDoCheckin={handleDoCheckin}
-                  savingOptions={savingOptions}
-                  performingCheckin={performingCheckin}
-                  onCancel={() => setSelected(null)}
-                  onSelectedUpdate={(item) => {
-                    setSelected(item);
-                    setCelular(item.celular ?? true);
-                    setMedicamento(item.medicamento ?? false);
-                  }}
-                />
-              )}
+                {selected && (
+                  <CardBeforeCheckin
+                    selected={selected}
+                    sexo={sexo}
+                    celular={celular}
+                    medicamento={medicamento}
+                    onCelularChange={setCelular}
+                    onMedicamentoChange={setMedicamento}
+                    onSaveOptions={handleSaveOptions}
+                    onDoCheckin={handleDoCheckin}
+                    savingOptions={savingOptions}
+                    performingCheckin={performingCheckin}
+                    onCancel={() => setSelected(null)}
+                    onSelectedUpdate={(item) => {
+                      setSelected(item);
+                      setCelular(item.celular ?? true);
+                      setMedicamento(item.medicamento ?? false);
+                    }}
+                  />
+                )}
 
               <CheckinEncontradoSelector
                 userId={userId}

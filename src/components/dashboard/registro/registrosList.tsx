@@ -7,7 +7,6 @@ import {
   CheckmarkCircle01Icon,
   Edit01Icon,
   Search01Icon,
-  Tick02Icon,
 } from "@hugeicons/core-free-icons";
 import {
   ENCONTRADOS_QUERY,
@@ -15,6 +14,7 @@ import {
   type EncontradosQueryResponse,
   type EncontradosQueryVariables,
 } from "registro/graphql/encontrados/queries";
+import { getGlassCardClass } from "registro/components/shared/FormInputStyles";
 
 function fullName(e: EncontradoListItem): string {
   const parts = [e.nombre, e.apellido_p, e.apellido_m].filter(Boolean);
@@ -120,7 +120,7 @@ export function RegistrosList({
   return (
     <div className="flex flex-col gap-4 ">
       <div className="flex flex-col gap-10 sm:flex-row sm:items-center">
-        <h2 className="text-2xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
+        <h2 className="text-2xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-2xl">
           Registros recientes ({list.length})
         </h2>
         <div className="relative shrink-0 sm:w-1/2">
@@ -148,42 +148,56 @@ export function RegistrosList({
       ) : (
         <div className={`flex flex-wrap gap-3 ${className ?? ""}`.trim()}>
           {list.map((encontrado) => {
-            const isHombre = encontrado.sexo === "H";
-            const badgeClass = isHombre
-              ? "border-app-primary text-app-primary dark:bg-app-primary-muted/20 dark:border-app-primary-muted dark:text-app-primary-muted"
-              : "border-rose-500 text-rose-600 dark:bg-rose-500/20 dark:border-rose-400 dark:text-rose-400";
+            const sexo = encontrado.sexo === "M" ? "M" : "H";
+            const checkinAt = getCheckinAt(encontrado);
             return (
               <div
                 key={encontrado.id}
-                className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 ${badgeClass}`}
+                role={onEdit ? "button" : undefined}
+                tabIndex={onEdit ? 0 : undefined}
+                onClick={onEdit ? () => onEdit(encontrado.id) : undefined}
+                onKeyDown={
+                  onEdit
+                    ? (ev) => {
+                        if (ev.key === "Enter" || ev.key === " ") {
+                          ev.preventDefault();
+                          onEdit(encontrado.id);
+                        }
+                      }
+                    : undefined
+                }
+                className={getGlassCardClass(sexo, {
+                  interactive: !!onEdit,
+                  compact: true,
+                  className: "inline-flex items-center gap-2",
+                })}
+                aria-label={onEdit ? `Editar ${fullName(encontrado)}` : undefined}
               >
-                {onEdit && (
-                  <button
-                    type="button"
-                    onClick={() => onEdit(encontrado.id)}
-                    className="rounded-lg p-1 transition-colors hover:bg-black/10 dark:hover:bg-white/10"
-                    aria-label={`Editar ${fullName(encontrado)}`}
-                  >
-                    <HugeiconsIcon icon={Edit01Icon} size={18} />
-                  </button>
-                )}
+                {onEdit ? (
+                  <HugeiconsIcon
+                    icon={Edit01Icon}
+                    size={18}
+                    className="shrink-0 opacity-80"
+                    aria-hidden
+                  />
+                ) : null}
                 <span className="font-medium">{fullName(encontrado)}</span>
                 <span className="opacity-90">·</span>
                 <span className="text-sm font-semibold">
                   Clave: {encontrado.sexo}
                   {encontrado.clave}
                 </span>
-                {getCheckinAt(encontrado) ? (
+                {checkinAt ? (
                   <span className="group relative inline-flex shrink-0">
                     <span className="inline-flex items-center justify-center text-green-600 dark:text-green-400">
                       <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} />
                     </span>
                     <span
                       role="tooltip"
-                      className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white shadow-md opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-gray-700"
+                      className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100 dark:bg-gray-700"
                     >
                       El encontrado ya hizo checkin a las{" "}
-                      {formatCheckinTime(getCheckinAt(encontrado)!)}
+                      {formatCheckinTime(checkinAt)}
                       <span
                         className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"
                         aria-hidden

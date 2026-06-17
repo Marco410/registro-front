@@ -12,6 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { usePrintGafete } from "./hooks/use-printer-gafete";
 import { toast } from "sonner";
+import { getFormSectionClass } from "registro/components/shared/FormInputStyles";
 
 export interface CheckinResultData {
   clave: string;
@@ -69,10 +70,6 @@ export function CheckinResultCard({
     (data.religion != null && data.religion !== "") ||
     (data.telefono != null && data.telefono !== "");
 
-  const cardClass = isHombre
-    ? "border-app-primary bg-gradient-to-br from-app-primary/10 to-transparent dark:from-app-primary-muted/15"
-    : "border-pink-500 bg-gradient-to-br from-pink-500/10 to-transparent dark:from-pink-500/15 dark:border-pink-400";
-
   const handlePrint = async () => {
     if (onPrint) {
       onPrint(copies);
@@ -105,7 +102,7 @@ export function CheckinResultCard({
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl border-2 shadow-xl ${cardClass} ${className ?? ""}`.trim()}
+      className={getFormSectionClass(data.sexo, className)}
     >
       <div className="p-6 sm:p-8">
         <div

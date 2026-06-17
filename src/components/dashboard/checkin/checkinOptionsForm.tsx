@@ -10,6 +10,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Checkbox } from "registro/components/shared";
+import { getFormSectionClass } from "registro/components/shared/FormInputStyles";
 import { EncontradoListItem } from "registro/graphql/encontrados/queries";
 
 export interface CheckinOptionsFormProps {
@@ -54,7 +55,7 @@ export function CheckinOptionsForm({
 
   return (
     <section
-      className={`rounded-2xl border-l-4 border-gray-200 bg-app-sidebar p-6 shadow-sm dark:border-gray-700 dark:bg-[#202124] ${borderClass} ${className ?? ""}`.trim()}
+      className={getFormSectionClass(sexo, className)}
     >
       <div className="mb-6 flex w-full flex-row items-start justify-between gap-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">

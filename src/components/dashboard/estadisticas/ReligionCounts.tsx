@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@apollo/client";
+import { AnimatedMount } from "registro/components/shared";
 import {
   ENCONTRADOS_RELIGION_QUERY,
   type EncontradosReligionQueryResponse,
@@ -90,27 +91,29 @@ export function ReligionCounts({ sex = null }: ReligionCountsProps) {
   const rows = aggregate(data?.encontrados ?? []);
 
   return (
-    <div className={`${CARD_BASE} ${cardAccent(sex)}`}>
-      <p className={titleClass(sex)}>{titleFor(sex)}</p>
-      {rows.length === 0 ? (
-        <p className="mt-2 text-sm text-app-text-secondary dark:text-gray-400">
-          Sin datos
-        </p>
-      ) : (
-        <ul className="mt-3 space-y-1.5">
-          {rows.map(({ name, value }) => (
-            <li
-              key={name}
-              className="flex justify-between text-sm text-app-text-primary dark:text-gray-200"
-            >
-              <span>{name}</span>
-              <span className={valueClass(sex)}>
-                {value.toLocaleString("es")}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <AnimatedMount show={true} animationKey="religion-counts">
+      <div className={`${CARD_BASE} ${cardAccent(sex)}`}>
+        <p className={titleClass(sex)}>{titleFor(sex)}</p>
+        {rows.length === 0 ? (
+          <p className="mt-2 text-sm text-app-text-secondary dark:text-gray-400">
+            Sin datos
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-1.5">
+            {rows.map(({ name, value }) => (
+              <li
+                key={name}
+                className="flex justify-between text-sm text-app-text-primary dark:text-gray-200"
+              >
+                <span>{name}</span>
+                <span className={valueClass(sex)}>
+                  {value.toLocaleString("es")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </AnimatedMount>
   );
 }

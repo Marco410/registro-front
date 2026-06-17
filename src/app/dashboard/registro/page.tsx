@@ -31,6 +31,7 @@ import {
 import { routes } from "registro/constants/routes";
 import { toast } from "sonner";
 import { usePrintGafete } from "registro/components/dashboard/checkin/hooks/use-printer-gafete";
+import { AnimatedMount } from "registro/components/shared";
 
 const initialValues: EncontradoFormData = {
   nombre: "",
@@ -375,38 +376,55 @@ export default function DashboardRegistroPage() {
 
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-2">
-          <IdentificationForm
-            formData={formData}
-            errors={errors}
-            fechaInputs={fechaInputs}
-            fechaError={fechaError}
-            onChange={handleChange}
-            onFechaInputsChange={(partial) =>
-              setFechaInputs((prev) => ({ ...prev, ...partial }))
-            }
-            onFechaNChange={(fechaN) =>
-              setFormData((prev) => ({ ...prev, fecha_n: fechaN }))
-            }
-            onFechaError={setFechaError}
-            onClearFechaError={() =>
-              setErrors((prev) => ({ ...prev, fecha_n: undefined }))
-            }
-            fechaMesRef={fechaMesRef}
-            fechaAnoRef={fechaAnoRef}
-          />
-
-          <div className="flex flex-col gap-6">
-            <ContactForm
+          <AnimatedMount
+              show
+              animationKey={'identification-form'}
+              className="space-y-6"
+            >
+            <IdentificationForm
               formData={formData}
-              onChange={handleChange}
               errors={errors}
-              className="flex flex-col gap-6"
-            />
-            <FormHealthIndicators
-              formData={formData}
+              fechaInputs={fechaInputs}
+              fechaError={fechaError}
               onChange={handleChange}
-              className="flex flex-col gap-6"
+              onFechaInputsChange={(partial) =>
+                setFechaInputs((prev) => ({ ...prev, ...partial }))
+              }
+              onFechaNChange={(fechaN) =>
+                setFormData((prev) => ({ ...prev, fecha_n: fechaN }))
+              }
+              onFechaError={setFechaError}
+              onClearFechaError={() =>
+                setErrors((prev) => ({ ...prev, fecha_n: undefined }))
+              }
+              fechaMesRef={fechaMesRef}
+              fechaAnoRef={fechaAnoRef}
             />
+          </AnimatedMount>
+          <div className="flex flex-col gap-6">
+            <AnimatedMount
+              show
+              animationKey={'contact-form'}
+              className="space-y-6"
+            >
+              <ContactForm
+                formData={formData}
+                onChange={handleChange}
+                errors={errors}
+                className="flex flex-col gap-6"
+              />
+            </AnimatedMount>
+            <AnimatedMount
+              show
+              animationKey={'health-indicators-form'}
+              className="space-y-6"
+            >
+              <FormHealthIndicators
+                formData={formData}
+                onChange={handleChange}
+                className="flex flex-col gap-6"
+              />
+            </AnimatedMount>
           </div>
         </div>
 

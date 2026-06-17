@@ -10,6 +10,7 @@ import {
   type SeatEncontrado,
 } from "registro/graphql/aforo/queries";
 import { UPDATE_ENCONTRADO_MUTATION } from "registro/components/dashboard/registro/mutations";
+import { GlassModal } from "registro/components/shared/GlassModal";
 
 export type BautizoAccion = "aplicar" | "quitar";
 
@@ -112,8 +113,6 @@ export function ConfirmarBautizoModal({
     } catch {}
   };
 
-  if (!open) return null;
-
   const title = isAplicar ? "Confirmar bautizo" : "Quitar bautizo";
   const description = isAplicar
     ? "Confirma que deseas aplicar bautizo para el siguiente encontrado:"
@@ -121,17 +120,14 @@ export function ConfirmarBautizoModal({
   const confirmLabel = loading ? "Guardando…" : "Confirmar";
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-app-text-primary/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirmar-bautizo-modal-title"
-      onClick={() => !loadingAny && onCancel()}
+    <GlassModal
+      open={open}
+      onClose={onCancel}
+      ariaLabelledBy="confirmar-bautizo-modal-title"
+      panelClassName="max-h-[min(90vh,calc(100dvh-2rem))] max-w-lg overflow-y-auto overscroll-contain p-6"
+      disableBackdropClose={loadingAny}
+      zIndex={50}
     >
-      <div
-        className="w-full max-w-lg rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-xl dark:border-gray-700 dark:bg-[#202124]"
-        onClick={(e) => e.stopPropagation()}
-      >
         <h2
           id="confirmar-bautizo-modal-title"
           className="text-lg font-semibold text-app-text-primary dark:text-white"
@@ -292,7 +288,6 @@ export function ConfirmarBautizoModal({
             </div>
           </>
         )}
-      </div>
-    </div>
+    </GlassModal>
   );
 }

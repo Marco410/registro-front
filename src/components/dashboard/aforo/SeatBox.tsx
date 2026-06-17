@@ -12,6 +12,7 @@ import { ConfirmDarDeBajaModal } from "registro/components/dashboard/aforo/Confi
 import { ConfirmarBautizoModal } from "registro/components/dashboard/aforo/ConfirmarBautizoModal";
 import { AsignarAsientoModal } from "registro/components/dashboard/aforo/AsignarAsientoModal";
 import { toast } from "sonner";
+import { AnimatedMount } from "registro/components/shared/AnimatedMount";
 
 const SEAT_SIZE = "h-7 w-7";
 const SEAT_TEXT = "text-xs";
@@ -86,13 +87,22 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
   const isMale = sex === "H";
   const canDarDeBaja = occupied && seat.encontrado?.id && !abandoned;
 
+  const seatInteractionClass =
+    "transform-gpu transition-none hover:scale-110 hover:z-10 active:scale-95";
+
   const filledClass = abandoned
-    ? "bg-gray-400/90 text-white border-gray-500 dark:bg-gray-600 dark:border-gray-500"
+    ? "border-gray-400/50 bg-gray-500/75 text-white shadow-sm shadow-gray-500/20 backdrop-blur-sm hover:border-gray-400/70 hover:bg-gray-500/90 hover:shadow-md dark:border-gray-500/55 dark:bg-gray-600/80"
     : occupied
       ? isMale
-        ? "bg-app-primary/90 text-white border-app-primary dark:bg-app-primary-muted dark:border-app-primary-muted"
-        : "bg-pink-500/90 text-white border-pink-500 dark:bg-pink-500 dark:border-pink-500"
-      : "bg-transparent border-gray-300 text-app-text-secondary dark:border-gray-600 dark:text-gray-400";
+        ? "border-app-primary/45 bg-app-primary/80 text-white shadow-sm shadow-app-primary/25 backdrop-blur-sm hover:border-app-primary/65 hover:bg-app-primary/90 hover:shadow-md hover:shadow-app-primary/30 dark:border-app-primary-muted/50 dark:bg-app-primary-muted/75"
+        : "border-pink-400/45 bg-pink-500/80 text-white shadow-sm shadow-pink-500/25 backdrop-blur-sm hover:border-pink-400/65 hover:bg-pink-500/90 hover:shadow-md hover:shadow-pink-500/30 dark:border-pink-400/50 dark:bg-pink-500/75"
+      : isMale
+        ? "border-gray-300/80 bg-white/35 text-app-text-secondary shadow-sm shadow-black/5 backdrop-blur-sm hover:border-app-primary/40 hover:bg-app-primary/15 hover:text-app-primary hover:shadow-app-primary/15 dark:border-gray-600/80 dark:bg-white/5 dark:text-gray-400 dark:hover:border-app-primary-muted/45 dark:hover:bg-app-primary/20 dark:hover:text-app-primary-muted"
+        : "border-gray-300/80 bg-white/35 text-app-text-secondary shadow-sm shadow-black/5 backdrop-blur-sm hover:border-pink-400/40 hover:bg-pink-500/15 hover:text-pink-600 hover:shadow-pink-500/15 dark:border-gray-600/80 dark:bg-white/5 dark:text-gray-400 dark:hover:border-pink-400/45 dark:hover:bg-pink-500/20 dark:hover:text-pink-400";
+
+  const focusRingClass = isMale
+    ? "focus:ring-app-primary/40 dark:focus:ring-app-primary-muted/40"
+    : "focus:ring-pink-400/40";
 
   const tooltipText = abandoned
     ? seat.abandonedBy
@@ -152,7 +162,7 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
           ref={buttonRef}
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
-          className={`flex shrink-0 cursor-pointer items-center justify-center rounded border ${SEAT_SIZE} ${SEAT_TEXT} font-medium transition-colors hover:ring-2 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 dark:focus:ring-gray-500 ${filledClass}`}
+          className={`flex shrink-0 cursor-pointer items-center justify-center rounded border ${SEAT_SIZE} ${SEAT_TEXT} font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 ${seatInteractionClass} ${focusRingClass} ${filledClass}`}
           aria-label={tooltipText ?? seat.letter ?? seat.id}
           aria-expanded={menuOpen}
           aria-haspopup="true"
@@ -277,7 +287,6 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
             document.body,
           )}
       </div>
-
       {showConfirm && (
         <ConfirmDarDeBajaModal
           open={showConfirm}

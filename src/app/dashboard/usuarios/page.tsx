@@ -12,6 +12,7 @@ import {
   type UserListItem,
   type UsersQueryResponse,
 } from "registro/graphql/users/queries";
+import { AnimatedMount } from "registro/components/shared";
 
 type SortColumn = "registros" | "mediaRegistro" | "checkins" | "mediaCheckin";
 type SortDir = "asc" | "desc";
@@ -174,100 +175,102 @@ export default function DashboardUsuariosPage() {
         </p>
       </div>
 
-      <div className="mt-8">
-        {error ? (
-          <p className="text-sm text-red-600 dark:text-red-400">
-            Error al cargar usuarios
-          </p>
-        ) : (
-          <div className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-            {loading && (
-              <div
-                className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 dark:bg-gray-900/80"
-                aria-hidden="true"
-              >
-                <span className="text-sm font-medium text-app-text-secondary dark:text-gray-400">
-                  Cargando…
-                </span>
-              </div>
-            )}
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left text-sm bg-white dark:bg-gray-900">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/80">
-                    <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                      Nombre
-                    </th>
-                    <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                      Usuario
-                    </th>
-                    <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                      Teléfono
-                    </th>
-                    <SortHeader column="registros" label="Registros" />
-                    <SortHeader column="mediaRegistro" label="Media por registro" />
-                    <SortHeader column="checkins" label="Check-ins" />
-                    <SortHeader column="mediaCheckin" label="Media por check-in" />
-                    <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
-                      Alta
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {list.length === 0 && !loading ? (
-                    <tr>
-                      <td
-                        colSpan={8}
-                        className="px-4 py-8 text-center text-sm text-app-text-secondary dark:text-gray-400"
-                      >
-                        No hay usuarios
-                      </td>
+      <AnimatedMount show={true} animationKey="usuarios-list">
+        <div className="mt-8">
+          {error ? (
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Error al cargar usuarios
+            </p>
+          ) : (
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+              {loading && (
+                <div
+                  className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 dark:bg-gray-900/80"
+                  aria-hidden="true"
+                >
+                  <span className="text-sm font-medium text-app-text-secondary dark:text-gray-400">
+                    Cargando…
+                  </span>
+                </div>
+              )}
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[800px] text-left text-sm bg-white dark:bg-gray-900">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/80">
+                      <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                        Nombre
+                      </th>
+                      <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                        Usuario
+                      </th>
+                      <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                        Teléfono
+                      </th>
+                      <SortHeader column="registros" label="Registros" />
+                      <SortHeader column="mediaRegistro" label="Media por registro" />
+                      <SortHeader column="checkins" label="Check-ins" />
+                      <SortHeader column="mediaCheckin" label="Media por check-in" />
+                      <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
+                        Alta
+                      </th>
                     </tr>
-                  ) : (
-                    list.map((u) => (
-                      <tr
-                        key={u.id}
-                        className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700/80 dark:hover:bg-gray-800/50"
-                      >
-                        <td className="px-4 py-3 font-medium text-app-text-primary dark:text-gray-200">
-                          {fullName(u)}
-                        </td>
-                        <td className="px-4 py-3 text-app-text-secondary dark:text-gray-400">
-                          {u.username || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-app-text-secondary dark:text-gray-400">
-                          {u.phone || "—"}
-                        </td>
-                        <td className="px-4 py-3 tabular-nums text-app-text-primary dark:text-gray-300">
-                          {u.encontradosCount}
-                        </td>
-                        <td className="px-4 py-3 tabular-nums text-app-text-primary dark:text-gray-300">
-                          {getAverageRegistroDisplay(u)}
-                        </td>
-                        <td className="px-4 py-3 tabular-nums text-app-text-primary dark:text-gray-300">
-                          {u.checkinsCount}
-                        </td>
-                        <td className="px-4 py-3 tabular-nums text-app-text-primary dark:text-gray-300">
-                          {getAverageCheckinDisplay(u)}
-                        </td>
-                        <td className="px-4 py-3 text-app-text-secondary dark:text-gray-400">
-                          {formatCreatedAt(u.createdAt)}
+                  </thead>
+                  <tbody>
+                    {list.length === 0 && !loading ? (
+                      <tr>
+                        <td
+                          colSpan={8}
+                          className="px-4 py-8 text-center text-sm text-app-text-secondary dark:text-gray-400"
+                        >
+                          No hay usuarios
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      list.map((u) => (
+                        <tr
+                          key={u.id}
+                          className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700/80 dark:hover:bg-gray-800/50"
+                        >
+                          <td className="px-4 py-3 font-medium text-app-text-primary dark:text-gray-200">
+                            {fullName(u)}
+                          </td>
+                          <td className="px-4 py-3 text-app-text-secondary dark:text-gray-400">
+                            {u.username || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-app-text-secondary dark:text-gray-400">
+                            {u.phone || "—"}
+                          </td>
+                          <td className="px-4 py-3 tabular-nums text-app-text-primary dark:text-gray-300">
+                            {u.encontradosCount}
+                          </td>
+                          <td className="px-4 py-3 tabular-nums text-app-text-primary dark:text-gray-300">
+                            {getAverageRegistroDisplay(u)}
+                          </td>
+                          <td className="px-4 py-3 tabular-nums text-app-text-primary dark:text-gray-300">
+                            {u.checkinsCount}
+                          </td>
+                          <td className="px-4 py-3 tabular-nums text-app-text-primary dark:text-gray-300">
+                            {getAverageCheckinDisplay(u)}
+                          </td>
+                          <td className="px-4 py-3 text-app-text-secondary dark:text-gray-400">
+                            {formatCreatedAt(u.createdAt)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {list.length > 0 && !error && (
-          <p className="mt-3 text-sm text-app-text-secondary dark:text-gray-400">
-            {list.length} usuario{list.length !== 1 ? "s" : ""}
-          </p>
-        )}
-      </div>
+          {list.length > 0 && !error && (
+            <p className="mt-3 text-sm text-app-text-secondary dark:text-gray-400">
+              {list.length} usuario{list.length !== 1 ? "s" : ""}
+            </p>
+          )}
+        </div>
+      </AnimatedMount>
     </div>
   );
 }

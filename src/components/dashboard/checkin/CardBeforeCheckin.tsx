@@ -5,6 +5,7 @@ import { EncontradoListItem } from "registro/graphql/encontrados/queries";
 import { CheckinOptionsForm } from "./checkinOptionsForm";
 import { EditEncontradoModal } from "../registro";
 import { useAuth } from "registro/contexts/auth-context";
+import { AnimatedMount } from "registro/components/shared";
 
 export interface CardBeforeCheckinProps {
   selected: EncontradoListItem;
@@ -92,79 +93,82 @@ export function CardBeforeCheckin({
 
   return (
     <>
-      <div className="flex flex-col gap-8">
-        <CheckinOptionsForm
-          selected={selected}
-          sexo={sexo}
-          celular={celular}
-          medicamento={medicamento}
-          onCelularChange={onCelularChange}
-          onMedicamentoChange={onMedicamentoChange}
-          disabled={performingCheckin}
-          onCancel={onCancel}
-        />
+      <AnimatedMount show={selected != null} animationKey={selected?.id}>
+        <div className="flex flex-col gap-8">
+          <CheckinOptionsForm
+            selected={selected}
+            sexo={sexo}
+            celular={celular}
+            medicamento={medicamento}
+            onCelularChange={onCelularChange}
+            onMedicamentoChange={onMedicamentoChange}
+            disabled={performingCheckin}
+            onCancel={onCancel}
+          />
 
-        <div className="flex flex-wrap gap-3 justify-between">
-          <div className="flex flex-row gap-3">
-            <div className="flex flex-col items-center">
-              <button
-                type="button"
-                onClick={onSaveOptions}
-                disabled={savingOptions || performingCheckin}
-                className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
-              >
-                {savingOptions ? "Guardando…" : "Guardar opciones"}
-              </button>
-              <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
-                <kbd className={kbdClass}>Ctrl</kbd> +{" "}
-                <kbd className={kbdClass}>S</kbd>
-              </span>
+          <div className="flex flex-wrap gap-3 justify-between">
+            <div className="flex flex-row gap-3">
+              <div className="flex flex-col items-center">
+                <button
+                  type="button"
+                  onClick={onSaveOptions}
+                  disabled={savingOptions || performingCheckin}
+                  className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                >
+                  {savingOptions ? "Guardando…" : "Guardar opciones"}
+                </button>
+                <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
+                  <kbd className={kbdClass}>Ctrl</kbd> +{" "}
+                  <kbd className={kbdClass}>S</kbd>
+                </span>
+              </div>
+              <div className="flex flex-col items-center">
+                <button
+                  type="button"
+                  onClick={() => setEditingEncontradoId(selected.id)}
+                  disabled={performingCheckin}
+                  className="rounded-xl border border-blue-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-blue-100 disabled:opacity-50 dark:border-blue-600 dark:hover:bg-blue-700"
+                >
+                  Editar registro
+                </button>
+                <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
+                  <kbd className={kbdClass}>Ctrl</kbd> +{" "}
+                  <kbd className={kbdClass}>E</kbd>
+                </span>
+              </div>
+              <div className="flex flex-col items-center">
+                <button
+                  type="button"
+                  onClick={onDoCheckin}
+                  disabled={performingCheckin}
+                  className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors disabled:opacity-60 ${isHombre ? "bg-app-primary hover:bg-app-primary/90" : "bg-pink-600 hover:bg-pink-700"}`}
+                >
+                  {performingCheckin ? "Procesando…" : "Hacer check-in"}
+                </button>
+                <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
+                  <kbd className={kbdClass}>Ctrl</kbd> +{" "}
+                  <kbd className={kbdClass}>Enter</kbd>
+                </span>
+              </div>
             </div>
             <div className="flex flex-col items-center">
               <button
                 type="button"
-                onClick={() => setEditingEncontradoId(selected.id)}
+                onClick={onCancel}
                 disabled={performingCheckin}
-                className="rounded-xl border border-blue-300 px-4 py-2.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-blue-100 disabled:opacity-50 dark:border-blue-600 dark:hover:bg-blue-700"
+                title="Ctrl+Esc o Ctrl+Backspace"
+                className="w-full rounded-xl border border-red-300 px-6 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-600 dark:hover:bg-red-700"
               >
-                Editar registro
+                Cancelar
               </button>
               <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
-                <kbd className={kbdClass}>Ctrl</kbd> +{" "}
-                <kbd className={kbdClass}>E</kbd>
+                <kbd className={kbdClass}>Esc</kbd>
               </span>
             </div>
-            <div className="flex flex-col items-center">
-              <button
-                type="button"
-                onClick={onDoCheckin}
-                disabled={performingCheckin}
-                className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors disabled:opacity-60 ${isHombre ? "bg-app-primary hover:bg-app-primary/90" : "bg-pink-600 hover:bg-pink-700"}`}
-              >
-                {performingCheckin ? "Procesando…" : "Hacer check-in"}
-              </button>
-              <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
-                <kbd className={kbdClass}>Ctrl</kbd> +{" "}
-                <kbd className={kbdClass}>Enter</kbd>
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-col items-center">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={performingCheckin}
-              title="Ctrl+Esc o Ctrl+Backspace"
-              className="w-full rounded-xl border border-red-300 px-6 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-600 dark:hover:bg-red-700"
-            >
-              Cancelar
-            </button>
-            <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
-              <kbd className={kbdClass}>Esc</kbd>
-            </span>
           </div>
         </div>
-      </div>
+      </AnimatedMount>
+
       <EditEncontradoModal
         open={editingEncontradoId != null}
         encontradoId={editingEncontradoId}

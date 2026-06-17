@@ -3,6 +3,7 @@
 import type { ChangeEvent } from "react";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 import {
+  getFormSectionClass,
   getInputClass,
   labelClass,
 } from "registro/components/shared/FormInputStyles";
@@ -33,9 +34,7 @@ export function ContactForm({
 
 
   return (
-    <section
-      className={`rounded-2xl border border-gray-200 bg-app-sidebar p-6 shadow-sm dark:border-gray-700 dark:bg-[#202124] ${className ?? ""}`.trim()}
-    >
+    <section className={getFormSectionClass(sexo, className)}>
       <div>
         <h2
           className={`border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${sexo === "H" ? "border-app-primary" : "border-pink-600"}`}
