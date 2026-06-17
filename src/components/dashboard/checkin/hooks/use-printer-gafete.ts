@@ -39,6 +39,19 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
+/** Diferencia visualmente el 0 (cero tachado) de la O en códigos impresos. */
+function formatClaveHtml(text: string): string {
+  return [...text]
+    .map((char) => {
+      if (char === "0") return `<span class="gafete-char-zero">0</span>`;
+      if (char === "O" || char === "o") {
+        return `<span class="gafete-char-oh">${escapeHtml(char)}</span>`;
+      }
+      return escapeHtml(char);
+    })
+    .join("");
+}
+
 /**
  * Genera el HTML completo del documento a imprimir (solo gafetes, sin contenido de la página).
  * Se imprime en un iframe para que no aparezcan páginas en blanco del body principal.
@@ -60,7 +73,7 @@ function buildPrintHtml({
     .split("\n")
     .map((line) => escapeHtml(line))
     .join("<br/>");
-  const pagesHtml = Array.from(
+  /* const pagesHtml = Array.from(
     { length: copies },
     () => `
     <div class="gafete-page">
@@ -74,6 +87,21 @@ function buildPrintHtml({
         <div class="gafete-fila-wrap gafete-fila-tribu">
           <span class="gafete-fila-label">Tribu:</span>
           <span class="gafete-fila-value">${escapeHtml(equipo)}</span>
+        </div>
+      </div>
+    </div>`,
+  ).join(""); */
+
+  const pagesHtml = Array.from(
+    { length: copies },
+    () => `
+    <div class="gafete-page">
+      <img src="${escapeHtml(imageUrl)}" alt="" class="gafete-formato-img" loading="eager" />
+      <p class="gafete-name">${nameHtml}</p>
+      <div class="gafete-meta">
+        <div class="gafete-fila-wrap gafete-fila-tribu">
+          <span class="gafete-fila-value gafete-codigo">${formatClaveHtml(clave)}</span>
+          <span class="gafete-fila-value gafete-codigo">${formatClaveHtml('H10O')}</span>
         </div>
       </div>
     </div>`,
@@ -160,6 +188,29 @@ function buildPrintHtml({
     }
     .gafete-fila-label { font-weight: 500; }
     .gafete-fila-value { font-weight: 800; }
+    .gafete-codigo {
+      font-variant-numeric: slashed-zero;
+      letter-spacing: 0.04em;
+    }
+    .gafete-char-zero,
+    .gafete-char-oh {
+      position: relative;
+      display: inline-block;
+    }
+    .gafete-char-zero::after {
+      content: "";
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 48%;
+      height: 2.5px;
+      background: #000;
+      transform: rotate(-40deg);
+      pointer-events: none;
+    }
+    .gafete-char-oh {
+      font-weight: 900;
+    }
   </style>
 </head>
 <body>

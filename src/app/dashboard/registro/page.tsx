@@ -335,8 +335,14 @@ export default function DashboardRegistroPage() {
     if (!result.success || !userId) return;
     const created = await submitEncontrado(result.data);
     if (!created?.id) return;
+    console.log("created");
+    console.log(created);
+    console.log("formData");
+    console.log(formData);
+    console.log("result");
+    console.log(result);
     try {
-      await PrintGafete(formData.nombre, formData.sexo + formData.apellido_p, 1);
+      await PrintGafete(formData.nombre, formData.sexo + formData.apellido_p, "S/E", 1);
     } catch {
       toast.error("No se pudo abrir la impresión");
     }
