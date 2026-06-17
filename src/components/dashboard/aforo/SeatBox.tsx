@@ -1,18 +1,13 @@
 "use client";
 
-import { useState, useRef, useLayoutEffect } from "react";
+import { memo, useState, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import { useMutation } from "@apollo/client";
-import { Seat, SEATS_QUERY } from "registro/graphql/aforo/queries";
-import {
-  UPDATE_SEAT_MUTATION,
-  type UpdateSeatVariables,
-} from "registro/graphql/aforo/mutations";
+import { Seat } from "registro/graphql/aforo/queries";
 import { ConfirmDarDeBajaModal } from "registro/components/dashboard/aforo/ConfirmDarDeBajaModal";
 import { ConfirmarBautizoModal } from "registro/components/dashboard/aforo/ConfirmarBautizoModal";
 import { AsignarAsientoModal } from "registro/components/dashboard/aforo/AsignarAsientoModal";
+import { darDeBajaSeat, useSeatUpdate } from "./seat-update-context";
 import { toast } from "sonner";
-import { AnimatedMount } from "registro/components/shared/AnimatedMount";
 
 const SEAT_SIZE = "h-7 w-7";
 const SEAT_TEXT = "text-xs";
@@ -60,7 +55,7 @@ export interface SeatBoxProps {
   sex: "H" | "M";
 }
 
-export function SeatBox({ seat, sex }: SeatBoxProps) {
+function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{
     top: number;
@@ -72,15 +67,11 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
     "aplicar",
   );
   const [showAsignar, setShowAsignar] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const [updateSeat, { loading: updating }] = useMutation<
-    unknown,
-    UpdateSeatVariables
-  >(UPDATE_SEAT_MUTATION, {
-    refetchQueries: [{ query: SEATS_QUERY }],
-  });
+  const { updateSeat } = useSeatUpdate();
 
   const occupied = seat.occupied;
   const abandoned = seat.abandoned;
@@ -91,14 +82,14 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
     "transform-gpu transition-none hover:scale-110 hover:z-10 active:scale-95";
 
   const filledClass = abandoned
-    ? "border-gray-400/50 bg-gray-500/75 text-white shadow-sm shadow-gray-500/20 backdrop-blur-sm hover:border-gray-400/70 hover:bg-gray-500/90 hover:shadow-md dark:border-gray-500/55 dark:bg-gray-600/80"
+    ? "border-gray-400/50 bg-gray-500 text-white shadow-sm hover:border-gray-400/70 hover:bg-gray-600 dark:border-gray-500/55 dark:bg-gray-600"
     : occupied
       ? isMale
-        ? "border-app-primary/45 bg-app-primary/80 text-white shadow-sm shadow-app-primary/25 backdrop-blur-sm hover:border-app-primary/65 hover:bg-app-primary/90 hover:shadow-md hover:shadow-app-primary/30 dark:border-app-primary-muted/50 dark:bg-app-primary-muted/75"
-        : "border-pink-400/45 bg-pink-500/80 text-white shadow-sm shadow-pink-500/25 backdrop-blur-sm hover:border-pink-400/65 hover:bg-pink-500/90 hover:shadow-md hover:shadow-pink-500/30 dark:border-pink-400/50 dark:bg-pink-500/75"
+        ? "border-app-primary/45 bg-app-primary text-white shadow-sm hover:border-app-primary/65 hover:bg-app-primary/95 dark:border-app-primary-muted/50 dark:bg-app-primary-muted"
+        : "border-pink-400/45 bg-pink-500 text-white shadow-sm hover:border-pink-400/65 hover:bg-pink-600 dark:border-pink-400/50 dark:bg-pink-500"
       : isMale
-        ? "border-gray-300/80 bg-white/35 text-app-text-secondary shadow-sm shadow-black/5 backdrop-blur-sm hover:border-app-primary/40 hover:bg-app-primary/15 hover:text-app-primary hover:shadow-app-primary/15 dark:border-gray-600/80 dark:bg-white/5 dark:text-gray-400 dark:hover:border-app-primary-muted/45 dark:hover:bg-app-primary/20 dark:hover:text-app-primary-muted"
-        : "border-gray-300/80 bg-white/35 text-app-text-secondary shadow-sm shadow-black/5 backdrop-blur-sm hover:border-pink-400/40 hover:bg-pink-500/15 hover:text-pink-600 hover:shadow-pink-500/15 dark:border-gray-600/80 dark:bg-white/5 dark:text-gray-400 dark:hover:border-pink-400/45 dark:hover:bg-pink-500/20 dark:hover:text-pink-400";
+        ? "border-gray-300 bg-gray-50 text-app-text-secondary shadow-sm hover:border-app-primary/40 hover:bg-app-primary/10 hover:text-app-primary dark:border-gray-600 dark:bg-gray-800/60 dark:text-gray-400 dark:hover:border-app-primary-muted/45 dark:hover:bg-app-primary/15 dark:hover:text-app-primary-muted"
+        : "border-gray-300 bg-gray-50 text-app-text-secondary shadow-sm hover:border-pink-400/40 hover:bg-pink-500/10 hover:text-pink-600 dark:border-gray-600 dark:bg-gray-800/60 dark:text-gray-400 dark:hover:border-pink-400/45 dark:hover:bg-pink-500/15 dark:hover:text-pink-400";
 
   const focusRingClass = isMale
     ? "focus:ring-app-primary/40 dark:focus:ring-app-primary-muted/40"
@@ -113,18 +104,13 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
       : null;
 
   const handleDarDeBaja = async () => {
-    if (!seat.encontrado?.id) return;
-    await updateSeat({
-      variables: {
-        where: { id: seat.id },
-        data: {
-          abandoned: true,
-          occupied: false,
-          abandonedBy: { connect: { id: seat.encontrado.id } },
-        },
-      },
-    });
-    setShowConfirm(false);
+    setIsSubmitting(true);
+    try {
+      await darDeBajaSeat(updateSeat, seat);
+      setShowConfirm(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const hasBautizo = Boolean(seat.encontrado?.bautizo);
@@ -157,11 +143,12 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
 
   return (
     <>
-      <div className="group relative inline-flex">
+      <div className="relative inline-flex">
         <button
           ref={buttonRef}
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
+          title={menuOpen ? undefined : (tooltipText ?? undefined)}
           className={`flex shrink-0 cursor-pointer items-center justify-center rounded border ${SEAT_SIZE} ${SEAT_TEXT} font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 ${seatInteractionClass} ${focusRingClass} ${filledClass}`}
           aria-label={tooltipText ?? seat.letter ?? seat.id}
           aria-expanded={menuOpen}
@@ -174,19 +161,6 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
             className="absolute -right-0 top-1 h-2 w-2 -translate-y-1/2 rounded-full bg-green-500 ring-2 ring-white dark:ring-[#202124]"
             aria-hidden
           />
-        )}
-
-        {!menuOpen && tooltipText && (
-          <span
-            role="tooltip"
-            className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white shadow-md opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-gray-700"
-          >
-            {tooltipText}
-            <span
-              className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"
-              aria-hidden
-            />
-          </span>
         )}
 
         {menuOpen &&
@@ -291,19 +265,21 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
         <ConfirmDarDeBajaModal
           open={showConfirm}
           ocupadoPor={ocupadoPor(seat)}
-          loading={updating}
+          loading={isSubmitting}
           onConfirm={handleDarDeBaja}
           onCancel={() => setShowConfirm(false)}
         />
       )}
 
-      <ConfirmarBautizoModal
-        open={showConfirmBautizo}
-        accion={accionBautizo}
-        encontrado={seat.encontrado ?? null}
-        onSuccess={() => setShowConfirmBautizo(false)}
-        onCancel={() => setShowConfirmBautizo(false)}
-      />
+      {showConfirmBautizo && (
+        <ConfirmarBautizoModal
+          open={showConfirmBautizo}
+          accion={accionBautizo}
+          encontrado={seat.encontrado ?? null}
+          onSuccess={() => setShowConfirmBautizo(false)}
+          onCancel={() => setShowConfirmBautizo(false)}
+        />
+      )}
 
       {showAsignar && (
         <AsignarAsientoModal
@@ -317,3 +293,32 @@ export function SeatBox({ seat, sex }: SeatBoxProps) {
     </>
   );
 }
+
+function seatPropsAreEqual(prev: SeatBoxProps, next: SeatBoxProps) {
+  if (prev.sex !== next.sex) return false;
+  const a = prev.seat;
+  const b = next.seat;
+  if (a.id !== b.id) return false;
+  if (
+    a.letter !== b.letter ||
+    a.occupied !== b.occupied ||
+    a.abandoned !== b.abandoned ||
+    a.gender !== b.gender
+  ) {
+    return false;
+  }
+  const ae = a.encontrado;
+  const be = b.encontrado;
+  if (!ae && !be) return true;
+  if (!ae || !be) return false;
+  return (
+    ae.id === be.id &&
+    ae.nombre === be.nombre &&
+    ae.apellido_p === be.apellido_p &&
+    ae.apellido_m === be.apellido_m &&
+    ae.bautizo === be.bautizo &&
+    ae.edad === be.edad
+  );
+}
+
+export const SeatBox = memo(SeatBoxComponent, seatPropsAreEqual);

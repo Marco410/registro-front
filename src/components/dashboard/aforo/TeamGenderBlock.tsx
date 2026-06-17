@@ -1,31 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Seat } from "registro/graphql/aforo/queries";
 import { TeamSeatsModal } from "./TeamSeatsModal";
 import { SeatBox } from "./SeatBox";
 
 const TEAM_LABEL_WIDTH = "min-w-[5.5rem] w-[5.5rem]";
 
-export function TeamGenderBlock({
-  teamKey,
+function TeamGenderBlockComponent({
   team,
   seats,
   sex,
 }: {
-  teamKey: string;
   team: Seat["team"];
   seats: Seat[];
   sex: "H" | "M";
 }) {
   const [showSeatsModal, setShowSeatsModal] = useState(false);
-  let teamLabel = team
-    ? `Eq. ${team.teamNumber}${team.ageGroup?.label ? ` (${team.ageGroup.label})` : ""}`
-    : "Sin equipo";
 
-  teamLabel = `${team?.teamName ?? ""} (${team?.ageGroup?.label ?? ""})`;
+  const teamLabel = `${team?.teamName ?? ""} (${team?.ageGroup?.label ?? ""})`;
+
   return (
-    <div key={`${teamKey}-${sex}`} className="flex w-fit max-w-full items-center gap-3">
+    <div className="flex w-fit max-w-full items-center gap-3">
       <button
         type="button"
         onClick={team ? () => setShowSeatsModal(true) : undefined}
@@ -44,13 +40,17 @@ export function TeamGenderBlock({
           seats.map((seat) => <SeatBox key={seat.id} seat={seat} sex={sex} />)
         )}
       </div>
-      <TeamSeatsModal
-        open={showSeatsModal}
-        onClose={() => setShowSeatsModal(false)}
-        teamLabel={teamLabel}
-        seats={seats}
-        sex={sex}
-      />
+      {showSeatsModal && (
+        <TeamSeatsModal
+          open={showSeatsModal}
+          onClose={() => setShowSeatsModal(false)}
+          teamLabel={teamLabel}
+          seats={seats}
+          sex={sex}
+        />
+      )}
     </div>
   );
 }
+
+export const TeamGenderBlock = memo(TeamGenderBlockComponent);

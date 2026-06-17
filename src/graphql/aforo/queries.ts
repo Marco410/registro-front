@@ -10,13 +10,11 @@ export const SEATS_QUERY = gql`
       letter
       occupied
       gender
-      assignedAt
       abandoned
       abandonedBy {
         nombre
         apellido_p
         apellido_m
-        sexo
       }
       encontrado {
         id
@@ -33,8 +31,6 @@ export const SEATS_QUERY = gql`
         nom_ref
         tel_ref
         checkins {
-          id
-          checkinAt
           claveOld
         }
       }
@@ -74,8 +70,6 @@ export interface SeatEncontrado {
   nom_ref?: string | null;
   tel_ref?: string | null;
   checkins: {
-    id: string;
-    checkinAt: string;
     claveOld: string;
   };
 }
@@ -100,7 +94,6 @@ export interface SeatAbandonedBy {
   nombre: string;
   apellido_p: string;
   apellido_m: string;
-  sexo: string;
 }
 
 export interface Seat {
@@ -108,7 +101,6 @@ export interface Seat {
   letter: string;
   occupied: boolean;
   gender: string;
-  assignedAt: string | null;
   abandoned: boolean;
   abandonedBy: SeatAbandonedBy | null;
   encontrado: SeatEncontrado | null;

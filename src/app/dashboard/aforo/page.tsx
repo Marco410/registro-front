@@ -1,4 +1,4 @@
-import { SeatsByTeam } from "registro/components/dashboard";
+import { SeatsByTeamLazy } from "registro/components/dashboard/aforo/SeatsByTeamLazy";
 import {
   AforoCountsCards,
   AnimatedMount,
@@ -18,7 +18,7 @@ export default function AforoPage() {
         </p>
       </div>
       <AforoCountsCards />
-      <SeatsByTeam />
+      <SeatsByTeamLazy />
       <AnimatedMount show={true} animationKey="bautizo-counts-cards">
         <BautizoCountsCards />
       </AnimatedMount>
