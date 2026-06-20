@@ -39,6 +39,24 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
+function getSecondName(nombre: string): string | null {
+  const names = nombre.trim().split(/\s+/).filter(Boolean);
+  return names.length > 1 ? names[1] : null;
+}
+
+/** Apellidos + segundo nombre en letra pequeña para la fila inferior del gafete. */
+function formatApellidosHtml(
+  apellido_p: string,
+  apellido_m: string | null | undefined,
+  nombre: string,
+): string {
+  const apellidos = [apellido_p, apellido_m].filter(Boolean).join(" ").trim();
+  const secondName = getSecondName(nombre);
+  const apellidosHtml = escapeHtml(apellidos);
+  if (!secondName) return apellidosHtml;
+  return `${escapeHtml(secondName)} ${apellidosHtml}`;
+}
+
 /** Diferencia visualmente el 0 (cero tachado) de la O en códigos impresos. */
 function formatClaveHtml(text: string): string {
   return [...text]
@@ -59,13 +77,13 @@ function formatClaveHtml(text: string): string {
 function buildPrintHtml({
   nombreFinal,
   clave,
-  equipo,
+  apellidosHtml,
   copies,
   imageUrl,
 }: {
   nombreFinal: string;
   clave: string;
-  equipo: string;
+  apellidosHtml: string;
   copies: number;
   imageUrl: string;
 }): string {
@@ -99,8 +117,9 @@ function buildPrintHtml({
       <img src="${escapeHtml(imageUrl)}" alt="" class="gafete-formato-img" loading="eager" />
       <p class="gafete-name">${nameHtml}</p>
       <div class="gafete-meta">
-        <div class="gafete-fila-wrap gafete-fila-tribu">
-          <span class="gafete-fila-value gafete-codigo">${formatClaveHtml(clave)}</span>
+        <div class="gafete-meta-block">
+          <span class="gafete-clave">${formatClaveHtml(clave)}</span>
+          <span class="gafete-apellidos">${apellidosHtml}</span>
         </div>
       </div>
     </div>`,
@@ -162,11 +181,37 @@ function buildPrintHtml({
     .gafete-meta {
       position: absolute;
       left: 10px;
-      bottom: 25px;
+      bottom: 22px;
       z-index: 1;
+      max-width: calc(100% - 68px);
+    }
+    .gafete-meta-block {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
+      gap: 0;
+      line-height: 1.05;
+    }
+    .gafete-clave {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 23pt;
+      font-weight: 800;
+      color: #000;
+      letter-spacing: 0.04em;
+      font-variant-numeric: slashed-zero;
+    }
+    .gafete-apellidos {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 7pt;
+      font-weight: 700;
+      color: #000;
+      letter-spacing: 0.02em;
+      margin-top: 3px;
+      margin-bottom: 3px;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .gafete-fila-wrap {
       display: flex;
@@ -177,20 +222,12 @@ function buildPrintHtml({
       font-family: 'Montserrat', Arial, sans-serif;
       color: #000;
     }
-    .gafete-fila-tribu .gafete-fila-label,
-    .gafete-fila-tribu .gafete-fila-value {
-      font-size: 23pt;
-    }
     .gafete-fila-clave .gafete-fila-label,
     .gafete-fila-clave .gafete-fila-value {
       font-size: 12pt;
     }
     .gafete-fila-label { font-weight: 500; }
     .gafete-fila-value { font-weight: 800; }
-    .gafete-codigo {
-      font-variant-numeric: slashed-zero;
-      letter-spacing: 0.04em;
-    }
     .gafete-char-zero,
     .gafete-char-oh {
       position: relative;
@@ -209,6 +246,11 @@ function buildPrintHtml({
     }
     .gafete-char-oh {
       font-weight: 900;
+    }
+    .gafete-nombre-sec {
+      font-size: 6pt;
+      font-weight: 600;
+      vertical-align: baseline;
     }
   </style>
 </head>
@@ -288,16 +330,23 @@ export function usePrintGafete(options: UsePrintGafeteOptions = {}) {
   const [loading, setLoading] = useState(false);
 
   const PrintGafete = useCallback(
-    async (nombre: string, clave: string, equipo: string, copies: number) => {
+    async (
+      nombre: string,
+      clave: string,
+      apellido_p: string,
+      apellido_m: string | null | undefined,
+      copies: number,
+    ) => {
       if (typeof window === "undefined") return;
       setLoading(true);
       try {
         const nombreFinal = processName(nombre);
+        const apellidosHtml = formatApellidosHtml(apellido_p, apellido_m, nombre);
         const imageUrl = `${window.location.origin}${IMAGE_URL}`;
         const html = buildPrintHtml({
           nombreFinal,
           clave,
-          equipo,
+          apellidosHtml,
           copies,
           imageUrl,
         });

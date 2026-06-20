@@ -79,7 +79,8 @@ export function CheckinResultCard({
       await PrintGafete(
         data.nombre,
         data.clave,
-        data.teamName ?? "S/E",
+        data.apellido_p,
+        data.apellido_m,
         copies,
       );
     } catch {

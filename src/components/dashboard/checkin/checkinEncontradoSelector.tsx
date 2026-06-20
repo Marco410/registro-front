@@ -181,9 +181,9 @@ export function CheckinEncontradoSelector({
               type="search"
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Buscar por nombre o ID. Ejem: 'Juan Perez', 'H1' o 'M1'"
+              placeholder="Buscar por nombre, ID o clave. Ejem: 'Juan Perez', 'H197', 'H5A'"
               className={`w-full rounded-xl border bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400 ${borderClass}`}
-              aria-label="Buscar por nombre"
+              aria-label="Buscar por nombre, ID o clave"
             />
           </div>
 

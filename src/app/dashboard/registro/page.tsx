@@ -343,7 +343,13 @@ export default function DashboardRegistroPage() {
     console.log("result");
     console.log(result);
     try {
-      await PrintGafete(formData.nombre, formData.sexo + formData.apellido_p, "S/E", 1);
+      await PrintGafete(
+        formData.nombre,
+        formData.sexo + formData.apellido_p,
+        formData.apellido_p,
+        formData.apellido_m,
+        1,
+      );
     } catch {
       toast.error("No se pudo abrir la impresión");
     }

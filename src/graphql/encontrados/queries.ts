@@ -81,18 +81,26 @@ export interface EncontradoListItem {
   } | null;
 }
 
+export type EncontradoCheckinsWhere = {
+  id?: { not?: null };
+  team?: { teamNumber?: { equals?: number } };
+  seat?: { letter?: { equals?: string } };
+};
+
 export type EncontradoFieldSearchCondition =
   | { nombre?: { contains?: string; mode?: string } }
   | { apellido_p?: { contains?: string; mode?: string } }
   | { apellido_m?: { contains?: string; mode?: string } }
-  | { clave?: { equals?: number } };
+  | { clave?: { equals?: number } }
+  | { sexo?: { equals?: string } }
+  | { checkins?: EncontradoCheckinsWhere }
+  | { AND?: EncontradoFieldSearchCondition[] };
 
 export interface EncontradosQueryVariables {
   where: {
     user?: { id?: { equals?: string } };
     sexo?: { equals?: string };
-    /** Solo encontrados con al menos un check-in. */
-    checkins?: { id?: { not?: null } };
+    checkins?: EncontradoCheckinsWhere;
     OR?: EncontradoFieldSearchCondition[];
     AND?: Array<
       | { OR: EncontradoFieldSearchCondition[] }
@@ -103,16 +111,116 @@ export interface EncontradosQueryVariables {
   skip?: number;
 }
 
+function stripAccents(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "");
+}
+
+const ACCENT_VOWELS: Record<string, string> = {
+  a: "á",
+  e: "é",
+  i: "í",
+  o: "ó",
+  u: "ú",
+};
+
+/** Variantes con/sin acento para que "raul" coincida con "RAÚL" y viceversa. */
+function getAccentSearchVariants(token: string): string[] {
+  const variants = new Set<string>([token]);
+  const base = stripAccents(token);
+  variants.add(base);
+
+  for (let i = 0; i < base.length; i++) {
+    const lower = base[i].toLowerCase();
+    const accent = ACCENT_VOWELS[lower];
+    if (!accent) continue;
+    const accented =
+      base.slice(0, i) +
+      (base[i] === base[i].toUpperCase()
+        ? accent.toUpperCase()
+        : accent) +
+      base.slice(i + 1);
+    variants.add(accented);
+  }
+
+  return [...variants];
+}
+
 function nameFieldOr(token: string): EncontradoFieldSearchCondition[] {
-  return [
-    { nombre: { contains: token, mode: "insensitive" } },
-    { apellido_p: { contains: token, mode: "insensitive" } },
-    { apellido_m: { contains: token, mode: "insensitive" } },
-  ];
+  const variants = getAccentSearchVariants(token);
+  const conditions: EncontradoFieldSearchCondition[] = [];
+
+  for (const variant of variants) {
+    conditions.push(
+      { nombre: { contains: variant, mode: "insensitive" } },
+      { apellido_p: { contains: variant, mode: "insensitive" } },
+      { apellido_m: { contains: variant, mode: "insensitive" } },
+    );
+  }
+
+  return conditions;
+}
+
+type CheckinClaveMatch = {
+  sexo: "H" | "M";
+  teamNumber: number;
+  letter?: string;
+};
+
+/** Ej: "h5a" → sexo H, equipo 5, asiento A (clave de check-in). */
+function parseCheckinClavePattern(search: string): CheckinClaveMatch | null {
+  const m = search.trim().match(/^([hm])(\d+)([a-z])?$/i);
+  if (!m) return null;
+  return {
+    sexo: m[1].toUpperCase() as "H" | "M",
+    teamNumber: parseInt(m[2], 10),
+    letter: m[3]?.toUpperCase(),
+  };
+}
+
+function checkinClaveWhere(
+  match: CheckinClaveMatch
+): EncontradoFieldSearchCondition {
+  const checkins: EncontradoCheckinsWhere = {
+    team: { teamNumber: { equals: match.teamNumber } },
+  };
+  if (match.letter) {
+    checkins.seat = { letter: { equals: match.letter } };
+  }
+  return {
+    AND: [{ sexo: { equals: match.sexo } }, { checkins }],
+  };
+}
+
+/** Condiciones extra por ID (H197) o clave de check-in (H5A, M12). */
+function idAndCheckinClaveOr(token: string): EncontradoFieldSearchCondition[] {
+  const extra: EncontradoFieldSearchCondition[] = [];
+
+  const firstUpper = token[0]?.toUpperCase() ?? "";
+  const afterSexo =
+    firstUpper === "H" || firstUpper === "M" ? token.slice(1).trim() : token;
+
+  if (afterSexo && /^\d+$/.test(afterSexo)) {
+    const searchNum = parseInt(afterSexo, 10);
+    if (!Number.isNaN(searchNum)) {
+      extra.push({ clave: { equals: searchNum } });
+    }
+  } else if (/^\d+$/.test(token)) {
+    const num = parseInt(token, 10);
+    if (!Number.isNaN(num)) {
+      extra.push({ clave: { equals: num } });
+    }
+  }
+
+  const checkinClave = parseCheckinClavePattern(token);
+  if (checkinClave) {
+    extra.push(checkinClaveWhere(checkinClave));
+  }
+
+  return extra;
 }
 
 /**
- * Construye OR/AND para búsqueda por nombre, apellidos o clave (H1, M42).
+ * Construye OR/AND para búsqueda por nombre, apellidos, ID (H197) o clave de check-in (H5A).
  * Varias palabras exigen que cada token coincida en al menos un campo de nombre.
  */
 export function buildEncontradoSearchWhere(
@@ -121,31 +229,13 @@ export function buildEncontradoSearchWhere(
   const trimmed = searchNorm.trim();
   if (!trimmed) return null;
 
-  const firstUpper = trimmed[0]?.toUpperCase() ?? "";
-  const afterSexo =
-    firstUpper === "H" || firstUpper === "M"
-      ? trimmed.slice(1).trim()
-      : trimmed;
-  const searchNum = afterSexo ? parseInt(afterSexo, 10) : NaN;
-  const isClavePattern =
-    !Number.isNaN(searchNum) && /^\d+$/.test(afterSexo) && !trimmed.includes(" ");
-
-  if (isClavePattern) {
-    return {
-      OR: [...nameFieldOr(trimmed), { clave: { equals: searchNum } }],
-    };
-  }
-
   const tokens = trimmed.split(/\s+/).filter(Boolean);
 
   if (tokens.length === 1) {
     const token = tokens[0];
-    const orConditions = nameFieldOr(token);
-    const num = parseInt(token, 10);
-    if (!Number.isNaN(num) && /^\d+$/.test(token)) {
-      orConditions.push({ clave: { equals: num } });
-    }
-    return { OR: orConditions };
+    return {
+      OR: [...nameFieldOr(token), ...idAndCheckinClaveOr(token)],
+    };
   }
 
   return {
