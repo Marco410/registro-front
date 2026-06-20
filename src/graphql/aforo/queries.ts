@@ -111,6 +111,33 @@ export interface SeatsQueryResponse {
   seats: Seat[];
 }
 
+/** Lista de equipos para asignar asientos. */
+export const TEAMS_QUERY = gql`
+  query Teams {
+    teams(orderBy: { order: asc }) {
+      id
+      teamNumber
+      teamName
+      order
+      ageGroup {
+        label
+      }
+    }
+  }
+`;
+
+export interface TeamListItem {
+  id: string;
+  teamNumber: number;
+  teamName: string;
+  order?: number | null;
+  ageGroup: { label: string } | null;
+}
+
+export interface TeamsQueryResponse {
+  teams: TeamListItem[];
+}
+
 export const AFORO_QUERY = gql`
   query DashboardCounts {
     encontradosCount

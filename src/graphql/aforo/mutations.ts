@@ -53,6 +53,30 @@ export type UpdateSeatVariables =
   | UpdateSeatDarDeBajaVariables
   | UpdateSeatAsignarVariables;
 
+/** Crear un asiento y asignarlo a un equipo. */
+export const CREATE_SEAT_MUTATION = gql`
+  mutation CreateSeat($data: SeatCreateInput!) {
+    createSeat(data: $data) {
+      id
+      letter
+      gender
+      team {
+        id
+        teamName
+        teamNumber
+      }
+    }
+  }
+`;
+
+export interface CreateSeatVariables {
+  data: {
+    letter: string;
+    gender: string;
+    team: { connect: { id: string } };
+  };
+}
+
 /** Crear foráneo bautizado. */
 export const CREATE_BAUTIZO_FORANEO_MUTATION = gql`
   mutation CreateBautizoForaneo($data: BautizoForaneoCreateInput!) {

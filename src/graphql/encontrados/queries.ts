@@ -81,21 +81,76 @@ export interface EncontradoListItem {
   } | null;
 }
 
+export type EncontradoFieldSearchCondition =
+  | { nombre?: { contains?: string; mode?: string } }
+  | { apellido_p?: { contains?: string; mode?: string } }
+  | { apellido_m?: { contains?: string; mode?: string } }
+  | { clave?: { equals?: number } };
+
 export interface EncontradosQueryVariables {
   where: {
     user?: { id?: { equals?: string } };
     sexo?: { equals?: string };
     /** Solo encontrados con al menos un check-in. */
     checkins?: { id?: { not?: null } };
-    OR?: Array<
-      | { nombre?: { contains?: string; mode?: string } }
-      | { apellido_p?: { contains?: string; mode?: string } }
-      | { apellido_m?: { contains?: string; mode?: string } }
-      | { clave?: { equals?: number } }
+    OR?: EncontradoFieldSearchCondition[];
+    AND?: Array<
+      | { OR: EncontradoFieldSearchCondition[] }
+      | EncontradoFieldSearchCondition
     >;
   };
   take?: number;
   skip?: number;
+}
+
+function nameFieldOr(token: string): EncontradoFieldSearchCondition[] {
+  return [
+    { nombre: { contains: token, mode: "insensitive" } },
+    { apellido_p: { contains: token, mode: "insensitive" } },
+    { apellido_m: { contains: token, mode: "insensitive" } },
+  ];
+}
+
+/**
+ * Construye OR/AND para búsqueda por nombre, apellidos o clave (H1, M42).
+ * Varias palabras exigen que cada token coincida en al menos un campo de nombre.
+ */
+export function buildEncontradoSearchWhere(
+  searchNorm: string
+): Pick<EncontradosQueryVariables["where"], "OR" | "AND"> | null {
+  const trimmed = searchNorm.trim();
+  if (!trimmed) return null;
+
+  const firstUpper = trimmed[0]?.toUpperCase() ?? "";
+  const afterSexo =
+    firstUpper === "H" || firstUpper === "M"
+      ? trimmed.slice(1).trim()
+      : trimmed;
+  const searchNum = afterSexo ? parseInt(afterSexo, 10) : NaN;
+  const isClavePattern =
+    !Number.isNaN(searchNum) && /^\d+$/.test(afterSexo) && !trimmed.includes(" ");
+
+  if (isClavePattern) {
+    return {
+      OR: [...nameFieldOr(trimmed), { clave: { equals: searchNum } }],
+    };
+  }
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+
+  if (tokens.length === 1) {
+    const token = tokens[0];
+    const orConditions = nameFieldOr(token);
+    const num = parseInt(token, 10);
+    if (!Number.isNaN(num) && /^\d+$/.test(token)) {
+      orConditions.push({ clave: { equals: num } });
+    }
+    return { OR: orConditions };
+  }
+
+  return {
+    AND: tokens.map((token) => ({ OR: nameFieldOr(token) })),
+  };
 }
 
 export interface EncontradosQueryResponse {

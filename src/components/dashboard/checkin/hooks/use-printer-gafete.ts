@@ -101,7 +101,6 @@ function buildPrintHtml({
       <div class="gafete-meta">
         <div class="gafete-fila-wrap gafete-fila-tribu">
           <span class="gafete-fila-value gafete-codigo">${formatClaveHtml(clave)}</span>
-          <span class="gafete-fila-value gafete-codigo">${formatClaveHtml('H10O')}</span>
         </div>
       </div>
     </div>`,

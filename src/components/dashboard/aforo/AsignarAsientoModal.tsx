@@ -11,6 +11,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import {
   ENCONTRADOS_QUERY,
+  buildEncontradoSearchWhere,
   type EncontradoListItem,
   type EncontradosQueryResponse,
   type EncontradosQueryVariables,
@@ -308,24 +309,8 @@ function EncontradosListInModal({
     sexo: { equals: sexoFilter },
     checkins: { id: { not: null } },
   };
-  if (searchNorm.trim()) {
-    const trimmed = searchNorm.trim().toLowerCase();
-    const firstUpper = trimmed[0]?.toUpperCase() ?? "";
-    const afterSexo =
-      firstUpper === "H" || firstUpper === "M"
-        ? trimmed.slice(1).trim()
-        : trimmed;
-    const searchNum = afterSexo ? parseInt(afterSexo, 10) : NaN;
-    const isNumeric = !Number.isNaN(searchNum) && /^\d+$/.test(afterSexo);
-    const orConditions: NonNullable<EncontradosQueryVariables["where"]["OR"]> =
-      [
-        { nombre: { contains: searchNorm, mode: "insensitive" } },
-        { apellido_p: { contains: searchNorm, mode: "insensitive" } },
-        { apellido_m: { contains: searchNorm, mode: "insensitive" } },
-      ];
-    if (isNumeric) orConditions.push({ clave: { equals: searchNum } });
-    where.OR = orConditions;
-  }
+  const searchWhere = buildEncontradoSearchWhere(searchNorm);
+  if (searchWhere) Object.assign(where, searchWhere);
 
   const { data, loading, error } = useQuery<
     EncontradosQueryResponse,

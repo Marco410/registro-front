@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@apollo/client";
-import { Download01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Download01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { AddSeatModal } from "./AddSeatModal";
 import {
   SEATS_QUERY,
   type Seat,
@@ -55,9 +56,11 @@ function buildTeamGenderGroups(seats: Seat[]): TeamGenderGroup[] {
 }
 
 export function SeatsByTeam() {
+  const [showAddSeatModal, setShowAddSeatModal] = useState(false);
   const { data, loading, error } = useQuery<SeatsQueryResponse>(SEATS_QUERY, {
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
+    pollInterval: 10000,
   });
   const { exportEncontradosToExcel } = useExportEncontradosExcel();
 
@@ -85,13 +88,8 @@ export function SeatsByTeam() {
     );
   }
 
-  if (groups.length === 0) {
-    return (
-      <p className="text-app-text-secondary dark:text-gray-400">
-        No hay asientos configurados.
-      </p>
-    );
-  }
+  const actionButtonClass =
+    "flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-app-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-app-primary-muted";
 
   return (
     <SeatUpdateProvider>
@@ -100,20 +98,36 @@ export function SeatsByTeam() {
           <span className="text-center text-xs font-bold uppercase tracking-widest text-app-primary dark:text-app-primary-muted md:text-left">
             Altar
           </span>
-          <button
-            type="button"
-            aria-label="Exportar encontrados en Excel"
-            onClick={() => exportEncontradosToExcel(seats)}
-            disabled={!seats.length}
-            className="mt-2 flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-app-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-app-primary-muted md:mt-0"
-          >
-            <HugeiconsIcon icon={Download01Icon} size={18} className="shrink-0" />
-            <span className="max-w-[140px] truncate">
-              Exportar encontrados (Excel)
-            </span>
-          </button>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-2 md:mt-0 md:justify-end">
+            <button
+              type="button"
+              aria-label="Agregar asiento a un equipo"
+              onClick={() => setShowAddSeatModal(true)}
+              className={actionButtonClass}
+            >
+              <HugeiconsIcon icon={Add01Icon} size={18} className="shrink-0" />
+              <span className="max-w-[140px] truncate">Agregar asiento</span>
+            </button>
+            <button
+              type="button"
+              aria-label="Exportar encontrados en Excel"
+              onClick={() => exportEncontradosToExcel(seats)}
+              disabled={!seats.length}
+              className={actionButtonClass}
+            >
+              <HugeiconsIcon icon={Download01Icon} size={18} className="shrink-0" />
+              <span className="max-w-[140px] truncate">
+                Exportar encontrados (Excel)
+              </span>
+            </button>
+          </div>
         </div>
 
+        {groups.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-app-text-secondary dark:text-gray-400">
+            No hay asientos configurados.
+          </p>
+        ) : (
         <div className="grid grid-cols-1 gap-6 p-4 md:grid-cols-2 md:gap-8">
           <div className="flex flex-col items-center gap-2">
             <p className="text-center text-xs font-semibold uppercase tracking-wider text-app-primary dark:text-app-primary-muted">
@@ -146,6 +160,7 @@ export function SeatsByTeam() {
             </div>
           </div>
         </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-center gap-6 border-t border-gray-100 px-4 py-2 dark:border-gray-700">
           <div className="flex items-center gap-2">
@@ -180,6 +195,10 @@ export function SeatsByTeam() {
           </div>
         </div>
       </div>
+      <AddSeatModal
+        open={showAddSeatModal}
+        onClose={() => setShowAddSeatModal(false)}
+      />
     </SeatUpdateProvider>
   );
 }

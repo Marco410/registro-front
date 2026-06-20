@@ -12,6 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import {
   ENCONTRADOS_QUERY,
+  buildEncontradoSearchWhere,
   type EncontradoListItem,
   type EncontradosQueryResponse,
   type EncontradosQueryVariables,
@@ -87,24 +88,9 @@ export function CheckinEncontradoSelector({
   const where = (() => {
     const base: EncontradosQueryVariables["where"] = {};
     if (sexoFilter) base.sexo = { equals: sexoFilter };
-    if (!searchNorm) return base;
-    const trimmed = searchNorm.trim();
-    const firstUpper = trimmed.length > 0 ? trimmed[0].toUpperCase() : "";
-    const afterSexo =
-      firstUpper === "H" || firstUpper === "M"
-        ? trimmed.slice(1).trim()
-        : trimmed;
-    const searchNum = afterSexo.length > 0 ? parseInt(afterSexo, 10) : NaN;
-    const isNumeric = !Number.isNaN(searchNum) && /^\d+$/.test(afterSexo);
-    const orConditions: EncontradosQueryVariables["where"]["OR"] = [
-      { nombre: { contains: searchNorm, mode: "insensitive" } },
-      { apellido_p: { contains: searchNorm, mode: "insensitive" } },
-      { apellido_m: { contains: searchNorm, mode: "insensitive" } },
-    ];
-    if (isNumeric) {
-      orConditions.push({ clave: { equals: searchNum } });
-    }
-    return { ...base, OR: orConditions };
+    const searchWhere = buildEncontradoSearchWhere(searchNorm);
+    if (!searchWhere) return base;
+    return { ...base, ...searchWhere };
   })();
 
   const { data, loading, error, refetch } = useQuery<

@@ -85,3 +85,22 @@ export interface PerformCheckinVariables {
   userId: string;
   responsejson?: Record<string, unknown> | null;
 }
+
+/** Elimina el check-in de un encontrado. */
+export const REMOVE_CHECKIN_MUTATION = gql`
+  mutation RemoveCheckin($encontradoId: ID!) {
+    removeCheckin(encontradoId: $encontradoId) {
+      success
+    }
+  }
+`;
+
+export interface RemoveCheckinResponse {
+  removeCheckin: {
+    success: boolean;
+  };
+}
+
+export interface RemoveCheckinVariables {
+  encontradoId: string;
+}
