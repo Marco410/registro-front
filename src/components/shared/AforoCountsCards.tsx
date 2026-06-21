@@ -2,33 +2,109 @@
 
 import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { UserIcon, CalendarCheckIn01Icon } from "@hugeicons/core-free-icons";
+import {
+  Logout01Icon,
+  SeatSelectorIcon,
+} from "@hugeicons/core-free-icons";
 import {
   AFORO_QUERY,
   type AforoResponse,
 } from "registro/graphql/aforo/queries";
 import { AnimatedMount } from ".";
 
-const cardBase =
-  "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-[#202124]";
+type StatIcon = typeof SeatSelectorIcon;
+
+type StatItem = {
+  label: string;
+  value: number;
+  valueClassName: string;
+};
+
+type MetricPanelConfig = {
+  key: string;
+  title: string;
+  icon: StatIcon;
+  accentClass: string;
+  iconBg: string;
+  stats: StatItem[];
+};
+
+function MetricStat({ label, value, valueClassName }: StatItem) {
+  return (
+    <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 py-2.5 sm:px-3">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+        {label}
+      </span>
+      <span
+        className={`text-xl font-bold tabular-nums leading-none sm:text-2xl ${valueClassName}`}
+      >
+        {value.toLocaleString("es")}
+      </span>
+    </div>
+  );
+}
+
+function MetricPanel({
+  title,
+  icon: Icon,
+  accentClass,
+  iconBg,
+  stats,
+}: Omit<MetricPanelConfig, "key">) {
+  return (
+    <article
+      className={`overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-[#202124] ${accentClass}`}
+    >
+      <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2 dark:border-gray-700 sm:px-4">
+        <span
+          className={`inline-flex rounded-lg p-1.5 ${iconBg} text-app-text-secondary dark:text-gray-400`}
+        >
+          <HugeiconsIcon icon={Icon} size={16} />
+        </span>
+        <h2 className="text-sm font-semibold text-app-text-primary dark:text-gray-200">
+          {title}
+        </h2>
+      </div>
+      <div className="flex divide-x divide-gray-100 dark:divide-gray-700">
+        {stats.map((stat) => (
+          <MetricStat key={stat.label} {...stat} />
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {[1, 2].map((i) => (
+        <div
+          key={i}
+          className="animate-pulse overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
+        >
+          <div className="border-b border-gray-100 px-4 py-3 dark:border-gray-700">
+            <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="flex p-2">
+            {[1, 2, 3].map((j) => (
+              <div key={j} className="flex flex-1 flex-col items-center gap-2 px-3 py-2">
+                <div className="h-3 w-10 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-7 w-12 rounded bg-gray-200 dark:bg-gray-700" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function AforoCountsCards() {
   const { data, loading, error } = useQuery<AforoResponse>(AFORO_QUERY, {
     //pollInterval: 10000,
   });
 
-  if (loading) {
-    return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className={`${cardBase} animate-pulse`}>
-            <div className="h-5 w-24 rounded bg-gray-200 dark:bg-gray-700" />
-            <div className="mt-2 h-8 w-12 rounded bg-gray-200 dark:bg-gray-700" />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <LoadingSkeleton />;
 
   if (error) {
     return (
@@ -45,52 +121,71 @@ export function AforoCountsCards() {
     encontradosCountM: 0,
     checkinsCountH: 0,
     checkinsCountM: 0,
+    bajasCount: 0,
+    bajasCountH: 0,
+    bajasCountM: 0,
   };
 
-  const cards = [
+  const enForoTotal = Math.max(0, counts.checkinsCount - counts.bajasCount);
+  const enForoH = Math.max(0, counts.checkinsCountH - counts.bajasCountH);
+  const enForoM = Math.max(0, counts.checkinsCountM - counts.bajasCountM);
+
+  const panels: MetricPanelConfig[] = [
     {
-      label: "Total",
-      value: counts.checkinsCount,
-      icon: CalendarCheckIn01Icon,
-      className: "text-app-text-primary dark:text-gray-200",
-      iconBg: "bg-gray-100 dark:bg-gray-700",
+      key: "en-foro",
+      title: "En el retiro",
+      icon: SeatSelectorIcon,
+      accentClass: "border-t-[3px] border-t-green-500 dark:border-t-green-400",
+      iconBg: "bg-green-500/10 dark:bg-green-500/20",
+      stats: [
+        {
+          label: "Total",
+          value: enForoTotal,
+          valueClassName: "text-app-text-primary dark:text-gray-200",
+        },
+        {
+          label: "Hombres",
+          value: enForoH,
+          valueClassName: "text-app-primary dark:text-app-primary-muted",
+        },
+        {
+          label: "Mujeres",
+          value: enForoM,
+          valueClassName: "text-pink-600 dark:text-pink-400",
+        },
+      ],
     },
     {
-      label: "Hombres",
-      value: counts.checkinsCountH,
-      icon: CalendarCheckIn01Icon,
-      className: "text-app-primary dark:text-app-primary-muted",
-      iconBg: "bg-app-primary/10 dark:bg-app-primary-muted/20",
-    },
-    {
-      label: "Mujeres",
-      value: counts.checkinsCountM,
-      icon: CalendarCheckIn01Icon,
-      className: "text-pink-600 dark:text-pink-400",
-      iconBg: "bg-pink-500/10 dark:bg-pink-500/20",
+      key: "bajas",
+      title: "Bajas",
+      icon: Logout01Icon,
+      accentClass: "border-t-[3px] border-t-red-400 dark:border-t-red-500",
+      iconBg: "bg-red-500/10 dark:bg-red-500/20",
+      stats: [
+        {
+          label: "Total",
+          value: counts.bajasCount,
+          valueClassName: "text-gray-700 dark:text-gray-200",
+        },
+        {
+          label: "Hombres",
+          value: counts.bajasCountH,
+          valueClassName: "text-app-primary dark:text-app-primary-muted",
+        },
+        {
+          label: "Mujeres",
+          value: counts.bajasCountM,
+          valueClassName: "text-pink-600 dark:text-pink-400",
+        },
+      ],
     },
   ];
 
   return (
-    <AnimatedMount show={true} animationKey="aforo-counts-cards">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map(({ label, value, icon: Icon, className, iconBg }) => (
-          <div key={label} className={cardBase}>
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-app-text-secondary dark:text-gray-400">
-                {label}
-              </p>
-              <span
-                className={`inline-flex rounded-lg p-2 ${iconBg} ${className}`}
-                aria-hidden
-              >
-                <HugeiconsIcon icon={Icon} size={22} />
-              </span>
-            </div>
-            <p className={`mt-2 text-2xl font-bold tabular-nums ${className}`}>
-              {value.toLocaleString("es")}
-            </p>
-          </div>
+    <AnimatedMount show animationKey="aforo-counts-cards">
+      <div className="grid gap-3 sm:grid-cols-2">
+        {panels.map(({ key, ...panel }) => (
+          <MetricPanel key={key} {...panel} />
         ))}
       </div>
     </AnimatedMount>

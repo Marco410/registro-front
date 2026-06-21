@@ -113,6 +113,28 @@ export interface SeatsQueryResponse {
   seats: Seat[];
 }
 
+/** IDs de encontrados que abandonaron su asiento (bajas). */
+export const BAJAS_ENCONTRADO_IDS_QUERY = gql`
+  query BajasEncontradoIds($where: SeatWhereInput!) {
+    seats(where: $where) {
+      abandonedBy {
+        id
+      }
+    }
+  }
+`;
+
+export interface BajasEncontradoIdsVariables {
+  where: {
+    abandonedBy?: { id?: { not?: null } };
+    gender?: { equals?: string };
+  };
+}
+
+export interface BajasEncontradoIdsResponse {
+  seats: { abandonedBy: { id: string } | null }[];
+}
+
 /** Lista de equipos para asignar asientos. */
 export const TEAMS_QUERY = gql`
   query Teams {
@@ -152,6 +174,15 @@ export const AFORO_QUERY = gql`
     checkinsCountM: checkinsCount(
       where: { encontrado: { sexo: { equals: "M" } } }
     )
+    bajasCount: seatsCount(
+      where: { abandonedBy: { id: { not: null } } }
+    )
+    bajasCountH: seatsCount(
+      where: { abandonedBy: { id: { not: null } }, gender: { equals: "H" } }
+    )
+    bajasCountM: seatsCount(
+      where: { abandonedBy: { id: { not: null } }, gender: { equals: "M" } }
+    )
   }
 `;
 
@@ -162,6 +193,9 @@ export interface AforoResponse {
   encontradosCount: number;
   encontradosCountH: number;
   encontradosCountM: number;
+  bajasCount: number;
+  bajasCountH: number;
+  bajasCountM: number;
 }
 
 export const BAUTIZO_COUNTS_QUERY = gql`

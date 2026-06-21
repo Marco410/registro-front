@@ -7,6 +7,11 @@ import {
   ESTADO_C_OPTIONS,
   type EncontradosEstadoCQueryResponse,
 } from "registro/graphql/encontrados/queries";
+import {
+  buildEncontradosWhere,
+  filterEncontradosEnForo,
+  useBajaEncontradoIds,
+} from "./use-baja-encontrado-ids";
 
 const CARD_BASE =
   "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-[#202124]";
@@ -34,8 +39,6 @@ function valueClass(sex: "H" | "M" | null): string {
   return "tabular-nums font-medium text-app-text-primary dark:text-gray-200";
 }
 
-const WHERE_CON_CHECKINS = { checkins: { id: { not: null } } };
-
 function aggregate(
   encontrados: { estado_c: string }[],
 ): { name: string; value: number }[] {
@@ -58,22 +61,24 @@ export interface EstadoCivilCountsProps {
 }
 
 function titleFor(sex: "H" | "M" | null): string {
-  if (sex === "H") return "Estado civil (Hombres)";
-  if (sex === "M") return "Estado civil (Mujeres)";
-  return "Estado civil (todos)";
+  if (sex === "H") return "Estado civil en el retiro (Hombres)";
+  if (sex === "M") return "Estado civil en el retiro (Mujeres)";
+  return "Estado civil en el retiro";
 }
 
 export function EstadoCivilCounts({ sex = null }: EstadoCivilCountsProps) {
-  const where = {
-    ...WHERE_CON_CHECKINS,
-    ...(sex ? { sexo: { equals: sex } } : {}),
-  };
+  const where = buildEncontradosWhere(sex);
+  const {
+    bajaIds,
+    loading: loadingBajas,
+    error: errorBajas,
+  } = useBajaEncontradoIds(sex);
   const { data, loading, error } = useQuery<EncontradosEstadoCQueryResponse>(
     ENCONTRADOS_ESTADO_C_QUERY,
     { variables: { where }, pollInterval: 10000 },
   );
 
-  if (loading) {
+  if (loading || loadingBajas) {
     return (
       <div className={`${CARD_BASE} ${cardAccent(sex)}`}>
         <p className={titleClass(sex)}>{titleFor(sex)}</p>
@@ -82,7 +87,7 @@ export function EstadoCivilCounts({ sex = null }: EstadoCivilCountsProps) {
     );
   }
 
-  if (error) {
+  if (error || errorBajas) {
     return (
       <div className={`${CARD_BASE} ${cardAccent(sex)}`}>
         <p className="text-sm text-red-600 dark:text-red-400">
@@ -92,7 +97,8 @@ export function EstadoCivilCounts({ sex = null }: EstadoCivilCountsProps) {
     );
   }
 
-  const rows = aggregate(data?.encontrados ?? []);
+  const enForo = filterEncontradosEnForo(data?.encontrados ?? [], bajaIds);
+  const rows = aggregate(enForo);
 
   return (
     <AnimatedMount show={true} animationKey="estado-civil-counts">

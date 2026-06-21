@@ -310,6 +310,7 @@ export const ESTADO_C_OPTIONS = [
 export const ENCONTRADOS_ESTADO_C_QUERY = gql`
   query EncontradosEstadoC($where: EncontradoWhereInput!) {
     encontrados(where: $where) {
+      id
       estado_c
     }
   }
@@ -321,7 +322,7 @@ export interface EncontradosEstadoCQueryVariables {
 }
 
 export interface EncontradosEstadoCQueryResponse {
-  encontrados: { estado_c: string }[];
+  encontrados: { id: string; estado_c: string }[];
 }
 
 /**
@@ -330,11 +331,12 @@ export interface EncontradosEstadoCQueryResponse {
 export const ENCONTRADOS_RELIGION_QUERY = gql`
   query EncontradosReligion($where: EncontradoWhereInput!) {
     encontrados(where: $where) {
+      id
       religion
     }
   }
 `;
 
 export interface EncontradosReligionQueryResponse {
-  encontrados: { religion: string | null }[];
+  encontrados: { id: string; religion: string | null }[];
 }

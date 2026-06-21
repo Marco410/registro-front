@@ -6,6 +6,11 @@ import {
   ENCONTRADOS_RELIGION_QUERY,
   type EncontradosReligionQueryResponse,
 } from "registro/graphql/encontrados/queries";
+import {
+  buildEncontradosWhere,
+  filterEncontradosEnForo,
+  useBajaEncontradoIds,
+} from "./use-baja-encontrado-ids";
 
 const CARD_BASE =
   "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-[#202124]";
@@ -33,8 +38,6 @@ function valueClass(sex: "H" | "M" | null): string {
   return "tabular-nums font-medium text-app-text-primary dark:text-gray-200";
 }
 
-const WHERE_CON_CHECKINS = { checkins: { id: { not: null } } };
-
 function aggregate(
   encontrados: { religion: string | null }[],
 ): { name: string; value: number }[] {
@@ -54,22 +57,24 @@ export interface ReligionCountsProps {
 }
 
 function titleFor(sex: "H" | "M" | null): string {
-  if (sex === "H") return "Religión (Hombres)";
-  if (sex === "M") return "Religión (Mujeres)";
-  return "Religión (todos)";
+  if (sex === "H") return "Religión en el retiro (Hombres)";
+  if (sex === "M") return "Religión en el retiro (Mujeres)";
+  return "Religión en el retiro";
 }
 
 export function ReligionCounts({ sex = null }: ReligionCountsProps) {
-  const where = {
-    ...WHERE_CON_CHECKINS,
-    ...(sex ? { sexo: { equals: sex } } : {}),
-  };
+  const where = buildEncontradosWhere(sex);
+  const {
+    bajaIds,
+    loading: loadingBajas,
+    error: errorBajas,
+  } = useBajaEncontradoIds(sex);
   const { data, loading, error } = useQuery<EncontradosReligionQueryResponse>(
     ENCONTRADOS_RELIGION_QUERY,
     { variables: { where }, pollInterval: 10000 },
   );
 
-  if (loading) {
+  if (loading || loadingBajas) {
     return (
       <div className={`${CARD_BASE} ${cardAccent(sex)}`}>
         <p className={titleClass(sex)}>{titleFor(sex)}</p>
@@ -78,7 +83,7 @@ export function ReligionCounts({ sex = null }: ReligionCountsProps) {
     );
   }
 
-  if (error) {
+  if (error || errorBajas) {
     return (
       <div className={`${CARD_BASE} ${cardAccent(sex)}`}>
         <p className="text-sm text-red-600 dark:text-red-400">
@@ -88,7 +93,8 @@ export function ReligionCounts({ sex = null }: ReligionCountsProps) {
     );
   }
 
-  const rows = aggregate(data?.encontrados ?? []);
+  const enForo = filterEncontradosEnForo(data?.encontrados ?? [], bajaIds);
+  const rows = aggregate(enForo);
 
   return (
     <AnimatedMount show={true} animationKey="religion-counts">
