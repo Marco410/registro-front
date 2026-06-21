@@ -53,13 +53,20 @@ export function CheckinOptionsForm({
     .join(" ")
     .toUpperCase();
 
+  const hasCheckin = Boolean(selected.checkins?.checkinAt);
+
+  const displayClave =
+    selected.checkins?.team?.teamNumber != null
+      ? `${selected.sexo}${selected.checkins.team.teamNumber}${selected.checkins.seat?.letter ?? ""}`
+      : `${selected.sexo}${selected.clave}`;
+
   return (
     <section
       className={getFormSectionClass(sexo, className)}
     >
       <div className="mb-6 flex w-full flex-row items-start justify-between gap-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
-          Antes del check-in
+          {hasCheckin ? "Check-in registrado" : "Antes del check-in"}
         </h2>
         <button
           type="button"
@@ -128,24 +135,38 @@ export function CheckinOptionsForm({
 
       {/* Opciones celular / medicamento */}
       <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-700">
-        <p className="mb-4 text-xs text-app-text-secondary dark:text-gray-500">
-          Indica si tiene celular o medicamento antes del check-in.
-        </p>
-        <div className="flex flex-wrap gap-6">
-          <Checkbox
-            sexo={sexo}
-            label="¿Tiene celular?"
-            checked={celular}
-            onChange={(e) => onCelularChange(e.target.checked)}
-            disabled={disabled}
-          />
-          <Checkbox
-            sexo={sexo}
-            label="¿Tiene medicamento?"
-            checked={medicamento}
-            onChange={(e) => onMedicamentoChange(e.target.checked)}
-            disabled={disabled}
-          />
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div className="min-w-0 flex-1">
+            <p className="mb-4 text-xs text-app-text-secondary dark:text-gray-500">
+              Indica si tiene celular o medicamento antes del check-in.
+            </p>
+            <div className="flex flex-wrap gap-6">
+              <Checkbox
+                sexo={sexo}
+                label="¿Tiene celular?"
+                checked={celular}
+                onChange={(e) => onCelularChange(e.target.checked)}
+                disabled={disabled}
+              />
+              <Checkbox
+                sexo={sexo}
+                label="¿Tiene medicamento?"
+                checked={medicamento}
+                onChange={(e) => onMedicamentoChange(e.target.checked)}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+              Clave
+            </p>
+            <p
+              className={`text-3xl font-extrabold tracking-tight ${sexo === "M" ? "text-pink-600 dark:text-pink-400" : "text-app-primary dark:text-app-primary-muted"}`}
+            >
+              {displayClave}
+            </p>
+          </div>
         </div>
       </div>
     </section>

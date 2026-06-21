@@ -15,6 +15,7 @@ export const SEATS_QUERY = gql`
         nombre
         apellido_p
         apellido_m
+        edad
       }
       encontrado {
         id
@@ -94,6 +95,7 @@ export interface SeatAbandonedBy {
   nombre: string;
   apellido_p: string;
   apellido_m: string;
+  edad: number;
 }
 
 export interface Seat {

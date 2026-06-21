@@ -5,10 +5,11 @@ import { toast } from "sonner";
 
 /**
  * Formatea el nombre para el gafete:
- * - Si el primer nombre tiene más de 4 letras → solo el primero.
+ * - Si el primer nombre tiene más de 4 letras → primero + inicial del segundo nombre; sin segundo nombre, inicial del apellido paterno.
+ * - Si el primero tiene exactamente 4 letras → solo el primero.
  * - Si el primero tiene menos de 3 letras → primero y segundo; si el segundo tiene menos de 3 → primero, segundo y tercero; si el tercero tiene menos de 3 → primero, segundo, tercero y cuarto.
  */
-function processName(nombre: string): string {
+function processName(nombre: string, apellido_p: string): string {
   const normalized = nombre.trim().replace(/\s+/g, " ").trim();
   if (!normalized) return "";
   const names = normalized.split(" ").filter(Boolean);
@@ -16,7 +17,13 @@ function processName(nombre: string): string {
 
   const first = names[0];
 
-  // Primer nombre con 3 o 4 letras → solo el primero
+  if (first.length > 4) {
+    const initialSource = names.length > 1 ? names[1] : apellido_p.trim();
+    const initial = initialSource.charAt(0).toUpperCase();
+    return initial ? `${first} ${initial}.` : first;
+  }
+
+  // Primer nombre con 4 letras → solo el primero
   if (first.length >= 4) return first;
 
   // Primer nombre con menos de 3 letras → ir añadiendo según longitud del siguiente
@@ -340,7 +347,7 @@ export function usePrintGafete(options: UsePrintGafeteOptions = {}) {
       if (typeof window === "undefined") return;
       setLoading(true);
       try {
-        const nombreFinal = processName(nombre);
+        const nombreFinal = processName(nombre, apellido_p);
         const apellidosHtml = formatApellidosHtml(apellido_p, apellido_m, nombre);
         const imageUrl = `${window.location.origin}${IMAGE_URL}`;
         const html = buildPrintHtml({

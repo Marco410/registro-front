@@ -11,17 +11,18 @@
   },
   "dependencies": {
     "@apollo/client": "^3.11.0",
-    "apollo-upload-client": "^18.0.1",
     "@hugeicons/core-free-icons": "^1.0.0",
     "@hugeicons/react": "^1.0.0",
+    "apexcharts": "^3.46.0",
+    "apollo-upload-client": "^18.0.1",
     "graphql": "^16.8.0",
     "next": "15.0.5",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "sonner": "^1.5.0",
-    "zod": "^3.23.0",
-    "apexcharts": "^3.46.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -57,6 +57,22 @@ export function ocupadoPor(seat: Seat): string {
   return `${e.nombre} ${e.apellido_p} ${e.apellido_m}`.trim();
 }
 
+export function abandonadoPor(seat: Seat): string {
+  if (!seat.abandonedBy) return "";
+  const e = seat.abandonedBy;
+  return `${e.nombre} ${e.apellido_p} ${e.apellido_m} | ${e.edad} años`.trim();
+}
+
+function getSeatTooltipContent(seat: Seat): string | null {
+  if (seat.occupied && seat.encontrado) {
+    return `${ocupadoPor(seat)} | Edad: ${seat.encontrado.edad} años`;
+  }
+  if (seat.abandonedBy) {
+    return `Abandonado por: ${abandonadoPor(seat)}`;
+  }
+  return null;
+}
+
 export interface SeatBoxProps {
   seat: Seat;
   sex: "H" | "M";
@@ -109,13 +125,7 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
     ? "focus:ring-app-primary/40 dark:focus:ring-app-primary-muted/40"
     : "focus:ring-pink-400/40";
 
-  const tooltipText = abandoned
-    ? seat.abandonedBy
-      ? `Baja: ${seat.abandonedBy.nombre} ${seat.abandonedBy.apellido_p} ${seat.abandonedBy.apellido_m}`
-      : "Dado de baja"
-    : occupied && seat.encontrado
-      ? `${seat.encontrado.nombre} ${seat.encontrado.apellido_p} ${seat.encontrado.apellido_m} | ${seat.gender}${seat.team?.teamNumber}${seat.letter} | Edad: ${seat.encontrado.edad}`
-      : null;
+  const tooltipContent = getSeatTooltipContent(seat);
 
   const handleDarDeBaja = async () => {
     setIsSubmitting(true);
@@ -174,19 +184,30 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
 
   return (
     <>
-      <div className="relative inline-flex">
+      <div className="group relative inline-flex hover:z-20">
         <button
           ref={buttonRef}
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
-          title={menuOpen ? undefined : (tooltipText ?? undefined)}
           className={`flex shrink-0 cursor-pointer items-center justify-center rounded border ${SEAT_SIZE} ${SEAT_TEXT} font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 ${seatInteractionClass} ${focusRingClass} ${filledClass}`}
-          aria-label={tooltipText ?? seat.letter ?? seat.id}
+          aria-label={tooltipContent ?? seat.letter ?? seat.id}
           aria-expanded={menuOpen}
           aria-haspopup="true"
         >
           {seat.letter || seat.id.slice(0, 2)}
         </button>
+        {tooltipContent && !menuOpen ? (
+          <span
+            role="tooltip"
+            className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 dark:bg-gray-700"
+          >
+            {tooltipContent}
+            <span
+              className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"
+              aria-hidden
+            />
+          </span>
+        ) : null}
         {hasBautizo && (
           <span
             className="absolute -right-0 top-1 h-2 w-2 -translate-y-1/2 rounded-full bg-green-500 ring-2 ring-white dark:ring-[#202124]"
@@ -218,14 +239,24 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
                     role="none"
                     className="border-b border-gray-100 px-3 py-2 text-xs text-app-text-secondary dark:border-gray-700 dark:text-gray-400"
                   >
-                    Asiento ocupado por: {ocupadoPor(seat)} | Edad: {seat.encontrado?.edad}
+                    Asiento ocupado por: {ocupadoPor(seat)} | Edad:{" "}
+                    {seat.encontrado.edad} años
                   </div>
-                ) :  <div
+                ) : seat.abandonedBy ? (
+                  <div
+                    role="none"
+                    className="border-b border-gray-100 px-3 py-2 text-xs text-app-text-secondary dark:border-gray-700 dark:text-gray-400"
+                  >
+                    Abandonado por: {abandonadoPor(seat)}
+                  </div>
+                ) : (
+                  <div
                     role="none"
                     className="border-b border-gray-100 px-3 py-2 text-xs text-app-text-secondary dark:border-gray-700 dark:text-gray-400"
                   >
                     Asiento desocupado
-                  </div>}
+                  </div>
+                )}
                 <button
                   type="button"
                   role="menuitem"
@@ -376,16 +407,29 @@ function seatPropsAreEqual(prev: SeatBoxProps, next: SeatBoxProps) {
   }
   const ae = a.encontrado;
   const be = b.encontrado;
-  if (!ae && !be) return true;
-  if (!ae || !be) return false;
-  return (
-    ae.id === be.id &&
-    ae.nombre === be.nombre &&
-    ae.apellido_p === be.apellido_p &&
-    ae.apellido_m === be.apellido_m &&
-    ae.bautizo === be.bautizo &&
-    ae.edad === be.edad
-  );
+  const aa = a.abandonedBy;
+  const ba = b.abandonedBy;
+  if (!ae && !be && !aa && !ba) return true;
+  if (!!ae !== !!be || !!aa !== !!ba) return false;
+  if (ae && be) {
+    const encontradoEqual =
+      ae.id === be.id &&
+      ae.nombre === be.nombre &&
+      ae.apellido_p === be.apellido_p &&
+      ae.apellido_m === be.apellido_m &&
+      ae.bautizo === be.bautizo &&
+      ae.edad === be.edad;
+    if (!encontradoEqual) return false;
+  }
+  if (aa && ba) {
+    return (
+      aa.nombre === ba.nombre &&
+      aa.apellido_p === ba.apellido_p &&
+      aa.apellido_m === ba.apellido_m &&
+      aa.edad === ba.edad
+    );
+  }
+  return true;
 }
 
 export const SeatBox = memo(SeatBoxComponent, seatPropsAreEqual);

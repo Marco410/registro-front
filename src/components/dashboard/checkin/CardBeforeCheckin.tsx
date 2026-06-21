@@ -41,6 +41,12 @@ export function CardBeforeCheckin({
   onSelectedUpdate,
 }: CardBeforeCheckinProps) {
   const isHombre = sexo === "H";
+  const hasCheckin = Boolean(selected.checkins?.checkinAt);
+  const checkinButtonLabel = performingCheckin
+    ? "Procesando…"
+    : hasCheckin
+      ? "Ver check-in"
+      : "Hacer check-in";
   const onCancelRef = useRef(onCancel);
   const onDoCheckinRef = useRef(onDoCheckin);
   const onSaveOptionsRef = useRef(onSaveOptions);
@@ -143,7 +149,7 @@ export function CardBeforeCheckin({
                   disabled={performingCheckin}
                   className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow transition-colors disabled:opacity-60 ${isHombre ? "bg-app-primary hover:bg-app-primary/90" : "bg-pink-600 hover:bg-pink-700"}`}
                 >
-                  {performingCheckin ? "Procesando…" : "Hacer check-in"}
+                  {checkinButtonLabel}
                 </button>
                 <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
                   <kbd className={kbdClass}>Ctrl</kbd> +{" "}

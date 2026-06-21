@@ -116,10 +116,12 @@ export function CheckinEncontradoSelector({
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
-  const borderClass =
-    sexo === "M"
-      ? "border-pink-500 focus:ring-pink-500/30 dark:border-pink-400"
-      : "border-app-primary focus:ring-app-primary/30";
+  const accentSexo = sexoFilter ?? sexo;
+
+  const inputBorderClass =
+    accentSexo === "M"
+      ? "border-gray-300 focus:border-pink-500 focus:ring-pink-500/30 dark:border-gray-600 dark:focus:border-pink-400"
+      : "border-gray-300 focus:border-app-primary focus:ring-app-primary/30 dark:border-gray-600 dark:focus:border-app-primary-muted";
 
   return (
     <section className={className}>
@@ -182,7 +184,7 @@ export function CheckinEncontradoSelector({
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Buscar por nombre, ID o clave. Ejem: 'Juan Perez', 'H197', 'H5A'"
-              className={`w-full rounded-xl border bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400 ${borderClass}`}
+              className={`w-full rounded-xl border bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400 ${inputBorderClass}`}
               aria-label="Buscar por nombre, ID o clave"
             />
           </div>
