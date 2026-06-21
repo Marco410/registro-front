@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@apollo/client";
-import { Add01Icon, Download01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Download01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AddSeatModal } from "./AddSeatModal";
+import { BuscarEncontradoModal } from "./BuscarEncontradoModal";
 import {
   SEATS_QUERY,
   type Seat,
@@ -57,10 +58,12 @@ function buildTeamGenderGroups(seats: Seat[]): TeamGenderGroup[] {
 
 export function SeatsByTeam() {
   const [showAddSeatModal, setShowAddSeatModal] = useState(false);
+  const [showBuscarEncontradoModal, setShowBuscarEncontradoModal] =
+    useState(false);
   const { data, loading, error } = useQuery<SeatsQueryResponse>(SEATS_QUERY, {
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    pollInterval: 10000,
+    //pollInterval: 10000,
   });
   const { exportEncontradosToExcel } = useExportEncontradosExcel();
 
@@ -99,6 +102,17 @@ export function SeatsByTeam() {
             Altar
           </span>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-2 md:mt-0 md:justify-end">
+            <button
+              type="button"
+              aria-label="Buscar encontrado"
+              onClick={() => setShowBuscarEncontradoModal(true)}
+              className={`${actionButtonClass} border-blue-500`}
+              style={{ borderWidth: '2px' }}
+            >
+              <HugeiconsIcon icon={Search01Icon} size={18} className="shrink-0 text-blue-500" />
+              <span className="max-w-[140px] truncate text-blue-500">Buscar encontrado</span>
+            </button>
+       
             <button
               type="button"
               aria-label="Agregar asiento a un equipo"
@@ -198,6 +212,10 @@ export function SeatsByTeam() {
       <AddSeatModal
         open={showAddSeatModal}
         onClose={() => setShowAddSeatModal(false)}
+      />
+      <BuscarEncontradoModal
+        open={showBuscarEncontradoModal}
+        onClose={() => setShowBuscarEncontradoModal(false)}
       />
     </SeatUpdateProvider>
   );

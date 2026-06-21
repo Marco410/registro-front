@@ -222,6 +222,7 @@ export default function CheckinPage() {
                 onSelect={handleSelectEncontrado}
                 sexo={sexo}
                 sexoFilter={sexoFilter}
+                autoFocusSearch
                 onSexoFilterChange={(value) => {
                   window.localStorage.setItem(REGISTRO_SEXO_KEY, value);
                   setSexoFilter(value);

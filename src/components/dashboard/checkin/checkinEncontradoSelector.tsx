@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -44,6 +44,51 @@ function formatCheckinAt(iso: string): string {
   }
 }
 
+const ENCONTRADOS_PAGE_SIZE = 10;
+
+function focusSearchInput(input: HTMLInputElement | null) {
+  if (!input) return;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      input.focus({ preventScroll: true });
+    });
+  });
+}
+
+function CheckinEncontradosTableSkeleton({
+  rows = ENCONTRADOS_PAGE_SIZE,
+}: {
+  rows?: number;
+}) {
+  return (
+    <>
+      {Array.from({ length: rows }, (_, i) => (
+        <tr
+          key={i}
+          className="border-b border-gray-100 last:border-b-0 dark:border-gray-700/80"
+          aria-hidden
+        >
+          <td className="px-4 py-3">
+            <div className="h-4 w-3/4 max-w-[180px] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+          <td className="px-4 py-3">
+            <div className="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+          <td className="px-4 py-3">
+            <div className="h-4 w-10 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+          <td className="px-4 py-3">
+            <div className="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+          <td className="px-4 py-3">
+            <div className="h-4 w-10 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
 export interface CheckinEncontradoSelectorProps {
   userId: string;
   selectedId: string | null;
@@ -54,6 +99,8 @@ export interface CheckinEncontradoSelectorProps {
   sexoFilter?: "H" | "M" | null;
   /** Callback al cambiar el filtro por sexo (muestra el control de filtro). */
   onSexoFilterChange?: (value: "H" | "M") => void;
+  /** Enfoca el campo de búsqueda al mostrarse, deseleccionar o cambiar filtro de sexo. */
+  autoFocusSearch?: boolean;
   className?: string;
 }
 
@@ -67,11 +114,37 @@ export function CheckinEncontradoSelector({
   sexo = "H",
   sexoFilter = null,
   onSexoFilterChange,
+  autoFocusSearch = false,
   className,
 }: CheckinEncontradoSelectorProps) {
   const [search, setSearch] = useState("");
   const [searchDebounced, setSearchDebounced] = useState("");
   const [page, setPage] = useState(1);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!autoFocusSearch) return;
+    const input = searchInputRef.current;
+    if (!input) return;
+
+    let wasVisible = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isVisible = entry?.isIntersecting ?? false;
+        if (isVisible && !wasVisible) focusSearchInput(input);
+        wasVisible = isVisible;
+      },
+      { threshold: 0.01 },
+    );
+
+    observer.observe(input);
+    return () => observer.disconnect();
+  }, [autoFocusSearch]);
+
+  useEffect(() => {
+    if (!autoFocusSearch || selectedId != null) return;
+    focusSearchInput(searchInputRef.current);
+  }, [autoFocusSearch, selectedId]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -81,7 +154,7 @@ export function CheckinEncontradoSelector({
     return () => clearTimeout(t);
   }, [search]);
 
-  const take = 10;
+  const take = ENCONTRADOS_PAGE_SIZE;
   const skip = (page - 1) * take;
   const searchNorm = searchDebounced;
 
@@ -93,7 +166,7 @@ export function CheckinEncontradoSelector({
     return { ...base, ...searchWhere };
   })();
 
-  const { data, loading, error, refetch } = useQuery<
+  const { data, previousData, loading, error, refetch } = useQuery<
     EncontradosQueryResponse,
     EncontradosQueryVariables
   >(ENCONTRADOS_QUERY, {
@@ -103,13 +176,16 @@ export function CheckinEncontradoSelector({
       skip,
     },
     skip: !userId,
+    notifyOnNetworkStatusChange: true,
   });
 
   const list = data?.encontrados ?? [];
-  const total = data?.encontradosCount ?? 0;
+  const total = data?.encontradosCount ?? previousData?.encontradosCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / take));
   const from = total === 0 ? 0 : skip + 1;
   const to = Math.min(skip + take, total);
+  const showSkeleton = loading && list.length === 0;
+  const showEmpty = !loading && list.length === 0;
 
   const handleSearchChange = (value: string) => setSearch(value);
 
@@ -158,7 +234,10 @@ export function CheckinEncontradoSelector({
                 value={sexoFilter ?? "H"}
                 onChange={(e) => {
                   const value = e.target.value as "H" | "M";
-                  onSexoFilterChange(value);
+                  onSexoFilterChange?.(value);
+                  if (autoFocusSearch) {
+                    focusSearchInput(searchInputRef.current);
+                  }
                 }}
                 label=""
                 className="!mb-0"
@@ -180,6 +259,7 @@ export function CheckinEncontradoSelector({
               className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-secondary dark:text-gray-400"
             />
             <input
+              ref={searchInputRef}
               type="search"
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
@@ -193,24 +273,13 @@ export function CheckinEncontradoSelector({
             <p className="text-sm text-red-600 dark:text-red-400">
               Error al cargar registros
             </p>
-          ) : list.length === 0 && !loading ? (
-            <p className="text-sm text-app-text-secondary dark:text-gray-400">
-              {searchNorm ? "Ningún registro coincide" : "No hay registros"}
-            </p>
           ) : (
-            <div className="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-              {loading && (
-                <div
-                  className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 dark:bg-gray-900/80"
-                  aria-hidden="true"
-                >
-                  <span className="text-sm font-medium text-app-text-secondary dark:text-gray-400">
-                    Cargando…
-                  </span>
-                </div>
-              )}
-              <table className="w-full text-left text-sm bg-white">
-                <thead>
+            <div
+              className="min-h-[528px] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700"
+              aria-busy={loading}
+            >
+              <table className="w-full bg-white text-left text-sm dark:bg-gray-900">
+                <thead className="sticky top-0 z-10">
                   <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/80">
                     <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
                       Nombre
@@ -230,76 +299,91 @@ export function CheckinEncontradoSelector({
                   </tr>
                 </thead>
                 <tbody>
-                  {list.map((e) => {
-                    const isSelected = selectedId === e.id;
-                    const isHombre = e.sexo === "H";
-                    const checkinAt = getCheckinAt(e);
-                    const rowClass = isSelected
-                      ? isHombre
-                        ? "bg-app-primary/10 ring-inset ring-2 ring-app-primary dark:bg-app-primary-muted/20 rounded-xl"
-                        : "bg-pink-500/10 ring-inset ring-2 ring-pink-500 dark:bg-pink-500/20 rounded-xl"
-                      : isHombre
-                        ? "hover:bg-app-primary/5 dark:hover:bg-app-primary-muted/10 text-app-text-primary"
-                        : "hover:bg-pink-500/5 dark:hover:bg-pink-500/10 text-app-text-primary";
-                    return (
-                      <tr
-                        key={e.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => onSelect(e)}
-                        onKeyDown={(ev) =>
-                          (ev.key === "Enter" || ev.key === " ") && onSelect(e)
-                        }
-                        className={`cursor-pointer border-b border-gray-100 transition-colors last:border-b-0 dark:border-gray-700/80 ${rowClass}`}
+                  {showSkeleton ? (
+                    <CheckinEncontradosTableSkeleton />
+                  ) : showEmpty ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-4 py-12 text-center text-sm text-app-text-secondary dark:text-gray-400"
                       >
-                        <td className="px-4 py-3 font-medium">{fullName(e)}</td>
-                        <td className="px-4 py-3 font-medium">{e.edad} años</td>
-                        <td
-                          className={`px-4 py-3 font-semibold text-app-text-secondary dark:text-gray-400`}
+                        {searchNorm
+                          ? "Ningún registro coincide"
+                          : "No hay registros"}
+                      </td>
+                    </tr>
+                  ) : (
+                    list.map((e) => {
+                      const isSelected = selectedId === e.id;
+                      const isHombre = e.sexo === "H";
+                      const checkinAt = getCheckinAt(e);
+                      const rowClass = isSelected
+                        ? isHombre
+                          ? "bg-app-primary/10 ring-inset ring-2 ring-app-primary dark:bg-app-primary-muted/20 rounded-xl"
+                          : "bg-pink-500/10 ring-inset ring-2 ring-pink-500 dark:bg-pink-500/20 rounded-xl"
+                        : isHombre
+                          ? "hover:bg-app-primary/5 dark:hover:bg-app-primary-muted/10 text-app-text-primary"
+                          : "hover:bg-pink-500/5 dark:hover:bg-pink-500/10 text-app-text-primary";
+                      return (
+                        <tr
+                          key={e.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => onSelect(e)}
+                          onKeyDown={(ev) =>
+                            (ev.key === "Enter" || ev.key === " ") && onSelect(e)
+                          }
+                          className={`cursor-pointer border-b border-gray-100 transition-colors last:border-b-0 dark:border-gray-700/80 ${rowClass}`}
                         >
-                          {e.sexo}
-                          {e.clave ?? "—"}
-                        </td>
+                          <td className="px-4 py-3 font-medium">{fullName(e)}</td>
+                          <td className="px-4 py-3 font-medium">{e.edad} años</td>
+                          <td
+                            className={`px-4 py-3 font-semibold text-app-text-secondary dark:text-gray-400`}
+                          >
+                            {e.sexo}
+                            {e.clave ?? "—"}
+                          </td>
 
-                        <td className="px-4 py-3">
-                          {checkinAt ? (
-                            <span className="inline-flex items-center gap-1.5 text-sm">
-                              <HugeiconsIcon
-                                icon={CheckmarkCircle01Icon}
-                                size={18}
-                                className={
-                                  isHombre
-                                    ? "text-app-primary"
-                                    : "text-pink-500 dark:text-pink-400"
-                                }
-                                aria-hidden
-                              />
-                              <span className="text-app-text-secondary dark:text-gray-400">
-                                {formatCheckinAt(checkinAt)}
+                          <td className="px-4 py-3">
+                            {checkinAt ? (
+                              <span className="inline-flex items-center gap-1.5 text-sm">
+                                <HugeiconsIcon
+                                  icon={CheckmarkCircle01Icon}
+                                  size={18}
+                                  className={
+                                    isHombre
+                                      ? "text-app-primary"
+                                      : "text-pink-500 dark:text-pink-400"
+                                  }
+                                  aria-hidden
+                                />
+                                <span className="text-app-text-secondary dark:text-gray-400">
+                                  {formatCheckinAt(checkinAt)}
+                                </span>
                               </span>
-                            </span>
-                          ) : (
-                            <span className="text-app-text-secondary dark:text-gray-400">
-                              —
-                            </span>
-                          )}
-                        </td>
-                        <td
-                          className={`px-4 py-3 font-semibold ${isHombre ? "text-app-primary dark:text-app-primary-muted" : "text-pink-600 dark:text-pink-400"}`}
-                        >
-                          {e.sexo}
-                          {e.checkins?.team?.teamNumber}
-                          {e.checkins?.seat?.letter}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                            ) : (
+                              <span className="text-app-text-secondary dark:text-gray-400">
+                                —
+                              </span>
+                            )}
+                          </td>
+                          <td
+                            className={`px-4 py-3 font-semibold ${isHombre ? "text-app-primary dark:text-app-primary-muted" : "text-pink-600 dark:text-pink-400"}`}
+                          >
+                            {e.sexo}
+                            {e.checkins?.team?.teamNumber}
+                            {e.checkins?.seat?.letter}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
           )}
 
-          {total > 0 && (
+          {(total > 0 || loading) && !error && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-3 dark:border-gray-700">
               <p className="text-sm text-app-text-secondary dark:text-gray-400">
                 {from}-{to} de {total} registros
@@ -308,7 +392,7 @@ export function CheckinEncontradoSelector({
                 <button
                   type="button"
                   onClick={goPrev}
-                  disabled={page <= 1}
+                  disabled={page <= 1 || loading}
                   className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
                   aria-label="Página anterior"
                 >
@@ -321,7 +405,7 @@ export function CheckinEncontradoSelector({
                 <button
                   type="button"
                   onClick={goNext}
-                  disabled={page >= totalPages}
+                  disabled={page >= totalPages || loading}
                   className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-app-text-primary transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
                   aria-label="Página siguiente"
                 >

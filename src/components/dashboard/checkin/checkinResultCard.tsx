@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  PrinterIcon,
   SmartPhone01Icon,
   FirstAidKitIcon,
   CalendarIcon,
   AccountSetting01Icon,
   ChurchIcon,
 } from "@hugeicons/core-free-icons";
-import { usePrintGafete } from "./hooks/use-printer-gafete";
-import { toast } from "sonner";
+import { CheckinPrintControls } from "./CheckinPrintControls";
 import { getFormSectionClass } from "registro/components/shared/FormInputStyles";
 
 export interface CheckinResultData {
@@ -37,13 +34,6 @@ export interface CheckinResultCardProps {
 }
 
 /**
- * Copias por defecto: 1 base + 1 si tiene celular + 1 si tiene medicamento.
- */
-function getDefaultCopies(data: CheckinResultData): number {
-  return 2 + (data.celular ? 1 : 0) + (data.medicamento ? 1 : 0);
-}
-
-/**
  * Tarjeta con la clave final (sexo+teamNumber+letter), indicadores de celular/medicamento
  * y botón para imprimir gafete. Las copias por defecto incluyen +1 por celular y +1 por medicamento.
  */
@@ -52,15 +42,6 @@ export function CheckinResultCard({
   onPrint,
   className,
 }: CheckinResultCardProps) {
-  const defaultCopies = getDefaultCopies(data);
-  const [copies, setCopies] = useState(defaultCopies);
-  const printRef = useRef<HTMLDivElement>(null);
-  const { PrintGafete, loading } = usePrintGafete();
-
-  useEffect(() => {
-    setCopies(getDefaultCopies(data));
-  }, [data.celular, data.medicamento]);
-
   const isHombre = data.sexo === "H";
   const hasCelular = data.celular === true;
   const hasMedicamento = data.medicamento === true;
@@ -70,44 +51,12 @@ export function CheckinResultCard({
     (data.religion != null && data.religion !== "") ||
     (data.telefono != null && data.telefono !== "");
 
-  const handlePrint = async () => {
-    if (onPrint) {
-      onPrint(copies);
-      return;
-    }
-    try {
-      await PrintGafete(
-        data.nombre,
-        data.clave,
-        data.apellido_p,
-        data.apellido_m,
-        copies,
-      );
-    } catch {
-      toast.error("No se pudo abrir la impresión");
-    }
-  };
-
-  const handlePrintRef = useRef(handlePrint);
-  handlePrintRef.current = handlePrint;
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "p" || e.key === "P") && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        handlePrintRef.current?.();
-      }
-    };
-    document.addEventListener("keydown", onKeyDown, true);
-    return () => document.removeEventListener("keydown", onKeyDown, true);
-  }, []);
-
   return (
     <div
       className={getFormSectionClass(data.sexo, className)}
     >
       <div className="p-6 sm:p-8">
         <div
-          ref={printRef}
           className={`relative overflow-hidden rounded-2xl border-2 bg-white/95 px-6 py-5 shadow-lg dark:bg-gray-900/95 ${
             isHombre
               ? "border-app-primary/30"
@@ -265,61 +214,19 @@ export function CheckinResultCard({
           </div>
         </div>
 
-        {/* Leyenda de copias y botón imprimir */}
-        <div className="mt-6 flex flex-wrap items-center gap-4 sm:gap-6">
-          <div className="flex items-center gap-3">
-            <label
-              htmlFor="checkin-copies"
-              className="text-sm font-medium text-app-text-primary dark:text-gray-300"
-            >
-              Copias
-            </label>
-            <input
-              id="checkin-copies"
-              type="number"
-              min={1}
-              max={99}
-              value={copies}
-              onChange={(e) =>
-                setCopies(
-                  Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)),
-                )
-              }
-              className="w-18 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 text-center text-sm font-semibold transition-colors focus:border-app-primary focus:outline-none focus:ring-2 focus:ring-app-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-app-primary-muted"
-            />
-            {(hasCelular || hasMedicamento) && (
-              <span className="text-xs text-app-text-secondary dark:text-gray-500">
-                (1 base
-                {hasCelular && " +1 celular"}
-                {hasMedicamento && " +1 medicamento"})
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col items-center">
-            <button
-              type="button"
-              onClick={handlePrint}
-              disabled={loading}
-              className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none ${
-                isHombre
-                  ? "bg-app-primary hover:bg-app-primary/90"
-                  : "bg-pink-600 hover:bg-pink-700"
-              }`}
-            >
-              <HugeiconsIcon icon={PrinterIcon} size={20} />
-              {loading ? "Preparando…" : "Imprimir gafete"}
-            </button>
-            <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
-              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
-                Ctrl
-              </kbd>{" "}
-              +{" "}
-              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
-                P
-              </kbd>
-            </span>
-          </div>
-        </div>
+        <CheckinPrintControls
+          className="mt-6"
+          sexo={data.sexo}
+          hasCelular={hasCelular}
+          hasMedicamento={hasMedicamento}
+          printData={{
+            clave: data.clave,
+            nombre: data.nombre,
+            apellido_p: data.apellido_p,
+            apellido_m: data.apellido_m,
+          }}
+          onPrint={onPrint}
+        />
       </div>
     </div>
   );

@@ -2,6 +2,8 @@ export { CheckinActions } from "./CheckinActions";
 export { CardBeforeCheckin } from "./CardBeforeCheckin";
 export { CheckinEncontradoSelector } from "./checkinEncontradoSelector";
 export { CheckinOptionsForm } from "./checkinOptionsForm";
+export { CheckinPrintControls } from "./CheckinPrintControls";
+export type { CheckinPrintData } from "./CheckinPrintControls";
 export { CheckinResultCard } from "./checkinResultCard";
 export type { CheckinResultData } from "./checkinResultCard";
 export { usePerformCheckin, useUpdateCheckinOptions } from "./hooks";

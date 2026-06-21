@@ -288,6 +288,23 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
                   Copiar ID del encontrado
                 </button>
                 ) : null}
+                {seat.encontrado?.id ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={!seat.encontrado?.id}
+                  onClick={async () => {
+                    if (!seat.encontrado?.id) return;
+                    const ok = await copyToClipboard(`${seat.encontrado.nombre} ${seat.encontrado.apellido_p} ${seat.encontrado.apellido_m}`);
+                    if (ok) toast.success("Nombre completo del encontrado copiado");
+                    else toast.error("No se pudo copiar el nombre del encontrado");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  Copiar nombre del encontrado
+                </button>
+                ) : null}
                 {occupied && seat.encontrado?.id ? (
                   <button
                     type="button"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { ChangeEvent } from "react";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 import { getAgeFromFechaN } from "registro/lib/helpers/encontrado-display";
@@ -80,6 +80,8 @@ export interface IdentificationFormProps {
   fechaAnoRef: React.RefObject<HTMLInputElement>;
   className?: string;
   disableFechaNacimiento?: boolean;
+  /** Enfoca el campo nombre al mostrarse en pantalla. */
+  autoFocusNombre?: boolean;
 }
 
 /**
@@ -99,14 +101,39 @@ export function IdentificationForm({
   fechaAnoRef,
   className,
   disableFechaNacimiento = false,
+  autoFocusNombre = true,
 }: IdentificationFormProps) {
   const sexo = formData.sexo === "M" ? "M" : "H";
   const inputClass = getInputClass(sexo);
+  const nombreInputRef = useRef<HTMLInputElement>(null);
   const fechaDisabledClass = disableFechaNacimiento
     ? "pointer-events-none opacity-60"
     : "";
 
   const isNinosEvent = useIsNinosEvent();
+
+  useEffect(() => {
+    if (!autoFocusNombre) return;
+    const input = nombreInputRef.current;
+    if (!input) return;
+
+    let wasVisible = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isVisible = entry?.isIntersecting ?? false;
+        if (isVisible && !wasVisible) {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => input.focus({ preventScroll: true }));
+          });
+        }
+        wasVisible = isVisible;
+      },
+      { threshold: 0.01 },
+    );
+
+    observer.observe(input);
+    return () => observer.disconnect();
+  }, [autoFocusNombre]);
 
   const applyFechaInputs = useCallback(
     (dia: string, mes: string, ano: string) => {
@@ -143,6 +170,7 @@ export function IdentificationForm({
             Nombre *
           </label>
           <input
+            ref={nombreInputRef}
             id="nombre"
             name="nombre"
             type="text"

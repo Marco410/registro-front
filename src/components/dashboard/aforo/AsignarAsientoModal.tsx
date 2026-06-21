@@ -270,6 +270,35 @@ function ConfirmAsignarModal({
   );
 }
 
+const ENCONTRADOS_PAGE_SIZE = 10;
+
+function EncontradosTableSkeleton({ rows = ENCONTRADOS_PAGE_SIZE }: { rows?: number }) {
+  return (
+    <>
+      {Array.from({ length: rows }, (_, i) => (
+        <tr
+          key={i}
+          className="border-b border-gray-100 last:border-b-0 dark:border-gray-700/80"
+          aria-hidden
+        >
+          <td className="px-3 py-2">
+            <div className="h-4 w-3/4 max-w-[180px] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-4 w-10 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+          <td className="px-3 py-2">
+            <div className="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
 interface EncontradosListInModalProps {
   userId: string;
   search: string;
@@ -301,7 +330,7 @@ function EncontradosListInModal({
   fullName,
   open,
 }: EncontradosListInModalProps) {
-  const take = 10;
+  const take = ENCONTRADOS_PAGE_SIZE;
   const skip = (page - 1) * take;
   const searchNorm = searchDebounced;
 
@@ -312,17 +341,20 @@ function EncontradosListInModal({
   const searchWhere = buildEncontradoSearchWhere(searchNorm);
   if (searchWhere) Object.assign(where, searchWhere);
 
-  const { data, loading, error } = useQuery<
+  const { data, previousData, loading, error } = useQuery<
     EncontradosQueryResponse,
     EncontradosQueryVariables
   >(ENCONTRADOS_QUERY, {
     variables: { where, take, skip },
     skip: !open || !userId,
+    notifyOnNetworkStatusChange: true,
   });
 
   const list = data?.encontrados ?? [];
-  const total = data?.encontradosCount ?? 0;
+  const total = data?.encontradosCount ?? previousData?.encontradosCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / take));
+  const showSkeleton = loading && list.length === 0;
+  const showEmpty = !loading && list.length === 0;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -349,37 +381,44 @@ function EncontradosListInModal({
         <p className="text-sm text-red-600 dark:text-red-400">
           Error al cargar registros
         </p>
-      ) : list.length === 0 && !loading ? (
-        <p className="text-sm text-app-text-secondary dark:text-gray-400">
-          {searchDebounced ? "Ningún registro coincide" : "No hay registros"}
-        </p>
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
-          {loading && (
-            <div className="flex items-center justify-center py-8 text-sm text-app-text-secondary dark:text-gray-400">
-              Cargando…
-            </div>
-          )}
-          {!loading && list.length > 0 && (
-            <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/80">
+        <div
+          className="min-h-[440px] flex-1 overflow-auto rounded-xl border border-gray-200 dark:border-gray-700"
+          aria-busy={loading}
+        >
+          <table className="w-full text-left text-sm">
+            <thead className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/80">
+              <tr>
+                <th className="px-3 py-2 font-semibold text-app-text-primary dark:text-gray-300">
+                  Nombre
+                </th>
+                <th className="px-3 py-2 font-semibold text-app-text-primary dark:text-gray-300">
+                  Edad
+                </th>
+                <th className="px-3 py-2 font-semibold text-app-text-primary dark:text-gray-300">
+                  Clave
+                </th>
+                <th className="px-3 py-2 font-semibold text-app-text-primary dark:text-gray-300">
+                  Check-in
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {showSkeleton ? (
+                <EncontradosTableSkeleton />
+              ) : showEmpty ? (
                 <tr>
-                  <th className="px-3 py-2 font-semibold text-app-text-primary dark:text-gray-300">
-                    Nombre
-                  </th>
-                  <th className="px-3 py-2 font-semibold text-app-text-primary dark:text-gray-300">
-                    Edad
-                  </th>
-                  <th className="px-3 py-2 font-semibold text-app-text-primary dark:text-gray-300">
-                    Clave
-                  </th>
-                  <th className="px-3 py-2 font-semibold text-app-text-primary dark:text-gray-300">
-                    Check-in
-                  </th>
+                  <td
+                    colSpan={4}
+                    className="px-3 py-10 text-center text-sm text-app-text-secondary dark:text-gray-400"
+                  >
+                    {searchDebounced
+                      ? "Ningún registro coincide"
+                      : "No hay registros"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {list.map((e) => {
+              ) : (
+                list.map((e) => {
                   const isSelected = selectedId === e.id;
                   const isHombre = e.sexo === "H";
                   const checkinAt = getCheckinAt(e);
@@ -429,14 +468,14 @@ function EncontradosListInModal({
                       </td>
                     </tr>
                   );
-                })}
-              </tbody>
-            </table>
-          )}
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {total > 0 && (
+      {(total > 0 || loading) && !error && (
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-2 dark:border-gray-700">
           <p className="text-xs text-app-text-secondary dark:text-gray-400">
             {skip + 1}-{Math.min(skip + take, total)} de {total}
@@ -445,7 +484,7 @@ function EncontradosListInModal({
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
+              disabled={page <= 1 || loading}
               className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
               aria-label="Página anterior"
             >
@@ -458,7 +497,7 @@ function EncontradosListInModal({
             <button
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
+              disabled={page >= totalPages || loading}
               className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-app-text-primary hover:bg-gray-100 disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
               aria-label="Página siguiente"
             >
