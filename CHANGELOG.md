@@ -171,6 +171,65 @@ Las gráficas se animan solo cuando cargan o cuando cambian los datos.
 - `src/components/dashboard/sidebar.tsx`
 - `CLAUDE.md`
 
+### Auditoría
+
+**Decisiones**
+
+- La bitácora se escribe en el backend (lista `AuditLog`, ver `registro-back/CHANGELOG.md`, entrada 9), no desde el front: así no depende de que el navegador avise y nadie puede saltársela. El front solo la consulta.
+- Se registran sesiones (incluidos intentos fallidos), registros, ediciones con antes y después, check-ins, quitar check-in, reasignar asiento, bajas, equipos, eventos, usuarios, grupos de edad y bautizos. Por decisión del equipo, **no** se registran acciones que solo pasan en el navegador: impresión de gafetes y certificados, exportaciones a Excel, búsquedas ni navegación.
+- `AuditLog` es la primera lista que el backend restringe por rol: solo los admin la consultan. A un usuario sin rol admin le devuelve una lista vacía, aunque llame directo al API.
+- La lista de usuarios del filtro usa una query nueva y ligera (`USER_OPTIONS_QUERY`). `USERS_QUERY` descarga todos los check-ins y encontrados de cada usuario.
+
+**Cambios**
+
+- Nuevo menú **Auditoría** (solo admin) en `/dashboard/auditoria`: tabla paginada de 25 en 25 con fecha y hora, usuario, acción, sobre qué registro, resumen e IP. Cada fila se abre para ver los campos que cambiaron (antes → después), los datos extra (asiento, equipo, eventos desactivados…), el error si la acción falló y el user agent.
+- Filtros por usuario, acción o categoría completa, rango de fechas, resultado (éxito o error) y búsqueda por texto.
+- En Usuarios, cada fila tiene **Ver actividad**, que abre Auditoría filtrada por ese usuario (`?user=<id>`).
+- Nuevo helper `src/lib/helpers/date-format.ts` (`formatDateTime`, `dayRangeToIso`). Por ahora solo lo usa Auditoría; los formateadores que ya existían no se tocaron.
+
+**Archivos**
+
+- `src/app/dashboard/auditoria/layout.tsx` y `page.tsx` (nuevos)
+- `src/components/dashboard/auditoria/` (nuevo: `constants.ts`, `AuditoriaFilters.tsx`, `AuditoriaTable.tsx`, `AuditoriaDetail.tsx`, `hooks/use-audit-logs.ts`, `index.ts`)
+- `src/graphql/auditoria/queries.ts` (nuevo)
+- `src/graphql/users/queries.ts`
+- `src/lib/helpers/date-format.ts` (nuevo)
+- `src/constants/routes.ts`
+- `src/components/dashboard/sidebar.tsx`
+- `src/app/dashboard/usuarios/page.tsx`
+- `CLAUDE.md`
+
+**Acción requerida**
+
+Aplicar en el backend la migración `add_audit_log` (`pnpm migrate` en `registro-back`) antes de abrir Auditoría. Sin ella, la query falla y la página muestra "Error al cargar la bitácora".
+
+**Cómo verificar**
+
+1. Como admin aparece **Auditoría** en el sidebar. Con un usuario sin rol admin no aparece, y `/dashboard/auditoria` redirige a `/dashboard`.
+2. Desde otra estación, registra a alguien, hazle check-in, edita su teléfono y da de baja su asiento. Las cuatro acciones aparecen arriba en Auditoría (botón **Actualizar**). La edición muestra solo el teléfono, con el valor anterior y el nuevo.
+3. Filtra por usuario, por la categoría Aforo y por fecha: la tabla y el total cambian.
+4. En Usuarios, **Ver actividad** abre Auditoría con ese usuario ya seleccionado.
+
+### Registro: editar no cambia quién registró
+
+**Decisiones**
+
+- Al guardar el modal de edición completo, el front mandaba `user: connect` con el usuario que editaba. El encontrado pasaba al conteo de **Registros** de quien editó, en Usuarios. Editar ya no toca `user`.
+
+**Cambios**
+
+- `toUpdateData` ya no incluye `user`.
+- El modal de edición valida y envía `formData` tal cual, que ya trae a quien registró, en lugar de reemplazar `user_id` por el usuario de la sesión.
+
+**Archivos**
+
+- `src/components/dashboard/registro/hooks/use-update-encontrado.ts`
+- `src/components/dashboard/registro/edit/editEncontradoModal.tsx`
+
+**Cómo verificar**
+
+Edita un encontrado que registró otro usuario. En Usuarios, la columna Registros de los dos usuarios no cambia, y en Auditoría la edición no muestra un cambio en "Registrado por".
+
 ## Cómo se verificó
 
 - `pnpm exec tsc --noEmit`: sin errores.

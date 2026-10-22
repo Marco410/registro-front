@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowDown01Icon,
   ArrowUp01Icon,
+  AuditIcon,
 } from "@hugeicons/core-free-icons";
+import { routes } from "registro/constants/routes";
 import {
   USERS_QUERY,
   type UserListItem,
@@ -213,13 +216,16 @@ export default function DashboardUsuariosPage() {
                       <th className="px-4 py-3 font-semibold text-app-text-primary dark:text-gray-300">
                         Alta
                       </th>
+                      <th className="px-4 py-3">
+                        <span className="sr-only">Actividad</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {list.length === 0 && !loading ? (
                       <tr>
                         <td
-                          colSpan={8}
+                          colSpan={9}
                           className="px-4 py-8 text-center text-sm text-app-text-secondary dark:text-gray-400"
                         >
                           No hay usuarios
@@ -254,6 +260,15 @@ export default function DashboardUsuariosPage() {
                           </td>
                           <td className="px-4 py-3 text-app-text-secondary dark:text-gray-400">
                             {formatCreatedAt(u.createdAt)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Link
+                              href={routes.dashboardAuditoria(u.id)}
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-sm font-medium text-app-primary transition-colors hover:bg-app-selected dark:text-app-primary-muted dark:hover:bg-app-primary/20"
+                            >
+                              <HugeiconsIcon icon={AuditIcon} size={16} />
+                              Ver actividad
+                            </Link>
                           </td>
                         </tr>
                       ))

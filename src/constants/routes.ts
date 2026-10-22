@@ -11,5 +11,10 @@ export const routes = {
   dashboardEstadisticas: () => `${DASHBOARD}/estadisticas`,
   dasboardUsers: () => `${DASHBOARD}/usuarios`,
   dasboardEvents: () => `${DASHBOARD}/eventos`,
+  /** Bitácora de auditoría; con `userId` abre filtrada por ese usuario. */
+  dashboardAuditoria: (userId?: string) =>
+    userId
+      ? `${DASHBOARD}/auditoria?user=${encodeURIComponent(userId)}`
+      : `${DASHBOARD}/auditoria`,
 } as const;
 

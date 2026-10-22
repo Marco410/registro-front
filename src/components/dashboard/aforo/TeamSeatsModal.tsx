@@ -1,41 +1,239 @@
 "use client";
 
-import { useState } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ChurchIcon, PrinterIcon } from "@hugeicons/core-free-icons";
-import { Seat, type SeatEncontrado } from "registro/graphql/aforo/queries";
-import { useExportBautizosExcel, useExportSeatsExcel, usePrintCertificate } from "./hooks";
+import {
+  Cancel01Icon,
+  ChurchIcon,
+  Download01Icon,
+  PencilEdit02Icon,
+  PrinterIcon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
+import type { Seat, SeatEncontrado } from "registro/graphql/aforo/queries";
+import type { TeamResponsableField } from "registro/graphql/aforo/mutations";
+import { GlassModal } from "registro/components/shared/GlassModal";
+import {
+  useExportBautizosExcel,
+  useExportSeatsExcel,
+  usePrintCertificate,
+  useUpdateTeamResponsables,
+} from "./hooks";
 import {
   ConfirmarBautizoModal,
   type BautizoAccion,
 } from "./ConfirmarBautizoModal";
-import { GlassModal } from "registro/components/shared/GlassModal";
+import { SEX_STYLES, getSeatSex, sortSeatsByLetter } from "./seat-utils";
+
+type Sexo = "H" | "M";
+type SeatEstado = "ocupado" | "libre" | "baja";
+type Filtro = "todos" | SeatEstado;
+
+/** Responsables del equipo; los campos de hombres llevan sufijo `_h`. */
+const RESPONSABLES: {
+  label: string;
+  field: Record<Sexo, TeamResponsableField>;
+}[] = [
+  { label: "Capitán", field: { H: "captain_h", M: "captain" } },
+  { label: "Auxiliar 1", field: { H: "auxiliar1_h", M: "auxiliar1" } },
+  { label: "Auxiliar 2", field: { H: "auxiliar2_h", M: "auxiliar2" } },
+  { label: "Auxiliar 3", field: { H: "auxiliar3_h", M: "auxiliar3" } },
+];
+
+const inputClass =
+  "w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-app-text-primary shadow-sm outline-none transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 disabled:opacity-60 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted";
+
+const secondaryButtonClass =
+  "inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-app-text-primary shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700";
+
+function getSeatEstado(seat: Seat): SeatEstado {
+  if (seat.occupied) return "ocupado";
+  return seat.abandoned ? "baja" : "libre";
+}
+
+function nombreCompleto(
+  persona: { nombre: string; apellido_p: string; apellido_m: string } | null,
+): string {
+  if (!persona) return "";
+  return [persona.nombre, persona.apellido_p, persona.apellido_m]
+    .map((parte) => (parte ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Nombre para los Excel; "—" si el asiento no tiene encontrado. */
+function getEncontradoNombre(seat: Seat): string {
+  return seat.encontrado ? nombreCompleto(seat.encontrado) : "—";
+}
+
+/** "Sí" como insignia (ámbar si requiere atención) o "No" atenuado. */
+function SiNo({ value, attention = false }: { value: boolean; attention?: boolean }) {
+  if (!value) {
+    return <span className="text-xs text-gray-400 dark:text-gray-500">No</span>;
+  }
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+        attention
+          ? "bg-amber-50 text-amber-800 ring-amber-600/25 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/30"
+          : "bg-gray-100 text-gray-700 ring-gray-500/20 dark:bg-white/10 dark:text-gray-200 dark:ring-white/15"
+      }`}
+    >
+      Sí
+    </span>
+  );
+}
+
+/**
+ * Capitán y auxiliares: en modo lectura caben en una línea; "Editar" abre los
+ * cuatro campos en el mismo lugar. Enter guarda y Escape cancela.
+ */
+function ResponsablesEditor({
+  teamId,
+  sex,
+  saved,
+}: {
+  teamId: string | null;
+  sex: Sexo;
+  saved: string[];
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<string[]>(saved);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  const { updateResponsables, loading } = useUpdateTeamResponsables();
+
+  useEffect(() => {
+    if (editing) firstInputRef.current?.focus();
+  }, [editing]);
+
+  const dirty = draft.some((value, i) => value.trim() !== saved[i]);
+  const hasAny = saved.some(Boolean);
+
+  const startEdit = () => {
+    setDraft(saved);
+    setEditing(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!teamId || !dirty) return;
+    const data = Object.fromEntries(
+      RESPONSABLES.map((r, i) => [r.field[sex], draft[i].trim()]),
+    );
+    if (await updateResponsables(teamId, data)) setEditing(false);
+  };
+
+  if (!editing) {
+    return (
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        {hasAny ? (
+          <dl className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+            {RESPONSABLES.map((r, i) => (
+              <div key={r.label} className="flex items-baseline gap-1.5">
+                <dt className="text-xs text-app-text-secondary dark:text-gray-400">
+                  {r.label}
+                </dt>
+                <dd
+                  className={`text-sm ${
+                    saved[i]
+                      ? "font-medium text-app-text-primary dark:text-gray-100"
+                      : "text-gray-400 dark:text-gray-500"
+                  }`}
+                >
+                  {saved[i] || "—"}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="text-sm text-app-text-secondary dark:text-gray-400">
+            Este equipo aún no tiene capitán ni auxiliares.
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={startEdit}
+          disabled={!teamId}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-app-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-app-primary-muted dark:hover:bg-app-primary-muted/15"
+        >
+          <HugeiconsIcon icon={PencilEdit02Icon} size={14} className="shrink-0" />
+          {hasAny ? "Editar responsables" : "Asignar responsables"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && !loading) setEditing(false);
+      }}
+      className="space-y-3"
+    >
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {RESPONSABLES.map((r, i) => {
+          const inputId = `responsable-${sex}-${i}`;
+          return (
+            <div key={r.label}>
+              <label
+                htmlFor={inputId}
+                className="mb-1 block text-xs font-medium text-app-text-secondary dark:text-gray-400"
+              >
+                {r.label}
+              </label>
+              <input
+                id={inputId}
+                ref={i === 0 ? firstInputRef : undefined}
+                type="text"
+                value={draft[i]}
+                onChange={(e) =>
+                  setDraft((prev) =>
+                    prev.map((v, j) => (j === i ? e.target.value : v)),
+                  )
+                }
+                placeholder="Nombre"
+                autoComplete="off"
+                disabled={loading}
+                className={inputClass}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setEditing(false)}
+          disabled={loading}
+          className="rounded-lg px-3 py-1.5 text-xs font-medium text-app-text-secondary transition-colors hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-white/10"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={loading || !dirty}
+          className="rounded-lg bg-app-primary px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-app-primary/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-app-primary-muted dark:text-gray-900 dark:hover:bg-app-primary-muted/90"
+        >
+          {loading ? "Guardando…" : "Guardar"}
+        </button>
+      </div>
+    </form>
+  );
+}
 
 export interface TeamSeatsModalProps {
   open: boolean;
   onClose: () => void;
   teamLabel: string;
   seats: Seat[];
-  sex: "H" | "M";
+  sex: Sexo;
 }
 
-const UPDATE_TEAM_MUTATION = gql`
-  mutation UpdateTeam($where: TeamWhereUniqueInput!, $data: TeamUpdateInput!) {
-    updateTeam(where: $where, data: $data) {
-      id
-      captain
-      auxiliar1
-      auxiliar2
-      auxiliar3
-      captain_h
-      auxiliar1_h
-      auxiliar2_h
-      auxiliar3_h
-    }
-  }
-`;
-
+/**
+ * Lista de asientos de un equipo para un sexo: responsables, filtros por
+ * estado, exportaciones y acciones de bautizo por encontrado.
+ */
 export function TeamSeatsModal({
   open,
   onClose,
@@ -43,26 +241,7 @@ export function TeamSeatsModal({
   seats,
   sex,
 }: TeamSeatsModalProps) {
-  const filteredSeats = seats?.filter((seat) => seat.gender === sex) ?? [];
-  const teamInfo = seats[0]?.team ?? null;
-  const isHombres = sex === "H";
-  const initialCaptain = isHombres
-    ? (teamInfo?.captain_h ?? "")
-    : (teamInfo?.captain ?? "");
-  const initialAux1 = isHombres
-    ? (teamInfo?.auxiliar1_h ?? "")
-    : (teamInfo?.auxiliar1 ?? "");
-  const initialAux2 = isHombres
-    ? (teamInfo?.auxiliar2_h ?? "")
-    : (teamInfo?.auxiliar2 ?? "");
-  const initialAux3 = isHombres
-    ? (teamInfo?.auxiliar3_h ?? "")
-    : (teamInfo?.auxiliar3 ?? "");
-
-  const [captain, setCaptain] = useState(initialCaptain);
-  const [aux1, setAux1] = useState(initialAux1);
-  const [aux2, setAux2] = useState(initialAux2);
-  const [aux3, setAux3] = useState(initialAux3);
+  const [filtro, setFiltro] = useState<Filtro>("todos");
   const [showConfirmBautizo, setShowConfirmBautizo] = useState(false);
   const [accionBautizo, setAccionBautizo] = useState<BautizoAccion>("aplicar");
   const [bautizoEncontrado, setBautizoEncontrado] =
@@ -71,79 +250,62 @@ export function TeamSeatsModal({
     string | null
   >(null);
 
-  const accentClass =
-    sex === "H"
-      ? "border-orange-500/40 text-orange-600 hover:bg-orange-500/10 focus:ring-orange-500/30 dark:border-orange-400/50 dark:text-orange-400 dark:hover:bg-orange-500/15"
- 
-      : "border-pink-500/40 text-pink-600 hover:bg-pink-500/10 focus:ring-pink-500/30 dark:border-pink-400/50 dark:text-pink-400 dark:hover:bg-pink-500/15";
-
-  const [updateTeam, { loading: saving }] = useMutation(UPDATE_TEAM_MUTATION);
   const { exportSeatsToExcel } = useExportSeatsExcel();
   const { exportBautizosToExcel } = useExportBautizosExcel();
   const { PrintCertificate } = usePrintCertificate();
 
-  const getEncontradoNombre = (seat: Seat) => {
-    if (!seat.encontrado) return "—";
-    const { nombre, apellido_p, apellido_m } = seat.encontrado;
-    return [nombre.trim(), apellido_p.trim(), apellido_m.trim()]
-      .filter(Boolean)
-      .join(" ");
-  };
+  const sexSeats = useMemo(
+    () => sortSeatsByLetter(seats.filter((seat) => getSeatSex(seat) === sex)),
+    [seats, sex],
+  );
+  const teamInfo = sexSeats[0]?.team ?? seats[0]?.team ?? null;
+  const style = SEX_STYLES[sex];
 
-  const handleSaveTeam = async () => {
-    if (!teamInfo?.id) return;
-    try {
-      const data =
-        sex === "H"
-          ? {
-              captain_h: captain,
-              auxiliar1_h: aux1,
-              auxiliar2_h: aux2,
-              auxiliar3_h: aux3,
-            }
-          : {
-              captain,
-              auxiliar1: aux1,
-              auxiliar2: aux2,
-              auxiliar3: aux3,
-            };
-      await updateTeam({
-        variables: {
-          where: { id: teamInfo.id },
-          data,
-        },
-      });
-    } catch {}
-  };
+  const saved = useMemo(
+    () => RESPONSABLES.map((r) => (teamInfo?.[r.field[sex]] ?? "").trim()),
+    [teamInfo, sex],
+  );
 
-  const handleExportExcel = () => {
-    exportSeatsToExcel({
-      filteredSeats,
-      teamLabel,
-      sex,
-      getEncontradoNombre,
-      teamNumber: teamInfo?.teamNumber ?? undefined,
-      captain,
-      aux1,
-      aux2,
-      aux3,
-    });
-  };
+  const counts = useMemo(() => {
+    const result = { ocupado: 0, libre: 0, baja: 0, bautizados: 0 };
+    for (const seat of sexSeats) {
+      result[getSeatEstado(seat)] += 1;
+      if (seat.occupied && seat.encontrado?.bautizo) result.bautizados += 1;
+    }
+    return result;
+  }, [sexSeats]);
 
-  const handleExportBautizosExcel = () => {
-    exportBautizosToExcel({
-      filteredSeats,
-      teamLabel,
-      sex,
-      getEncontradoNombre,
-      teamNumber: teamInfo?.teamNumber ?? undefined,
-    });
+  const visibleSeats =
+    filtro === "todos"
+      ? sexSeats
+      : sexSeats.filter((seat) => getSeatEstado(seat) === filtro);
+
+  const filtros: { value: Filtro; label: string; count: number }[] = [
+    { value: "todos", label: "Todos", count: sexSeats.length },
+    { value: "ocupado", label: "Ocupados", count: counts.ocupado },
+    { value: "libre", label: "Libres", count: counts.libre },
+    ...(counts.baja > 0
+      ? [{ value: "baja" as const, label: "Bajas", count: counts.baja }]
+      : []),
+  ];
+
+  const exportParams = {
+    filteredSeats: sexSeats,
+    teamLabel,
+    sex,
+    getEncontradoNombre,
+    teamNumber: teamInfo?.teamNumber ?? undefined,
   };
 
   const openBautizoModal = (encontrado: SeatEncontrado) => {
     setBautizoEncontrado(encontrado);
     setAccionBautizo(encontrado.bautizo ? "quitar" : "aplicar");
     setShowConfirmBautizo(true);
+  };
+
+  const closeBautizoModal = () => {
+    setShowConfirmBautizo(false);
+    setBautizoEncontrado(null);
   };
 
   const handlePrintCertificate = async (encontrado: SeatEncontrado) => {
@@ -159,295 +321,272 @@ export function TeamSeatsModal({
     }
   };
 
+  const emptyMessage =
+    sexSeats.length === 0
+      ? `Este equipo no tiene asientos para ${style.label.toLowerCase()}.`
+      : filtro === "ocupado"
+        ? "No hay asientos ocupados."
+        : filtro === "libre"
+          ? "No hay asientos libres."
+          : "No hay asientos dados de baja.";
+
   return (
     <GlassModal
       open={open}
       onClose={onClose}
       ariaLabelledBy="team-seats-modal-title"
-      panelClassName="max-h-[min(90vh,calc(100dvh-2rem))] max-w-5xl overflow-y-auto overscroll-contain p-4 sm:p-6"
+      panelClassName="flex max-w-5xl flex-col overflow-hidden"
       zIndex={50}
     >
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2
-              id="team-seats-modal-title"
-              className="text-base font-semibold text-app-text-primary dark:text-white sm:text-lg"
-            >
-              Asientos del {teamLabel}
-            </h2>
-            <p className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 sm:text-sm">
-              Lista de todos los asientos para el género{" "}
-              <span className="font-semibold">
-                {sex === "H" ? "Hombres (H)" : "Mujeres (M)"}
-              </span>{" "}
-              y los encontrados asignados.
-            </p>
-          </div>
+      <div className="flex items-start justify-between gap-4 px-5 pb-3 pt-4">
+        <div className="min-w-0">
+          <h2
+            id="team-seats-modal-title"
+            className="text-lg font-semibold text-app-text-primary dark:text-white"
+          >
+            {teamInfo?.teamName ?? teamLabel}
+            <span className="font-normal text-gray-400"> · </span>
+            <span className={style.text}>{style.label}</span>
+          </h2>
+          <p className="mt-0.5 text-sm tabular-nums text-app-text-secondary dark:text-gray-400">
+            {teamInfo?.ageGroup?.label ? `${teamInfo.ageGroup.label} · ` : ""}
+            <span className="font-semibold text-app-text-primary dark:text-gray-100">
+              {counts.ocupado}
+            </span>{" "}
+            de {sexSeats.length} ocupados · {counts.libre} libres
+            {counts.bautizados > 0 ? ` · ${counts.bautizados} bautizados` : ""}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          className="-mr-1 shrink-0 rounded-full p-2 text-app-text-secondary transition-colors hover:bg-gray-100 hover:text-app-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+        >
+          <HugeiconsIcon icon={Cancel01Icon} size={18} />
+        </button>
+      </div>
+
+      <section
+        aria-label="Responsables del equipo"
+        className="mx-5 rounded-xl bg-white/80 px-4 py-3 ring-1 ring-gray-200/80 dark:bg-white/[0.04] dark:ring-white/10"
+      >
+        <ResponsablesEditor
+          teamId={teamInfo?.id ?? null}
+          sex={sex}
+          saved={saved}
+        />
+      </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3">
+        <div
+          role="radiogroup"
+          aria-label="Filtrar asientos"
+          className="flex flex-wrap gap-1"
+        >
+          {filtros.map((f) => {
+            const active = f.value === filtro;
+            return (
+              <button
+                key={f.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setFiltro(f.value)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 ${
+                  active
+                    ? "bg-app-selected text-blue-700 dark:bg-app-primary-muted/20 dark:text-app-primary-muted"
+                    : "text-app-text-secondary hover:bg-gray-100 hover:text-app-text-primary dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                }`}
+              >
+                {f.label}
+                <span className="tabular-nums opacity-75">{f.count}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-app-text-primary transition-colors hover:bg-app-selected dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 sm:text-sm"
+            onClick={() =>
+              exportSeatsToExcel({
+                ...exportParams,
+                captain: saved[0],
+                aux1: saved[1],
+                aux2: saved[2],
+                aux3: saved[3],
+              })
+            }
+            disabled={sexSeats.length === 0}
+            className={secondaryButtonClass}
           >
-            Cerrar
+            <HugeiconsIcon icon={Download01Icon} size={14} className="shrink-0" />
+            Lista del equipo
+          </button>
+          <button
+            type="button"
+            onClick={() => exportBautizosToExcel(exportParams)}
+            disabled={counts.bautizados === 0}
+            title={
+              counts.bautizados === 0 ? "Nadie de este equipo está bautizado" : undefined
+            }
+            className={secondaryButtonClass}
+          >
+            <HugeiconsIcon icon={Download01Icon} size={14} className="shrink-0" />
+            Bautizados
           </button>
         </div>
+      </div>
 
-        <div className="mt-4 grid gap-3 rounded-xl border border-gray-200 bg-white p-3 text-xs dark:border-gray-700 dark:bg-[#151515] sm:grid-cols-2 sm:gap-4 sm:p-4 sm:text-sm">
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-medium text-app-text-secondary dark:text-gray-400 sm:text-xs">
-              Capitán
-            </label>
-            <input
-              type="text"
-              value={captain}
-              onChange={(e) => setCaptain(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-app-text-primary shadow-sm outline-none ring-0 transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted"
-              placeholder="Nombre del capitán"
-              disabled={saving || !teamInfo?.id}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-medium text-app-text-secondary dark:text-gray-400 sm:text-xs">
-              Auxiliar 1
-            </label>
-            <input
-              type="text"
-              value={aux1}
-              onChange={(e) => setAux1(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-app-text-primary shadow-sm outline-none ring-0 transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted"
-              placeholder="Nombre del auxiliar 1"
-              disabled={saving || !teamInfo?.id}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-medium text-app-text-secondary dark:text-gray-400 sm:text-xs">
-              Auxiliar 2
-            </label>
-            <input
-              type="text"
-              value={aux2}
-              onChange={(e) => setAux2(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-app-text-primary shadow-sm outline-none ring-0 transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted"
-              placeholder="Nombre del auxiliar 2"
-              disabled={saving || !teamInfo?.id}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-medium text-app-text-secondary dark:text-gray-400 sm:text-xs">
-              Auxiliar 3
-            </label>
-            <input
-              type="text"
-              value={aux3}
-              onChange={(e) => setAux3(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-app-text-primary shadow-sm outline-none ring-0 transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted"
-              placeholder="Nombre del auxiliar 3"
-              disabled={saving || !teamInfo?.id}
-            />
-          </div>
-          <div className="col-span-full flex justify-end">
-            <button
-              type="button"
-              onClick={handleSaveTeam}
-              disabled={saving || !teamInfo?.id}
-              className="inline-flex items-center rounded-xl bg-app-primary px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-app-primary/90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-app-primary-muted dark:hover:bg-app-primary-muted/90 sm:text-sm"
-            >
-              {saving ? "Guardando…" : "Guardar responsables"}
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={handleExportBautizosExcel}
-            disabled={filteredSeats.length === 0}
-            className="inline-flex items-center rounded-xl border border-blue-500 bg-white px-3 py-1.5 text-xs font-medium text-black shadow-sm transition-colors hover:bg-app-selected disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-[#151515] dark:text-gray-100 dark:hover:bg-gray-800 sm:text-sm"
-          >
-            Exportar certificados
-          </button>
-          <button
-            type="button"
-            onClick={handleExportBautizosExcel}
-            disabled={filteredSeats.length === 0}
-            className="inline-flex items-center rounded-xl border border-green-500 bg-white px-3 py-1.5 text-xs font-medium text-black shadow-sm transition-colors hover:bg-app-selected disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-[#151515] dark:text-gray-100 dark:hover:bg-gray-800 sm:text-sm"
-          >
-            Exportar bautizados
-          </button>
-          <button
-            type="button"
-            onClick={handleExportExcel}
-            disabled={filteredSeats.length === 0}
-            className="inline-flex items-center rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-app-text-primary shadow-sm transition-colors hover:bg-app-selected disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-[#151515] dark:text-gray-100 dark:hover:bg-gray-800 sm:text-sm"
-          >
-            Exportar a Excel
-          </button>
-        </div>
-
-        <div className="mt-2 max-h-[60vh] overflow-auto rounded-xl border border-gray-200 bg-white text-xs shadow-sm dark:border-gray-700 dark:bg-[#151515] sm:text-sm">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-[#1e1e1e]">
+      <div className="min-h-0 flex-1 overflow-auto border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-[#1e1f22]">
+        <table className="w-full min-w-[46rem] text-sm">
+          <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-[#26272a]">
+            <tr className="whitespace-nowrap text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+              <th scope="col" className="w-20 py-2.5 pl-5 pr-3">
+                Clave
+              </th>
+              <th scope="col" className="min-w-[13rem] px-3 py-2.5">
+                Encontrado
+              </th>
+              <th scope="col" className="w-24 px-3 py-2.5 text-center">
+                Celular
+              </th>
+              <th scope="col" className="w-28 px-3 py-2.5 text-center">
+                Medicamento
+              </th>
+              <th scope="col" className="w-44 px-3 py-2.5">
+                Bautizo
+              </th>
+              <th scope="col" className="w-32 py-2.5 pl-3 pr-5">
+                Clave antigua
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            {visibleSeats.length === 0 ? (
               <tr>
-                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Clave
-                </th>
-                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Encontrado
-                </th>
-                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Estado
-                </th>
-                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Celular
-                </th>
-                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Medicamento
-                </th>
-                <th className="px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Bautizo
-                </th>
-                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
-                  Clave Antigua
-                </th>
+                <td
+                  colSpan={6}
+                  className="px-5 py-10 text-center text-sm text-app-text-secondary dark:text-gray-400"
+                >
+                  {emptyMessage}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filteredSeats.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-3 py-4 text-center text-xs text-app-text-secondary dark:text-gray-400 sm:px-4 sm:text-sm"
-                  >
-                    No hay asientos para este género.
-                  </td>
-                </tr>
-              ) : (
-                filteredSeats.map((seat) => {
-                  const tieneEncontrado = Boolean(seat.encontrado);
-                  const hasBautizo = Boolean(seat.encontrado?.bautizo);
-                  const isPrintingCertificate =
-                    printingCertificateId === seat.encontrado?.id;
+            ) : (
+              visibleSeats.map((seat) => {
+                const estado = getSeatEstado(seat);
+                const encontrado = estado === "ocupado" ? seat.encontrado : null;
+                const clave = `${sex}${teamInfo?.teamNumber ?? ""}${seat.letter}`;
+                const isPrinting = printingCertificateId === encontrado?.id;
 
-                  return (
-                    <tr
-                      key={seat.id}
-                      className={
-                        tieneEncontrado
-                          ? "bg-emerald-50/80 dark:bg-emerald-900/10"
-                          : "bg-transparent"
-                      }
+                return (
+                  <tr
+                    key={seat.id}
+                    className={
+                      encontrado
+                        ? "transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.03]"
+                        : undefined
+                    }
+                  >
+                    <td
+                      className={`py-2.5 pl-5 pr-3 font-semibold tabular-nums ${
+                        encontrado
+                          ? "text-app-text-primary dark:text-gray-100"
+                          : "text-gray-400 dark:text-gray-500"
+                      }`}
                     >
-                      <td className="whitespace-nowrap px-3 py-2 text-xs font-medium text-app-text-primary dark:text-gray-100 sm:px-4 sm:py-2.5 sm:text-sm">
-                        {seat.encontrado?.sexo}
-                        {teamInfo?.teamNumber}
-                        {seat.letter}
-                      </td>
-                      <td className="px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-100 sm:px-4 sm:py-2.5 sm:text-xs">
-                        {tieneEncontrado ? (
-                          <span className="font-medium text-app-text-primary dark:text-white">
-                            {getEncontradoNombre(seat)}
+                      {clave}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {encontrado ? (
+                        <>
+                          <p className="font-medium text-app-text-primary dark:text-white">
+                            {nombreCompleto(encontrado)}
+                          </p>
+                          <p className="whitespace-nowrap text-xs tabular-nums text-app-text-secondary dark:text-gray-400">
+                            {[
+                              encontrado.edad != null ? `${encontrado.edad} años` : "",
+                              encontrado.telefono ?? "",
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        </>
+                      ) : estado === "baja" ? (
+                        <span className="inline-flex flex-wrap items-center gap-2 text-gray-500 dark:text-gray-400">
+                          <span className="rounded bg-gray-500 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white dark:bg-gray-600">
+                            Baja
                           </span>
-                        ) : (
-                          <span className="italic text-gray-400 dark:text-gray-500">
-                            Sin encontrado
-                          </span>
-                        )}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
-                        {seat.occupied ? "Ocupado" : "Libre"}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
-                        {seat.encontrado?.celular ? "✅" : "❌"}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
-                        {seat.encontrado?.medicamento ? "✅" : "❌"}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-center sm:px-4 sm:py-2.5">
-                        {tieneEncontrado && seat.encontrado ? (
-                          hasBautizo ? (
-                            <div className="inline-flex flex-col items-center gap-1 sm:flex-row">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openBautizoModal(seat.encontrado!)
-                                }
-                                title="Quitar bautizo"
-                                className="inline-flex items-center gap-1 rounded-lg border border-green-500/50 bg-green-500/10 px-2 py-1 text-[10px] font-semibold text-green-700 transition-colors hover:bg-green-500/20 focus:outline-none focus:ring-2 focus:ring-green-500/30 dark:border-green-400/40 dark:bg-green-500/15 dark:text-green-400 dark:hover:bg-green-500/25 sm:text-xs"
-                              >
-                                <HugeiconsIcon
-                                  icon={ChurchIcon}
-                                  size={14}
-                                  className="shrink-0"
-                                  aria-hidden
-                                />
-                                Sí
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  void handlePrintCertificate(seat.encontrado!)
-                                }
-                                disabled={isPrintingCertificate}
-                                title="Imprimir certificado"
-                                className="inline-flex items-center gap-1 rounded-lg border border-app-primary/40 bg-app-primary/10 px-2 py-1 text-[10px] font-semibold text-app-primary transition-colors hover:bg-app-primary/20 focus:outline-none focus:ring-2 focus:ring-app-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-app-primary-muted/50 dark:bg-app-primary-muted/15 dark:text-app-primary-muted dark:hover:bg-app-primary-muted/25 sm:text-xs"
-                              >
-                                <HugeiconsIcon
-                                  icon={PrinterIcon}
-                                  size={14}
-                                  className="shrink-0"
-                                  aria-hidden
-                                />
-                                {isPrintingCertificate ? "…" : "Certificado"}
-                              </button>
-                            </div>
-                          ) : (
+                          {nombreCompleto(seat.abandonedBy)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 dark:text-gray-500">
+                          {estado === "ocupado" ? "Ocupado (sin datos)" : "Libre"}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5 text-center">
+                      {encontrado ? <SiNo value={encontrado.celular} /> : null}
+                    </td>
+                    <td className="px-3 py-2.5 text-center">
+                      {encontrado ? (
+                        <SiNo value={encontrado.medicamento} attention />
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {encontrado ? (
+                        encontrado.bautizo ? (
+                          <div className="flex items-center gap-1">
                             <button
                               type="button"
-                              onClick={() =>
-                                openBautizoModal(seat.encontrado!)
-                              }
-                              title="Aplicar bautizo"
-                              className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2 sm:text-xs ${accentClass}`}
+                              onClick={() => openBautizoModal(encontrado)}
+                              title="Quitar bautizo"
+                              className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20 transition-colors hover:bg-emerald-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/30 dark:hover:bg-emerald-500/25"
                             >
-                              <HugeiconsIcon
-                                icon={ChurchIcon}
-                                size={14}
-                                className="shrink-0"
-                                aria-hidden
-                              />
-                              No
+                              <HugeiconsIcon icon={Tick02Icon} size={12} className="shrink-0" />
+                              Bautizado
                             </button>
-                          )
+                            <button
+                              type="button"
+                              onClick={() => void handlePrintCertificate(encontrado)}
+                              disabled={isPrinting}
+                              aria-label={`Imprimir certificado de ${nombreCompleto(encontrado)}`}
+                              title="Imprimir certificado"
+                              className="rounded-md p-1.5 text-app-text-secondary transition-colors hover:bg-gray-100 hover:text-app-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 disabled:cursor-wait disabled:opacity-50 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                            >
+                              <HugeiconsIcon icon={PrinterIcon} size={16} />
+                            </button>
+                          </div>
                         ) : (
-                          <span className="text-xs text-gray-400 dark:text-gray-500">
-                            —
-                          </span>
-                        )}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
-                        {seat.encontrado?.checkins?.claveOld ?? ""}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                          <button
+                            type="button"
+                            onClick={() => openBautizoModal(encontrado)}
+                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-app-text-secondary ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 hover:text-app-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/5 dark:hover:text-white"
+                          >
+                            <HugeiconsIcon icon={ChurchIcon} size={12} className="shrink-0" />
+                            Aplicar
+                          </button>
+                        )
+                      ) : null}
+                    </td>
+                    <td className="py-2.5 pl-3 pr-5 text-xs tabular-nums text-app-text-secondary dark:text-gray-400">
+                      {encontrado?.checkins?.claveOld ?? ""}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {showConfirmBautizo && (
         <ConfirmarBautizoModal
           open={showConfirmBautizo}
           accion={accionBautizo}
           encontrado={bautizoEncontrado}
-          onSuccess={() => {
-            setShowConfirmBautizo(false);
-            setBautizoEncontrado(null);
-          }}
-          onCancel={() => {
-            setShowConfirmBautizo(false);
-            setBautizoEncontrado(null);
-          }}
+          onSuccess={closeBautizoModal}
+          onCancel={closeBautizoModal}
           zIndex={70}
         />
       )}

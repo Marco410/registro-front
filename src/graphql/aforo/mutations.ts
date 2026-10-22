@@ -95,6 +95,42 @@ export interface DeleteSeatsResponse {
   deleteSeats: { id: string }[];
 }
 
+/** Actualizar los responsables (capitán y auxiliares) de un equipo. */
+export const UPDATE_TEAM_RESPONSABLES_MUTATION = gql`
+  mutation UpdateTeamResponsables(
+    $where: TeamWhereUniqueInput!
+    $data: TeamUpdateInput!
+  ) {
+    updateTeam(where: $where, data: $data) {
+      id
+      captain
+      auxiliar1
+      auxiliar2
+      auxiliar3
+      captain_h
+      auxiliar1_h
+      auxiliar2_h
+      auxiliar3_h
+    }
+  }
+`;
+
+/** Campos de responsables: los de hombres llevan sufijo `_h`. */
+export type TeamResponsableField =
+  | "captain"
+  | "auxiliar1"
+  | "auxiliar2"
+  | "auxiliar3"
+  | "captain_h"
+  | "auxiliar1_h"
+  | "auxiliar2_h"
+  | "auxiliar3_h";
+
+export interface UpdateTeamResponsablesVariables {
+  where: { id: string };
+  data: Partial<Record<TeamResponsableField, string>>;
+}
+
 /** Crear foráneo bautizado. */
 export const CREATE_BAUTIZO_FORANEO_MUTATION = gql`
   mutation CreateBautizoForaneo($data: BautizoForaneoCreateInput!) {

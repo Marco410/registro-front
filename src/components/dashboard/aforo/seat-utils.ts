@@ -6,6 +6,23 @@ import type { Seat } from "registro/graphql/aforo/queries";
  */
 export const SEAT_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+/** Texto pequeño por sexo; blue-700 / pink-700 para pasar 4.5:1 sobre fondos grises. */
+export const SEX_STYLES: Record<
+  "H" | "M",
+  { label: string; text: string; hover: string }
+> = {
+  H: {
+    label: "Hombres",
+    text: "text-blue-700 dark:text-app-primary-muted",
+    hover: "hover:bg-app-primary/10 dark:hover:bg-app-primary-muted/15",
+  },
+  M: {
+    label: "Mujeres",
+    text: "text-pink-700 dark:text-pink-400",
+    hover: "hover:bg-pink-500/10 dark:hover:bg-pink-500/15",
+  },
+};
+
 /** Sexo del asiento (H/M); usa el del encontrado si el asiento no lo tiene. */
 export function getSeatSex(seat: Seat): "H" | "M" {
   const sex = seat.gender || seat.encontrado?.sexo || "";
@@ -52,6 +69,21 @@ export function getTrailingRemovableSeats(seats: Seat[]): {
     result.push(seat);
   }
   return { seats: result, blockedBy: null };
+}
+
+/** Conteo de una fila de asientos. `libres` no incluye los dados de baja. */
+export function countSeats(seats: Seat[]): {
+  total: number;
+  ocupados: number;
+  libres: number;
+} {
+  let ocupados = 0;
+  let libres = 0;
+  for (const seat of seats) {
+    if (seat.occupied) ocupados += 1;
+    else if (!seat.abandoned) libres += 1;
+  }
+  return { total: seats.length, ocupados, libres };
 }
 
 /** "A–O", "A" o "" según las letras (ya ordenadas) de una fila. */

@@ -19,7 +19,9 @@ import { useDeleteSeats } from "./hooks";
 import { isSeatRemovable } from "./seat-utils";
 import { toast } from "sonner";
 
-const SEAT_SIZE = "h-7 w-7";
+/** En xl+ toma `--seat-size` del contenedor (SeatsByTeam); si no existe, 28px. */
+const SEAT_SIZE =
+  "h-7 w-7 xl:h-[var(--seat-size,1.75rem)] xl:w-[var(--seat-size,1.75rem)]";
 const SEAT_TEXT = "text-xs";
 const MENU_OFFSET = 4;
 const VIEWPORT_PADDING = 8;
@@ -120,7 +122,7 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
     ? "border-gray-400/50 bg-gray-500 text-white shadow-sm hover:border-gray-400/70 hover:bg-gray-600 dark:border-gray-500/55 dark:bg-gray-600"
     : occupied
       ? isMale
-        ? "border-app-primary/45 bg-app-primary text-white shadow-sm hover:border-app-primary/65 hover:bg-app-primary/95 dark:border-app-primary-muted/50 dark:bg-app-primary-muted"
+        ? "border-app-primary/45 bg-app-primary text-white shadow-sm hover:border-app-primary/65 hover:bg-app-primary/95 dark:border-app-primary-muted/50 dark:bg-app-primary-muted dark:text-gray-900"
         : "border-pink-400/45 bg-pink-500 text-white shadow-sm hover:border-pink-400/65 hover:bg-pink-600 dark:border-pink-400/50 dark:bg-pink-500"
       : isMale
         ? "border-gray-300 bg-gray-50 text-app-text-secondary shadow-sm hover:border-app-primary/40 hover:bg-app-primary/10 hover:text-app-primary dark:border-gray-600 dark:bg-gray-800/60 dark:text-gray-400 dark:hover:border-app-primary-muted/45 dark:hover:bg-app-primary/15 dark:hover:text-app-primary-muted"

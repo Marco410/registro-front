@@ -5,6 +5,7 @@ export type {
 } from "./use-reassign-seat";
 export { useCreateSeats } from "./use-create-seats";
 export { useDeleteSeats } from "./use-delete-seats";
+export { useUpdateTeamResponsables } from "./use-update-team-responsables";
 export { useExportSeatsExcel } from "./use-export-seats-excel";
 export { useExportBautizosExcel } from "./use-export-bautizos-excel";
 export { useExportEncontradosExcel } from "./use-export-encontrados-excel";

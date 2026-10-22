@@ -10,6 +10,7 @@ import {
   AFORO_QUERY,
   type AforoResponse,
 } from "registro/graphql/aforo/queries";
+import { getAforoCounts } from "registro/lib/helpers/aforo-counts";
 import { AnimatedMount } from ".";
 
 type StatIcon = typeof SeatSelectorIcon;
@@ -114,21 +115,7 @@ export function AforoCountsCards() {
     );
   }
 
-  const counts = data ?? {
-    encontradosCount: 0,
-    checkinsCount: 0,
-    encontradosCountH: 0,
-    encontradosCountM: 0,
-    checkinsCountH: 0,
-    checkinsCountM: 0,
-    bajasCount: 0,
-    bajasCountH: 0,
-    bajasCountM: 0,
-  };
-
-  const enForoTotal = Math.max(0, counts.checkinsCount - counts.bajasCount);
-  const enForoH = Math.max(0, counts.checkinsCountH - counts.bajasCountH);
-  const enForoM = Math.max(0, counts.checkinsCountM - counts.bajasCountM);
+  const { enRetiro, bajas } = getAforoCounts(data);
 
   const panels: MetricPanelConfig[] = [
     {
@@ -140,17 +127,17 @@ export function AforoCountsCards() {
       stats: [
         {
           label: "Total",
-          value: enForoTotal,
+          value: enRetiro.total,
           valueClassName: "text-app-text-primary dark:text-gray-200",
         },
         {
           label: "Hombres",
-          value: enForoH,
+          value: enRetiro.hombres,
           valueClassName: "text-app-primary dark:text-app-primary-muted",
         },
         {
           label: "Mujeres",
-          value: enForoM,
+          value: enRetiro.mujeres,
           valueClassName: "text-pink-600 dark:text-pink-400",
         },
       ],
@@ -164,17 +151,17 @@ export function AforoCountsCards() {
       stats: [
         {
           label: "Total",
-          value: counts.bajasCount,
+          value: bajas.total,
           valueClassName: "text-gray-700 dark:text-gray-200",
         },
         {
           label: "Hombres",
-          value: counts.bajasCountH,
+          value: bajas.hombres,
           valueClassName: "text-app-primary dark:text-app-primary-muted",
         },
         {
           label: "Mujeres",
-          value: counts.bajasCountM,
+          value: bajas.mujeres,
           valueClassName: "text-pink-600 dark:text-pink-400",
         },
       ],

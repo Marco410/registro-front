@@ -51,3 +51,29 @@ export interface UserListItem {
 export interface UsersQueryResponse {
   users: UserListItem[];
 }
+
+/**
+ * Query ligera para selectores de usuario: solo nombre y username, sin los check-ins
+ * ni los encontrados que trae USERS_QUERY.
+ */
+export const USER_OPTIONS_QUERY = gql`
+  query UserOptions {
+    users(orderBy: [{ name: asc }]) {
+      id
+      name
+      lastName
+      username
+    }
+  }
+`;
+
+export interface UserOption {
+  id: string;
+  name: string;
+  lastName: string;
+  username: string;
+}
+
+export interface UserOptionsQueryResponse {
+  users: UserOption[];
+}

@@ -13,6 +13,10 @@ export interface UseUpdateEncontradoOptions {
   onSuccess?: (updated: EncontradoListItem) => void;
 }
 
+/**
+ * Datos del update. No incluye `user`: editar nunca cambia quién registró al encontrado
+ * (antes se conectaba al usuario que editaba y el registro pasaba a su conteo).
+ */
 function toUpdateData(data: EncontradoFormData) {
   return {
     nombre: data.nombre.trim(),
@@ -29,7 +33,6 @@ function toUpdateData(data: EncontradoFormData) {
     enfermedad: data.enfermedad || undefined,
     celular: data.celular,
     medicamento: data.medicamento,
-    user: data.user_id ? { connect: { id: data.user_id } } : undefined,
   };
 }
 

@@ -218,8 +218,8 @@ export function EditEncontradoModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...formData, user_id: userId };
-    const result = encontradoSchema.safeParse(payload);
+    // formData.user_id ya trae a quien registró (encontradoToFormData); no se cambia al editar
+    const result = encontradoSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof EncontradoFormData, string>> = {};
       result.error.issues.forEach((issue) => {
@@ -233,7 +233,7 @@ export function EditEncontradoModal({
     }
     setErrors({});
     if (!encontradoId) return;
-    await submitUpdate(encontradoId, { ...formData, user_id: userId });
+    await submitUpdate(encontradoId, formData);
   };
 
   return (
