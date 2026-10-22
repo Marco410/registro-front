@@ -87,7 +87,7 @@ export default function DashboardUsuariosPage() {
   const [sortBy, setSortBy] = useState<SortColumn | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
-  const rawList = data?.users ?? [];
+  const rawList = useMemo(() => data?.users ?? [], [data]);
 
   const list = useMemo(() => {
     if (!sortBy) return rawList;

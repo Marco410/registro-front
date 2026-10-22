@@ -2,7 +2,7 @@
 
 import type { ApexOptions } from "apexcharts";
 import { useQuery } from "@apollo/client";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   ENCONTRADOS_ESTADO_C_QUERY,
   ESTADO_C_OPTIONS,
@@ -81,10 +81,13 @@ export function EstadoCivilBarChart({ sex = null }: EstadoCivilBarChartProps) {
     },
   );
 
-  const chartData =
-    (data?.encontrados?.length ?? 0) > 0
-      ? aggregateByEstadoC(data!.encontrados)
-      : [];
+  const chartData = useMemo(
+    () =>
+      (data?.encontrados?.length ?? 0) > 0
+        ? aggregateByEstadoC(data!.encontrados)
+        : [],
+    [data],
+  );
 
   const total = chartData.reduce((s, d) => s + d.value, 0);
   const topTwo = chartData.slice(0, 2);

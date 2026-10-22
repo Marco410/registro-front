@@ -7,6 +7,7 @@ import {
   type PerformCheckinResponse,
   type PerformCheckinVariables,
 } from "registro/graphql/checkin/mutations";
+import { CHECKINS_QUERY } from "registro/graphql/checkin/queries";
 
 export interface UsePerformCheckinOptions {
   onSuccess?: (data: PerformCheckinResponse["performCheckin"]) => void;
@@ -20,7 +21,7 @@ export function usePerformCheckin(options: UsePerformCheckinOptions = {}) {
     PerformCheckinResponse,
     PerformCheckinVariables
   >(PERFORM_CHECKIN_MUTATION, {
-    refetchQueries: ["Checkins"],
+    refetchQueries: [CHECKINS_QUERY],
     onCompleted: (data) => {
       const result = data.performCheckin;
       if (result.alreadyCheckedIn && result.checkin) {

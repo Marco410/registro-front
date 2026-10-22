@@ -31,6 +31,13 @@ export function clearSessionToken(): void {
 }
 
 /**
+ * Indica si el usuario tiene el rol `admin`.
+ */
+export function isAdmin(user: User | null | undefined): boolean {
+  return Boolean(user?.roles?.some((role) => role.name === "admin"));
+}
+
+/**
  * Obtiene el usuario actual de la sesión (cookie/token) vía GraphQL.
  * Retorna el usuario mapeado o null si no hay sesión.
  */

@@ -1,72 +1,16 @@
 "use client";
 
+import { createContext, useContext, useMemo } from "react";
+import { useQuery } from "@apollo/client";
+import { useAuth } from "registro/contexts/auth-context";
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import type { EventTypeValue } from "registro/graphql/events/queries";
+  ACTIVE_EVENT_QUERY,
+  type ActiveEventQueryResponse,
+  type EventTypeValue,
+} from "registro/graphql/events/queries";
 
-const STORAGE_ID = "registro_active_event_id";
-const STORAGE_NAME = "registro_active_event_name";
-const STORAGE_TYPE = "registro_active_event_type";
-
-function isEventTypeValue(v: string): v is EventTypeValue {
-  return v === "retiro" || v === "ninos";
-}
-
-function readStored(): {
-  eventId: string | null;
-  eventName: string | null;
-  eventType: EventTypeValue | null;
-} {
-  if (typeof window === "undefined") {
-    return { eventId: null, eventName: null, eventType: null };
-  }
-  try {
-    const id = localStorage.getItem(STORAGE_ID);
-    const name = localStorage.getItem(STORAGE_NAME);
-    const typeRaw = localStorage.getItem(STORAGE_TYPE);
-    const eventType =
-      typeRaw && isEventTypeValue(typeRaw) ? typeRaw : null;
-    return {
-      eventId: id || null,
-      eventName: name || null,
-      eventType,
-    };
-  } catch {
-    return { eventId: null, eventName: null, eventType: null };
-  }
-}
-
-function writeStored(payload: {
-  id: string;
-  name: string;
-  type: EventTypeValue;
-}): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_ID, payload.id);
-    localStorage.setItem(STORAGE_NAME, payload.name);
-    localStorage.setItem(STORAGE_TYPE, payload.type);
-  } catch {
-    /* ignore quota / private mode */
-  }
-}
-
-function clearStored(): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(STORAGE_ID);
-    localStorage.removeItem(STORAGE_NAME);
-    localStorage.removeItem(STORAGE_TYPE);
-  } catch {
-    /* ignore */
-  }
-}
+/** Cada cuánto se vuelve a consultar el evento activo, para que las estaciones abiertas se enteren de un cambio. */
+const ACTIVE_EVENT_POLL_MS = 60_000;
 
 export interface ActiveEventContextValue {
   eventId: string | null;
@@ -74,74 +18,31 @@ export interface ActiveEventContextValue {
   eventType: EventTypeValue | null;
   /** `true` cuando el evento activo es de tipo niños (formulario y validación específicos). */
   isNinosEvent: boolean;
-  setActiveEvent: (payload: {
-    id: string;
-    name: string;
-    type: EventTypeValue;
-  }) => void;
-  clearActiveEvent: () => void;
-  clearIfMatches: (id: string) => void;
 }
 
 const ActiveEventContext = createContext<ActiveEventContextValue | null>(null);
 
+/**
+ * Expone el evento activo (`active: true`) del backend. Para cambiarlo se edita el evento
+ * en /dashboard/eventos y se hace refetch de `ACTIVE_EVENT_QUERY`.
+ */
 export function ActiveEventProvider({ children }: { children: React.ReactNode }) {
-  const [eventId, setEventId] = useState<string | null>(null);
-  const [eventName, setEventName] = useState<string | null>(null);
-  const [eventType, setEventType] = useState<EventTypeValue | null>(null);
+  const { isAuthenticated } = useAuth();
+  const { data } = useQuery<ActiveEventQueryResponse>(ACTIVE_EVENT_QUERY, {
+    skip: !isAuthenticated,
+    pollInterval: ACTIVE_EVENT_POLL_MS,
+  });
 
-  useEffect(() => {
-    const s = readStored();
-    setEventId(s.eventId);
-    setEventName(s.eventName);
-    setEventType(s.eventType);
-  }, []);
-
-  const setActiveEvent = useCallback(
-    (payload: { id: string; name: string; type: EventTypeValue }) => {
-      writeStored(payload);
-      setEventId(payload.id);
-      setEventName(payload.name);
-      setEventType(payload.type);
-    },
-    [],
-  );
-
-  const clearActiveEvent = useCallback(() => {
-    clearStored();
-    setEventId(null);
-    setEventName(null);
-    setEventType(null);
-  }, []);
-
-  const clearIfMatches = useCallback((id: string) => {
-    const s = readStored();
-    if (s.eventId === id) {
-      clearStored();
-      setEventId(null);
-      setEventName(null);
-      setEventType(null);
-    }
-  }, []);
+  const event = data?.events?.[0] ?? null;
 
   const value = useMemo<ActiveEventContextValue>(
     () => ({
-      eventId,
-      eventName,
-      eventType,
-      isNinosEvent: eventType === "ninos",
-      setActiveEvent,
-      clearActiveEvent,
-      clearIfMatches,
+      eventId: event?.id ?? null,
+      eventName: event?.name ?? null,
+      eventType: event?.type ?? null,
+      isNinosEvent: event?.type === "ninos",
     }),
-    [
-      eventId,
-      eventName,
-      eventType,
-      setActiveEvent,
-      clearActiveEvent,
-      clearIfMatches,
-    ],
+    [event?.id, event?.name, event?.type],
   );
 
   return (

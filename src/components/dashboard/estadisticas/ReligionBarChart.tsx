@@ -2,7 +2,7 @@
 
 import type { ApexOptions } from "apexcharts";
 import { useQuery } from "@apollo/client";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   ENCONTRADOS_RELIGION_QUERY,
   type EncontradosReligionQueryResponse,
@@ -74,10 +74,13 @@ export function ReligionBarChart({ sex = null }: ReligionBarChartProps) {
     },
   );
 
-  const chartData =
-    (data?.encontrados?.length ?? 0) > 0
-      ? aggregateByReligion(data!.encontrados)
-      : [];
+  const chartData = useMemo(
+    () =>
+      (data?.encontrados?.length ?? 0) > 0
+        ? aggregateByReligion(data!.encontrados)
+        : [],
+    [data],
+  );
 
   const total = chartData.reduce((s, d) => s + d.value, 0);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "registro/hooks/use-auth";
 import { RedirectIfAuthenticated } from "registro/components/auth/redirect-if-authenticated";
@@ -34,7 +35,14 @@ export default function LoginPage() {
     <RedirectIfAuthenticated>
       <div className="flex min-h-screen items-center justify-center bg-brown-50 px-4 dark:bg-brown-900">
         <div className="w-full max-w-sm flex flex-col items-center justify-center gap-2">
-          <img src="/images/logo.png" alt="Logo" className="w-40 h-40" />
+          <Image
+            src="/images/logo.png"
+            alt="Logo"
+            width={160}
+            height={160}
+            priority
+            className="w-40 h-40"
+          />
           <div className="w-full max-w-sm rounded-xl border border-brown-200 bg-white p-6 shadow-lg dark:border-brown-700 dark:bg-brown-800">
             <h1 className="mb-6 text-center text-xl font-semibold text-black-900 dark:text-blue-100">
               Iniciar sesión

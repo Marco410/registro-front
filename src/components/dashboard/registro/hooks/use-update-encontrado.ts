@@ -3,7 +3,10 @@
 import { useMutation } from "@apollo/client";
 import { toast } from "sonner";
 import { UPDATE_ENCONTRADO_MUTATION } from "registro/components/dashboard/registro/mutations";
-import type { EncontradoListItem } from "registro/graphql/encontrados/queries";
+import {
+  ENCONTRADOS_QUERY,
+  type EncontradoListItem,
+} from "registro/graphql/encontrados/queries";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 
 export interface UseUpdateEncontradoOptions {
@@ -40,7 +43,7 @@ export function useUpdateEncontrado(options: UseUpdateEncontradoOptions = {}) {
   const [updateEncontrado, { loading }] = useMutation<{
     updateEncontrado: EncontradoListItem;
   }>(UPDATE_ENCONTRADO_MUTATION, {
-    refetchQueries: ["Encontrados"],
+    refetchQueries: [ENCONTRADOS_QUERY],
     onCompleted: (data) => {
       toast.success("Registro actualizado correctamente");
       if (data?.updateEncontrado) onSuccess?.(data.updateEncontrado);

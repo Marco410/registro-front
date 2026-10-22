@@ -88,8 +88,13 @@ export function ConfirmRegistroModal({
   const loadingRef = useRef(loading);
   const onConfirmAndCheckinRef = useRef(onConfirmAndCheckin);
   const onConfirmAndPrintRef = useRef(onConfirmAndPrint);
+  const onConfirmRef = useRef(onConfirm);
+  const onCancelRef = useRef(onCancel);
   loadingRef.current = loading;
   onConfirmAndCheckinRef.current = onConfirmAndCheckin;
+  onConfirmAndPrintRef.current = onConfirmAndPrint;
+  onConfirmRef.current = onConfirm;
+  onCancelRef.current = onCancel;
 
   useEffect(() => {
     if (!open) return;
@@ -103,12 +108,12 @@ export function ConfirmRegistroModal({
       if (e.key === "Escape") {
         e.preventDefault();
         if (!loadingRef.current) {
-          onCancel();
+          onCancelRef.current();
         }
       }
       if ((e.key === "S" || e.key === "s") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        onConfirm();
+        onConfirmRef.current();
       }
       if ((e.key === "P" || e.key === "p") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();

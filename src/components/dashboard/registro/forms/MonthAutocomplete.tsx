@@ -100,6 +100,7 @@ export function MonthAutocomplete({
           }, 150);
         }}
         className={`w-full text-center tabular-nums ${className ?? ""}`}
+        role="combobox"
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-autocomplete="list"

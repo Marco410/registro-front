@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -15,6 +16,7 @@ import {
 import { routes } from "registro/constants/routes";
 import { TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/const";
 import { useAuth } from "registro/contexts/auth-context";
+import { isAdmin } from "registro/lib/auth";
 
 const baseNavItems = [
   { href: routes.dashboard(), label: "Inicio", icon: Home01Icon },
@@ -60,8 +62,7 @@ export function Sidebar({
   const tab = searchParams.get("tab");
   const { user } = useAuth();
 
-  const isAdmin = user?.roles?.some((role) => role.name === "admin");
-  const navItems: NavItem[] = isAdmin
+  const navItems: NavItem[] = isAdmin(user)
     ? [
         ...baseNavItems,
         { href: routes.dasboardEvents(), label: "Eventos", icon: CalendarLock02Icon },
@@ -110,9 +111,11 @@ export function Sidebar({
               isCollapsed ? "min-w-0 flex-none" : "min-w-0 flex-1 gap-2.5"
             }`}
           >
-            <img
+            <Image
               src="/images/logo.png"
               alt="A&R Morelia"
+              width={36}
+              height={36}
               className={`shrink-0 object-contain object-left ${
                 isCollapsed ? "h-8 w-8" : "h-9 w-9"
               }`}

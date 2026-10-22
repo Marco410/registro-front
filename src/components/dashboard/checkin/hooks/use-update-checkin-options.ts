@@ -3,6 +3,7 @@
 import { useMutation } from "@apollo/client";
 import { toast } from "sonner";
 import { UPDATE_ENCONTRADO_MUTATION } from "registro/components/dashboard/registro/mutations";
+import { ENCONTRADOS_QUERY } from "registro/graphql/encontrados/queries";
 
 export interface UpdateCheckinOptionsInput {
   encontradoId: string;
@@ -25,7 +26,7 @@ export function useUpdateCheckinOptions(
   const [updateEncontrado, { loading }] = useMutation(
     UPDATE_ENCONTRADO_MUTATION,
     {
-      refetchQueries: ["Encontrados"],
+      refetchQueries: [ENCONTRADOS_QUERY],
       onCompleted: () => {
         toast.success("Opciones guardadas");
         onSuccess?.();

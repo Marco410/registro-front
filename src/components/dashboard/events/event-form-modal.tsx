@@ -8,8 +8,11 @@ import {
   CREATE_EVENT_MUTATION,
   UPDATE_EVENT_MUTATION,
 } from "registro/graphql/events/mutations";
-import { EVENTS_QUERY, type EventListItem } from "registro/graphql/events/queries";
-import { useActiveEvent } from "registro/contexts/active-event-context";
+import {
+  ACTIVE_EVENT_QUERY,
+  EVENTS_QUERY,
+  type EventListItem,
+} from "registro/graphql/events/queries";
 import { GlassModal } from "registro/components/shared/GlassModal";
 
 const inputClass =
@@ -53,7 +56,6 @@ export function EventFormModal({
   event,
   onClose,
 }: EventFormModalProps) {
-  const { setActiveEvent, clearIfMatches } = useActiveEvent();
   const [form, setForm] = useState<FormState>(defaultForm);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function EventFormModal({
     }
   }, [open, mode, event]);
 
-  const refetch = [{ query: EVENTS_QUERY }];
+  const refetch = [{ query: EVENTS_QUERY }, { query: ACTIVE_EVENT_QUERY }];
 
   const [createEvent, { loading: creating }] = useMutation(
     CREATE_EVENT_MUTATION,
@@ -113,15 +115,7 @@ export function EventFormModal({
             ...(descTrim ? { description: descTrim } : {}),
           },
         },
-        onCompleted: (data) => {
-          const created = data?.createEvent;
-          if (created?.active) {
-            setActiveEvent({
-              id: created.id,
-              name: created.name,
-              type: created.type,
-            });
-          }
+        onCompleted: () => {
           toast.success("Evento creado");
           onClose();
         },
@@ -140,11 +134,6 @@ export function EventFormModal({
         },
       },
       onCompleted: () => {
-        if (active) {
-          setActiveEvent({ id: event.id, name, type });
-        } else {
-          clearIfMatches(event.id);
-        }
         toast.success("Evento actualizado");
         onClose();
       },

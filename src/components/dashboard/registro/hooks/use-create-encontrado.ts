@@ -3,6 +3,7 @@
 import { useMutation } from "@apollo/client";
 import { toast } from "sonner";
 import { CREATE_ENCONTRADO_MUTATION } from "registro/components/dashboard/registro/mutations";
+import { ENCONTRADOS_QUERY } from "registro/graphql/encontrados/queries";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 
 export interface UseCreateEncontradoOptions {
@@ -42,7 +43,7 @@ export function useCreateEncontrado(options: UseCreateEncontradoOptions = {}) {
   const [createEncontrado, { loading }] = useMutation(
     CREATE_ENCONTRADO_MUTATION,
     {
-      refetchQueries: ["Encontrados"],
+      refetchQueries: [ENCONTRADOS_QUERY],
       onCompleted: (data) => {
         toast.success("Encontrado registrado correctamente");
         onSuccess?.();

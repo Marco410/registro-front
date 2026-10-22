@@ -52,6 +52,7 @@ export function CardBeforeCheckin({
   const onSaveOptionsRef = useRef(onSaveOptions);
   const performingCheckinRef = useRef(performingCheckin);
   const savingOptionsRef = useRef(savingOptions);
+  const selectedIdRef = useRef(selected.id);
   const [editingEncontradoId, setEditingEncontradoId] = useState<string | null>(
     null,
   );
@@ -61,6 +62,7 @@ export function CardBeforeCheckin({
   onSaveOptionsRef.current = onSaveOptions;
   performingCheckinRef.current = performingCheckin;
   savingOptionsRef.current = savingOptions;
+  selectedIdRef.current = selected.id;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -87,7 +89,7 @@ export function CardBeforeCheckin({
       }
       if ((e.key === "E" || e.key === "e") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        setEditingEncontradoId(selected.id);
+        setEditingEncontradoId(selectedIdRef.current);
       }
     };
     document.addEventListener("keydown", handleKeyDown, true);

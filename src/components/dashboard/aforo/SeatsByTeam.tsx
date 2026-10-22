@@ -67,7 +67,7 @@ export function SeatsByTeam() {
   });
   const { exportEncontradosToExcel } = useExportEncontradosExcel();
 
-  const seats = data?.seats ?? [];
+  const seats = useMemo(() => data?.seats ?? [], [data]);
   const groups = useMemo(() => buildTeamGenderGroups(seats), [seats]);
 
   if (loading && !data) {

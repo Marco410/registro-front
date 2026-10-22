@@ -4,10 +4,10 @@ import { useMutation } from "@apollo/client";
 import { toast } from "sonner";
 import { DELETE_EVENT_MUTATION } from "registro/graphql/events/mutations";
 import {
+  ACTIVE_EVENT_QUERY,
   EVENTS_QUERY,
   type EventListItem,
 } from "registro/graphql/events/queries";
-import { useActiveEvent } from "registro/contexts/active-event-context";
 import { GlassModal } from "registro/components/shared/GlassModal";
 
 export interface DeleteEventConfirmProps {
@@ -16,11 +16,10 @@ export interface DeleteEventConfirmProps {
 }
 
 export function DeleteEventConfirm({ target, onClose }: DeleteEventConfirmProps) {
-  const { clearIfMatches } = useActiveEvent();
   const [deleteEvent, { loading: deleting }] = useMutation(
     DELETE_EVENT_MUTATION,
     {
-      refetchQueries: [{ query: EVENTS_QUERY }],
+      refetchQueries: [{ query: EVENTS_QUERY }, { query: ACTIVE_EVENT_QUERY }],
       onError: (err) => {
         toast.error(err.message ?? "Error al eliminar el evento");
       },
@@ -29,11 +28,9 @@ export function DeleteEventConfirm({ target, onClose }: DeleteEventConfirmProps)
 
   const handleConfirm = () => {
     if (!target) return;
-    const id = target.id;
     deleteEvent({
-      variables: { where: { id } },
+      variables: { where: { id: target.id } },
       onCompleted: () => {
-        clearIfMatches(id);
         toast.success("Evento eliminado");
         onClose();
       },

@@ -25,3 +25,6 @@ pnpm-debug.log*
 # IDEs
 .vscode/
 .idea/ 
+
+# TypeScript incremental build info
+*.tsbuildinfo
