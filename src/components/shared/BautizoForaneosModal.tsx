@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon } from "@hugeicons/core-free-icons";
+import { Delete02Icon, PrinterIcon } from "@hugeicons/core-free-icons";
 import {
   BAUTIZO_FORANEOS_QUERY,
   BAUTIZO_COUNTS_QUERY,
   type BautizoForaneo,
   type BautizoForaneosResponse,
 } from "registro/graphql/aforo/queries";
+import { usePrintCertificate } from "registro/components/dashboard/aforo/hooks";
 import {
   CREATE_BAUTIZO_FORANEO_MUTATION,
   DELETE_BAUTIZO_FORANEO_MUTATION,
@@ -45,6 +46,11 @@ export function BautizoForaneosModal({
     notes: "",
   });
   const [deleteTarget, setDeleteTarget] = useState<BautizoForaneo | null>(null);
+  const [printingCertificateId, setPrintingCertificateId] = useState<
+    string | null
+  >(null);
+
+  const { PrintCertificate } = usePrintCertificate();
 
   const { data, loading: loadingList } = useQuery<BautizoForaneosResponse>(
     BAUTIZO_FORANEOS_QUERY,
@@ -118,6 +124,15 @@ export function BautizoForaneosModal({
     deleteForaneo({
       variables: { where: { id: deleteTarget.id } },
     });
+  };
+
+  const handlePrintCertificate = async (row: BautizoForaneo) => {
+    setPrintingCertificateId(row.id);
+    try {
+      await PrintCertificate(row.nombre, row.apellido_p ?? "", row.apellido_m);
+    } finally {
+      setPrintingCertificateId(null);
+    }
   };
 
   const list = data?.bautizoForaneos ?? [];
@@ -280,7 +295,9 @@ export function BautizoForaneosModal({
                       <th className="px-3 py-2 font-medium text-app-text-secondary dark:text-gray-400">
                         Teléfono
                       </th>
-                      <th className="w-10 px-2 py-2" aria-label="Eliminar" />
+                      <th className="px-2 py-2 text-right font-medium text-app-text-secondary dark:text-gray-400">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -307,14 +324,33 @@ export function BautizoForaneosModal({
                           {row.telefono || "—"}
                         </td>
                         <td className="px-2 py-2">
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget(row)}
-                            className="rounded p-1.5 text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
-                            aria-label={`Eliminar a ${getNombreCompleto(row)}`}
-                          >
-                            <HugeiconsIcon icon={Delete02Icon} size={18} />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => void handlePrintCertificate(row)}
+                              disabled={printingCertificateId === row.id}
+                              title="Imprimir certificado"
+                              className="inline-flex items-center gap-1 rounded-lg border border-app-primary/40 bg-app-primary/10 px-2 py-1 text-[10px] font-semibold text-app-primary transition-colors hover:bg-app-primary/20 focus:outline-none focus:ring-2 focus:ring-app-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-app-primary-muted/50 dark:bg-app-primary-muted/15 dark:text-app-primary-muted dark:hover:bg-app-primary-muted/25 sm:text-xs"
+                            >
+                              <HugeiconsIcon
+                                icon={PrinterIcon}
+                                size={14}
+                                className="shrink-0"
+                                aria-hidden
+                              />
+                              {printingCertificateId === row.id
+                                ? "…"
+                                : "Certificado"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(row)}
+                              className="rounded p-1.5 text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
+                              aria-label={`Eliminar a ${getNombreCompleto(row)}`}
+                            >
+                              <HugeiconsIcon icon={Delete02Icon} size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

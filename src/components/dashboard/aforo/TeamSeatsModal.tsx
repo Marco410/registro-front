@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
-import { Seat } from "registro/graphql/aforo/queries";
-import { useExportBautizosExcel, useExportSeatsExcel } from "./hooks";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ChurchIcon, PrinterIcon } from "@hugeicons/core-free-icons";
+import { Seat, type SeatEncontrado } from "registro/graphql/aforo/queries";
+import { useExportBautizosExcel, useExportSeatsExcel, usePrintCertificate } from "./hooks";
+import {
+  ConfirmarBautizoModal,
+  type BautizoAccion,
+} from "./ConfirmarBautizoModal";
 import { GlassModal } from "registro/components/shared/GlassModal";
 
 export interface TeamSeatsModalProps {
@@ -57,10 +63,24 @@ export function TeamSeatsModal({
   const [aux1, setAux1] = useState(initialAux1);
   const [aux2, setAux2] = useState(initialAux2);
   const [aux3, setAux3] = useState(initialAux3);
+  const [showConfirmBautizo, setShowConfirmBautizo] = useState(false);
+  const [accionBautizo, setAccionBautizo] = useState<BautizoAccion>("aplicar");
+  const [bautizoEncontrado, setBautizoEncontrado] =
+    useState<SeatEncontrado | null>(null);
+  const [printingCertificateId, setPrintingCertificateId] = useState<
+    string | null
+  >(null);
+
+  const accentClass =
+    sex === "H"
+      ? "border-orange-500/40 text-orange-600 hover:bg-orange-500/10 focus:ring-orange-500/30 dark:border-orange-400/50 dark:text-orange-400 dark:hover:bg-orange-500/15"
+ 
+      : "border-pink-500/40 text-pink-600 hover:bg-pink-500/10 focus:ring-pink-500/30 dark:border-pink-400/50 dark:text-pink-400 dark:hover:bg-pink-500/15";
 
   const [updateTeam, { loading: saving }] = useMutation(UPDATE_TEAM_MUTATION);
   const { exportSeatsToExcel } = useExportSeatsExcel();
   const { exportBautizosToExcel } = useExportBautizosExcel();
+  const { PrintCertificate } = usePrintCertificate();
 
   const getEncontradoNombre = (seat: Seat) => {
     if (!seat.encontrado) return "—";
@@ -120,12 +140,31 @@ export function TeamSeatsModal({
     });
   };
 
+  const openBautizoModal = (encontrado: SeatEncontrado) => {
+    setBautizoEncontrado(encontrado);
+    setAccionBautizo(encontrado.bautizo ? "quitar" : "aplicar");
+    setShowConfirmBautizo(true);
+  };
+
+  const handlePrintCertificate = async (encontrado: SeatEncontrado) => {
+    setPrintingCertificateId(encontrado.id);
+    try {
+      await PrintCertificate(
+        encontrado.nombre,
+        encontrado.apellido_p,
+        encontrado.apellido_m,
+      );
+    } finally {
+      setPrintingCertificateId(null);
+    }
+  };
+
   return (
     <GlassModal
       open={open}
       onClose={onClose}
       ariaLabelledBy="team-seats-modal-title"
-      panelClassName="max-h-[min(90vh,calc(100dvh-2rem))] max-w-3xl overflow-y-auto overscroll-contain p-4 sm:p-6"
+      panelClassName="max-h-[min(90vh,calc(100dvh-2rem))] max-w-5xl overflow-y-auto overscroll-contain p-4 sm:p-6"
       zIndex={50}
     >
         <div className="flex items-center justify-between gap-4">
@@ -223,6 +262,14 @@ export function TeamSeatsModal({
             type="button"
             onClick={handleExportBautizosExcel}
             disabled={filteredSeats.length === 0}
+            className="inline-flex items-center rounded-xl border border-blue-500 bg-white px-3 py-1.5 text-xs font-medium text-black shadow-sm transition-colors hover:bg-app-selected disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-[#151515] dark:text-gray-100 dark:hover:bg-gray-800 sm:text-sm"
+          >
+            Exportar certificados
+          </button>
+          <button
+            type="button"
+            onClick={handleExportBautizosExcel}
+            disabled={filteredSeats.length === 0}
             className="inline-flex items-center rounded-xl border border-green-500 bg-white px-3 py-1.5 text-xs font-medium text-black shadow-sm transition-colors hover:bg-app-selected disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-[#151515] dark:text-gray-100 dark:hover:bg-gray-800 sm:text-sm"
           >
             Exportar bautizados
@@ -256,7 +303,7 @@ export function TeamSeatsModal({
                 <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
                   Medicamento
                 </th>
-                <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
+                <th className="px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
                   Bautizo
                 </th>
                 <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400 sm:px-4 sm:py-2.5 sm:text-xs">
@@ -268,7 +315,7 @@ export function TeamSeatsModal({
               {filteredSeats.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={7}
                     className="px-3 py-4 text-center text-xs text-app-text-secondary dark:text-gray-400 sm:px-4 sm:text-sm"
                   >
                     No hay asientos para este género.
@@ -277,6 +324,9 @@ export function TeamSeatsModal({
               ) : (
                 filteredSeats.map((seat) => {
                   const tieneEncontrado = Boolean(seat.encontrado);
+                  const hasBautizo = Boolean(seat.encontrado?.bautizo);
+                  const isPrintingCertificate =
+                    printingCertificateId === seat.encontrado?.id;
 
                   return (
                     <tr
@@ -312,8 +362,67 @@ export function TeamSeatsModal({
                       <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
                         {seat.encontrado?.medicamento ? "✅" : "❌"}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
-                        {seat.encontrado?.bautizo ? "✅" : "❌"}
+                      <td className="whitespace-nowrap px-3 py-2 text-center sm:px-4 sm:py-2.5">
+                        {tieneEncontrado && seat.encontrado ? (
+                          hasBautizo ? (
+                            <div className="inline-flex flex-col items-center gap-1 sm:flex-row">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openBautizoModal(seat.encontrado!)
+                                }
+                                title="Quitar bautizo"
+                                className="inline-flex items-center gap-1 rounded-lg border border-green-500/50 bg-green-500/10 px-2 py-1 text-[10px] font-semibold text-green-700 transition-colors hover:bg-green-500/20 focus:outline-none focus:ring-2 focus:ring-green-500/30 dark:border-green-400/40 dark:bg-green-500/15 dark:text-green-400 dark:hover:bg-green-500/25 sm:text-xs"
+                              >
+                                <HugeiconsIcon
+                                  icon={ChurchIcon}
+                                  size={14}
+                                  className="shrink-0"
+                                  aria-hidden
+                                />
+                                Sí
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void handlePrintCertificate(seat.encontrado!)
+                                }
+                                disabled={isPrintingCertificate}
+                                title="Imprimir certificado"
+                                className="inline-flex items-center gap-1 rounded-lg border border-app-primary/40 bg-app-primary/10 px-2 py-1 text-[10px] font-semibold text-app-primary transition-colors hover:bg-app-primary/20 focus:outline-none focus:ring-2 focus:ring-app-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-app-primary-muted/50 dark:bg-app-primary-muted/15 dark:text-app-primary-muted dark:hover:bg-app-primary-muted/25 sm:text-xs"
+                              >
+                                <HugeiconsIcon
+                                  icon={PrinterIcon}
+                                  size={14}
+                                  className="shrink-0"
+                                  aria-hidden
+                                />
+                                {isPrintingCertificate ? "…" : "Certificado"}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openBautizoModal(seat.encontrado!)
+                              }
+                              title="Aplicar bautizo"
+                              className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2 sm:text-xs ${accentClass}`}
+                            >
+                              <HugeiconsIcon
+                                icon={ChurchIcon}
+                                size={14}
+                                className="shrink-0"
+                                aria-hidden
+                              />
+                              No
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-xs text-gray-400 dark:text-gray-500">
+                            —
+                          </span>
+                        )}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-[11px] text-app-text-secondary dark:text-gray-300 sm:px-4 sm:py-2.5 sm:text-xs text-center">
                         {seat.encontrado?.checkins?.claveOld ?? ""}
@@ -325,6 +434,23 @@ export function TeamSeatsModal({
             </tbody>
           </table>
         </div>
+
+      {showConfirmBautizo && (
+        <ConfirmarBautizoModal
+          open={showConfirmBautizo}
+          accion={accionBautizo}
+          encontrado={bautizoEncontrado}
+          onSuccess={() => {
+            setShowConfirmBautizo(false);
+            setBautizoEncontrado(null);
+          }}
+          onCancel={() => {
+            setShowConfirmBautizo(false);
+            setBautizoEncontrado(null);
+          }}
+          zIndex={70}
+        />
+      )}
     </GlassModal>
   );
 }

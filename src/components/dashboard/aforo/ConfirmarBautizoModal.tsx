@@ -28,6 +28,7 @@ export interface ConfirmarBautizoModalProps {
   encontrado: SeatEncontrado | null;
   onSuccess: () => void;
   onCancel: () => void;
+  zIndex?: 50 | 60 | 70;
 }
 
 const inputClass =
@@ -39,6 +40,7 @@ export function ConfirmarBautizoModal({
   encontrado,
   onSuccess,
   onCancel,
+  zIndex = 50,
 }: ConfirmarBautizoModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({
@@ -126,7 +128,7 @@ export function ConfirmarBautizoModal({
       ariaLabelledBy="confirmar-bautizo-modal-title"
       panelClassName="max-h-[min(90vh,calc(100dvh-2rem))] max-w-lg overflow-y-auto overscroll-contain p-6"
       disableBackdropClose={loadingAny}
-      zIndex={50}
+      zIndex={zIndex}
     >
         <h2
           id="confirmar-bautizo-modal-title"
