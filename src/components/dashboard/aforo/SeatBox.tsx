@@ -13,7 +13,10 @@ import { ConfirmDarDeBajaModal } from "registro/components/dashboard/aforo/Confi
 import { ConfirmQuitarCheckinModal } from "registro/components/dashboard/aforo/ConfirmQuitarCheckinModal";
 import { ConfirmarBautizoModal } from "registro/components/dashboard/aforo/ConfirmarBautizoModal";
 import { AsignarAsientoModal } from "registro/components/dashboard/aforo/AsignarAsientoModal";
+import { ConfirmEliminarAsientoModal } from "registro/components/dashboard/aforo/ConfirmEliminarAsientoModal";
 import { darDeBajaSeat, useSeatUpdate } from "./seat-update-context";
+import { useDeleteSeats } from "./hooks";
+import { isSeatRemovable } from "./seat-utils";
 import { toast } from "sonner";
 
 const SEAT_SIZE = "h-7 w-7";
@@ -91,6 +94,7 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
     "aplicar",
   );
   const [showAsignar, setShowAsignar] = useState(false);
+  const [showConfirmEliminar, setShowConfirmEliminar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -102,6 +106,7 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
   >(REMOVE_CHECKIN_MUTATION, {
     refetchQueries: [{ query: SEATS_QUERY }],
   });
+  const { deleteSeats, loading: deletingSeat } = useDeleteSeats();
 
   const occupied = seat.occupied;
   const abandoned = seat.abandoned;
@@ -154,7 +159,13 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
     }
   };
 
+  const handleEliminarAsiento = async () => {
+    const ok = await deleteSeats([seat.id]);
+    if (ok) setShowConfirmEliminar(false);
+  };
+
   const hasBautizo = Boolean(seat.encontrado?.bautizo);
+  const canEliminar = isSeatRemovable(seat);
 
   useLayoutEffect(() => {
     if (!menuOpen || !buttonRef.current || !menuRef.current) {
@@ -361,6 +372,19 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
                     Dar de baja
                   </button>
                 ) : null}
+                {canEliminar ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setShowConfirmEliminar(true);
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-red-500 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-800"
+                  >
+                    Eliminar asiento
+                  </button>
+                ) : null}
               </div>
             </>,
             document.body,
@@ -403,6 +427,16 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
           sex={sex}
           onSuccess={() => setShowAsignar(false)}
           onCancel={() => setShowAsignar(false)}
+        />
+      )}
+
+      {showConfirmEliminar && (
+        <ConfirmEliminarAsientoModal
+          open={showConfirmEliminar}
+          seatLabel={`${seat.team?.teamName ?? "Sin equipo"} · ${isMale ? "Hombres" : "Mujeres"} · ${seat.letter}`}
+          loading={deletingSeat}
+          onConfirm={handleEliminarAsiento}
+          onCancel={() => setShowConfirmEliminar(false)}
         />
       )}
     </>

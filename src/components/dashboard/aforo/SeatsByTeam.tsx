@@ -2,9 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@apollo/client";
-import { Add01Icon, Download01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import {
+  Download01Icon,
+  Search01Icon,
+  SeatSelectorIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AddSeatModal } from "./AddSeatModal";
+import { GestionarAsientosModal } from "./GestionarAsientosModal";
 import { BuscarEncontradoModal } from "./BuscarEncontradoModal";
 import {
   SEATS_QUERY,
@@ -14,11 +18,7 @@ import {
 import { TeamGenderBlock } from "./TeamGenderBlock";
 import { useExportEncontradosExcel } from "./hooks";
 import { SeatUpdateProvider } from "./seat-update-context";
-
-function getSeatSex(seat: Seat): "H" | "M" {
-  const sex = seat.gender || seat.encontrado?.sexo || "";
-  return sex === "M" ? "M" : "H";
-}
+import { getSeatSex } from "./seat-utils";
 
 type TeamGenderGroup = {
   team: Seat["team"];
@@ -57,7 +57,7 @@ function buildTeamGenderGroups(seats: Seat[]): TeamGenderGroup[] {
 }
 
 export function SeatsByTeam() {
-  const [showAddSeatModal, setShowAddSeatModal] = useState(false);
+  const [showGestionarAsientos, setShowGestionarAsientos] = useState(false);
   const [showBuscarEncontradoModal, setShowBuscarEncontradoModal] =
     useState(false);
   const { data, loading, error } = useQuery<SeatsQueryResponse>(SEATS_QUERY, {
@@ -115,12 +115,12 @@ export function SeatsByTeam() {
        
             <button
               type="button"
-              aria-label="Agregar asiento a un equipo"
-              onClick={() => setShowAddSeatModal(true)}
+              aria-label="Agregar o quitar asientos de los equipos"
+              onClick={() => setShowGestionarAsientos(true)}
               className={actionButtonClass}
             >
-              <HugeiconsIcon icon={Add01Icon} size={18} className="shrink-0" />
-              <span className="max-w-[140px] truncate">Agregar asiento</span>
+              <HugeiconsIcon icon={SeatSelectorIcon} size={18} className="shrink-0" />
+              <span className="max-w-[140px] truncate">Gestionar asientos</span>
             </button>
             <button
               type="button"
@@ -209,9 +209,10 @@ export function SeatsByTeam() {
           </div>
         </div>
       </div>
-      <AddSeatModal
-        open={showAddSeatModal}
-        onClose={() => setShowAddSeatModal(false)}
+      <GestionarAsientosModal
+        open={showGestionarAsientos}
+        onClose={() => setShowGestionarAsientos(false)}
+        seats={seats}
       />
       <BuscarEncontradoModal
         open={showBuscarEncontradoModal}

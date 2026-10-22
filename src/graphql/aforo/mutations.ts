@@ -53,28 +53,46 @@ export type UpdateSeatVariables =
   | UpdateSeatDarDeBajaVariables
   | UpdateSeatAsignarVariables;
 
-/** Crear un asiento y asignarlo a un equipo. */
-export const CREATE_SEAT_MUTATION = gql`
-  mutation CreateSeat($data: SeatCreateInput!) {
-    createSeat(data: $data) {
+/** Crear varios asientos (de uno o varios equipos) en una sola petición. */
+export const CREATE_SEATS_MUTATION = gql`
+  mutation CreateSeats($data: [SeatCreateInput!]!) {
+    createSeats(data: $data) {
       id
       letter
       gender
-      team {
-        id
-        teamName
-        teamNumber
-      }
     }
   }
 `;
 
-export interface CreateSeatVariables {
-  data: {
-    letter: string;
-    gender: string;
-    team: { connect: { id: string } };
-  };
+export interface CreateSeatInput {
+  letter: string;
+  gender: "H" | "M";
+  team: { connect: { id: string } };
+}
+
+export interface CreateSeatsVariables {
+  data: CreateSeatInput[];
+}
+
+export interface CreateSeatsResponse {
+  createSeats: { id: string; letter: string; gender: string }[];
+}
+
+/** Eliminar varios asientos por id. */
+export const DELETE_SEATS_MUTATION = gql`
+  mutation DeleteSeats($where: [SeatWhereUniqueInput!]!) {
+    deleteSeats(where: $where) {
+      id
+    }
+  }
+`;
+
+export interface DeleteSeatsVariables {
+  where: { id: string }[];
+}
+
+export interface DeleteSeatsResponse {
+  deleteSeats: { id: string }[];
 }
 
 /** Crear foráneo bautizado. */
