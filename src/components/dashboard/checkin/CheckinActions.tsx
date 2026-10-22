@@ -9,23 +9,43 @@ import type { CheckinResultData } from "./checkinResultCard";
 export interface CheckinActionsProps {
   resultData: CheckinResultData;
   onNewCheckin: () => void;
+  /** Si se define, muestra "Editar registro" (Ctrl+E). */
+  onEdit?: () => void;
+  /** Pausa los atajos mientras hay un modal abierto encima (p. ej. al editar). */
+  shortcutsDisabled?: boolean;
 }
 
 /**
- * Acciones tras un check-in: hacer otro check-in (Ctrl+C) e ir a registro (Ctrl+R).
+ * Acciones tras un check-in: hacer otro check-in (Ctrl+C), ir a registro
+ * (Ctrl+R) y editar el registro del encontrado (Ctrl+E).
  */
 export function CheckinActions({
   resultData,
   onNewCheckin,
+  onEdit,
+  shortcutsDisabled = false,
 }: CheckinActionsProps) {
   const router = useRouter();
   const onNewCheckinRef = useRef(onNewCheckin);
   const goToRegistroRef = useRef(() => router.push(routes.dashboardRegistro()));
+  const onEditRef = useRef(onEdit);
+  const shortcutsDisabledRef = useRef(shortcutsDisabled);
   onNewCheckinRef.current = onNewCheckin;
   goToRegistroRef.current = () => router.push(routes.dashboardRegistro());
+  onEditRef.current = onEdit;
+  shortcutsDisabledRef.current = shortcutsDisabled;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (shortcutsDisabledRef.current) return;
+      if (
+        (e.key === "E" || e.key === "e") &&
+        (e.ctrlKey || e.metaKey) &&
+        onEditRef.current
+      ) {
+        e.preventDefault();
+        onEditRef.current();
+      }
       if ((e.key === "C" || e.key === "c") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onNewCheckinRef.current?.();
@@ -86,6 +106,26 @@ export function CheckinActions({
             </kbd>
           </span>
         </div>
+        {onEdit ? (
+          <div className="flex flex-col items-start">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-app-text-primary shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-transparent dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              Editar registro
+            </button>
+            <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
+              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                Ctrl
+              </kbd>{" "}
+              +{" "}
+              <kbd className="rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                E
+              </kbd>
+            </span>
+          </div>
+        ) : null}
       </div>
     </section>
   );

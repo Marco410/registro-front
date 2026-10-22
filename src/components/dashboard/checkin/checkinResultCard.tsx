@@ -31,6 +31,8 @@ export interface CheckinResultCardProps {
   data: CheckinResultData;
   onPrint?: (copies: number) => void;
   className?: string;
+  /** Pausa el atajo de impresión (Ctrl+P) mientras hay un modal encima. */
+  shortcutsDisabled?: boolean;
 }
 
 /**
@@ -41,6 +43,7 @@ export function CheckinResultCard({
   data,
   onPrint,
   className,
+  shortcutsDisabled = false,
 }: CheckinResultCardProps) {
   const isHombre = data.sexo === "H";
   const hasCelular = data.celular === true;
@@ -226,6 +229,7 @@ export function CheckinResultCard({
             apellido_m: data.apellido_m,
           }}
           onPrint={onPrint}
+          shortcutDisabled={shortcutsDisabled}
         />
       </div>
     </div>

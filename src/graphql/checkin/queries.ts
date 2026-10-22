@@ -16,6 +16,7 @@ export const CHECKINS_QUERY = gql`
         name
       }
       encontrado {
+        id
         nombre
         apellido_p
         apellido_m
@@ -54,6 +55,7 @@ export interface CheckinListItem {
   checkinAt: string;
   ageGroup?: { label: string } | null;
   encontrado: {
+    id: string;
     nombre: string;
     apellido_p: string;
     apellido_m: string;

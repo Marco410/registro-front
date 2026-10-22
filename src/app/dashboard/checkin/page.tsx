@@ -10,6 +10,7 @@ import {
   useUpdateCheckinOptions,
   MyCheckinsList,
 } from "registro/components/dashboard/checkin";
+import { EditEncontradoModal } from "registro/components/dashboard/registro";
 import type { EncontradoListItem } from "registro/graphql/encontrados/queries";
 import type { PerformCheckinResponse } from "registro/graphql/checkin/mutations";
 import type { CheckinListItem } from "registro/graphql/checkin/queries";
@@ -43,6 +44,9 @@ export default function CheckinPage() {
   const [medicamento, setMedicamento] = useState(false);
   const [checkinResult, setCheckinResult] = useState<
     PerformCheckinResponse["performCheckin"] | null
+  >(null);
+  const [editingEncontradoId, setEditingEncontradoId] = useState<
+    string | null
   >(null);
 
   useEffect(() => {
@@ -116,7 +120,7 @@ export default function CheckinPage() {
         checkinAt: c.checkinAt,
         ageGroup: c.ageGroup ?? { id: "", label: "" },
         encontrado: {
-          id: "",
+          id: c.encontrado.id,
           celular: c.encontrado.celular,
           medicamento: c.encontrado.medicamento,
           nombre: c.encontrado.nombre,
@@ -132,6 +136,35 @@ export default function CheckinPage() {
         team: c.team ?? { id: "", teamNumber: 0, teamName: "" },
       },
     } as PerformCheckinResponse["performCheckin"]);
+  };
+
+  /**
+   * Tras editar el registro desde el resultado del check-in, refleja los
+   * cambios en la tarjeta y en los datos del gafete. Sexo y fecha de
+   * nacimiento no se pueden editar después del check-in, así que la clave y la
+   * edad no cambian.
+   */
+  const handleEncontradoSaved = (updated: EncontradoListItem) => {
+    setCheckinResult((prev) => {
+      if (!prev?.checkin) return prev;
+      return {
+        ...prev,
+        checkin: {
+          ...prev.checkin,
+          encontrado: {
+            ...prev.checkin.encontrado,
+            nombre: updated.nombre,
+            apellido_p: updated.apellido_p,
+            apellido_m: updated.apellido_m ?? "",
+            estado_c: updated.estado_c,
+            religion: updated.religion ?? null,
+            telefono: updated.telefono ?? null,
+            celular: updated.celular,
+            medicamento: updated.medicamento,
+          },
+        },
+      };
+    });
   };
 
   if (!userId) {
@@ -187,10 +220,27 @@ export default function CheckinPage() {
               animationKey={resultData.clave}
               className="space-y-6"
             >
-              <CheckinResultCard data={resultData} />
+              <CheckinResultCard
+                data={resultData}
+                shortcutsDisabled={editingEncontradoId != null}
+              />
               <CheckinActions
                 resultData={resultData}
                 onNewCheckin={handleNewCheckin}
+                onEdit={
+                  checkin?.encontrado.id
+                    ? () => setEditingEncontradoId(checkin.encontrado.id)
+                    : undefined
+                }
+                shortcutsDisabled={editingEncontradoId != null}
+              />
+              <EditEncontradoModal
+                open={editingEncontradoId != null}
+                encontradoId={editingEncontradoId}
+                userId={userId}
+                hasCheckin
+                onClose={() => setEditingEncontradoId(null)}
+                onSaved={handleEncontradoSaved}
               />
             </AnimatedMount>
           ) : (

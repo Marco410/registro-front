@@ -22,6 +22,8 @@ export interface CheckinPrintControlsProps {
   onPrint?: (copies: number) => void;
   copiesInputId?: string;
   className?: string;
+  /** Pausa el atajo Ctrl+P (p. ej. mientras hay un modal abierto encima). */
+  shortcutDisabled?: boolean;
 }
 
 function getDefaultCopies(hasCelular: boolean, hasMedicamento: boolean): number {
@@ -36,6 +38,7 @@ export function CheckinPrintControls({
   onPrint,
   copiesInputId = "checkin-copies",
   className,
+  shortcutDisabled = false,
 }: CheckinPrintControlsProps) {
   const defaultCopies = getDefaultCopies(hasCelular, hasMedicamento);
   const [copies, setCopies] = useState(defaultCopies);
@@ -66,9 +69,12 @@ export function CheckinPrintControls({
 
   const handlePrintRef = useRef(handlePrint);
   handlePrintRef.current = handlePrint;
+  const shortcutDisabledRef = useRef(shortcutDisabled);
+  shortcutDisabledRef.current = shortcutDisabled;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (shortcutDisabledRef.current) return;
       if ((e.key === "p" || e.key === "P") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         void handlePrintRef.current();
