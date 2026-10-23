@@ -200,6 +200,7 @@ export const METADATA_LABELS: Record<string, string> = {
   equipo: "Equipo",
   grupoEdad: "Grupo de edad",
   sinLugar: "Sin lugar disponible",
+  asientoElegido: "Asiento elegido a mano",
   yaTeniaCheckin: "Ya tenía check-in",
   asientoAnterior: "Asiento anterior",
   asientoNuevo: "Asiento nuevo",

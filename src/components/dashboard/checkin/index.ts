@@ -1,6 +1,7 @@
 export { CheckinActions } from "./CheckinActions";
 export { CardBeforeCheckin } from "./CardBeforeCheckin";
 export { CheckinEncontradoSelector } from "./checkinEncontradoSelector";
+export { ElegirAsientoModal } from "./ElegirAsientoModal";
 export { CheckinOptionsForm } from "./checkinOptionsForm";
 export { CheckinPrintControls } from "./CheckinPrintControls";
 export type { CheckinPrintData } from "./CheckinPrintControls";

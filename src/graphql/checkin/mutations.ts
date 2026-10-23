@@ -2,18 +2,22 @@ import { gql } from "@apollo/client";
 
 /**
  * Mutación custom para realizar el check-in de un encontrado.
- * Backend: performCheckin(encontradoId: ID!, userId: ID!, responsejson: JSON): CheckinResult
+ * Backend: performCheckin(encontradoId: ID!, userId: ID, responsejson: JSON, seatId: ID): CheckinResult
+ * Sin `seatId` el backend busca lugar; si no hay, responde el error `SIN_LUGAR`. Con `seatId`
+ * ocupa el asiento que eligió el usuario.
  */
 export const PERFORM_CHECKIN_MUTATION = gql`
   mutation PerformCheckin(
     $encontradoId: ID!
     $userId: ID!
     $responsejson: JSON
+    $seatId: ID
   ) {
     performCheckin(
       encontradoId: $encontradoId
       userId: $userId
       responsejson: $responsejson
+      seatId: $seatId
     ) {
       alreadyCheckedIn
       unassignedGroup
@@ -84,6 +88,8 @@ export interface PerformCheckinVariables {
   encontradoId: string;
   userId: string;
   responsejson?: Record<string, unknown> | null;
+  /** Asiento que eligió el usuario cuando no hubo lugar automático. */
+  seatId?: string | null;
 }
 
 /** Elimina el check-in de un encontrado. */
