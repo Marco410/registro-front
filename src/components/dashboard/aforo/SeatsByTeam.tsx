@@ -20,7 +20,12 @@ import {
 import { TeamSeatsRow } from "./TeamSeatsRow";
 import { useExportEncontradosExcel } from "./hooks";
 import { SeatUpdateProvider } from "./seat-update-context";
-import { AFORO_POLL_MS, countSeats, getSeatSex } from "./seat-utils";
+import {
+  AFORO_POLL_MS,
+  buildRangoEdad,
+  countSeats,
+  getSeatSex,
+} from "./seat-utils";
 import {
   AltarMarker,
   GenderHeading,
@@ -116,6 +121,10 @@ export function SeatsByTeam() {
 
   const seats = useMemo(() => data?.seats ?? [], [data]);
   const groups = useMemo(() => buildTeamGenderGroups(seats), [seats]);
+  const getRangoEdad = useMemo(
+    () => buildRangoEdad(data?.ageGroups ?? []),
+    [data?.ageGroups],
+  );
   const { hombres, mujeres } = useMemo(
     () => ({
       hombres: groups.flatMap((g) => g.hombres),
@@ -176,6 +185,7 @@ export function SeatsByTeam() {
                 team={team}
                 hombres={hombres}
                 mujeres={mujeres}
+                getRangoEdad={getRangoEdad}
               />
             ))}
           </div>

@@ -1,4 +1,4 @@
-import type { Seat } from "registro/graphql/aforo/queries";
+import type { Seat, SeatsAgeGroup } from "registro/graphql/aforo/queries";
 
 /**
  * Cada cuánto se vuelven a consultar asientos y conteos del aforo, para que la
@@ -112,4 +112,64 @@ export function formatLetterRange(seats: Seat[]): string {
   const first = seats[0].letter;
   const last = seats[seats.length - 1].letter;
   return first === last ? first : `${first}–${last}`;
+}
+
+/**
+ * Reglas del desborde del check-in. Deben coincidir con
+ * `registro-back/utils/constants/constants.ts` (`OVERFLOW_AGE_GROUP_LABEL`,
+ * `REFUGIOS_AGE_GROUP_LABEL`, `OVERFLOW_GROUPS_PER_SIDE`).
+ */
+const OVERFLOW_AGE_GROUP_LABEL = "Cualquier edad";
+const REFUGIOS_AGE_GROUP_LABEL = "Refugios";
+const OVERFLOW_GROUPS_PER_SIDE = 2;
+
+/**
+ * Qué tan lejos de su rango de edad está sentado un encontrado: "cercano" si su equipo es de
+ * uno de los grupos que el check-in revisa primero (2 arriba y 2 abajo), "lejano" si está más lejos.
+ */
+export type RangoEdad = "cercano" | "lejano";
+
+/**
+ * Arma la función que calcula el `RangoEdad` de un asiento, con la misma búsqueda que
+ * `findOverflowTeam` en el backend. Compara el grupo que le tocó al encontrado en el check-in
+ * con el grupo del equipo donde está sentado.
+ * @returns null si el asiento está libre, si está en su grupo, en "Cualquier edad" o si falta información
+ */
+export function buildRangoEdad(
+  ageGroups: SeatsAgeGroup[],
+): (seat: Seat) => RangoEdad | null {
+  const byId = new Map(ageGroups.map((g) => [g.id, g]));
+  const candidatos = ageGroups
+    .filter(
+      (g) =>
+        !g.label.includes(OVERFLOW_AGE_GROUP_LABEL) &&
+        !g.label.includes(REFUGIOS_AGE_GROUP_LABEL),
+    )
+    .sort((a, b) => a.minAge - b.minAge);
+  const cercanosPorGrupo = new Map<string, Set<string>>();
+
+  const cercanos = (grupo: SeatsAgeGroup): Set<string> => {
+    let ids = cercanosPorGrupo.get(grupo.id);
+    if (!ids) {
+      const arriba = candidatos.filter((g) => g.minAge > grupo.minAge);
+      const abajo = candidatos.filter((g) => g.minAge < grupo.minAge).reverse();
+      ids = new Set(
+        [
+          ...arriba.slice(0, OVERFLOW_GROUPS_PER_SIDE),
+          ...abajo.slice(0, OVERFLOW_GROUPS_PER_SIDE),
+        ].map((g) => g.id),
+      );
+      cercanosPorGrupo.set(grupo.id, ids);
+    }
+    return ids;
+  };
+
+  return (seat) => {
+    const grupoPersona = byId.get(seat.encontrado?.checkins?.ageGroup?.id ?? "");
+    const grupoEquipo = seat.team?.ageGroup;
+    if (!seat.occupied || !grupoPersona || !grupoEquipo?.id) return null;
+    if (grupoEquipo.id === grupoPersona.id) return null;
+    if (grupoEquipo.label.includes(OVERFLOW_AGE_GROUP_LABEL)) return null;
+    return cercanos(grupoPersona).has(grupoEquipo.id) ? "cercano" : "lejano";
+  };
 }

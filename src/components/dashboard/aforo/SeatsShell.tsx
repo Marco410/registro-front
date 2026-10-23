@@ -68,6 +68,20 @@ function SeatsLegend() {
         <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden />
         Bautizado
       </li>
+      <li
+        className="flex items-center gap-1.5 text-[0.6875rem] text-app-text-secondary dark:text-gray-400"
+        title="Está en un grupo de edad que no es el suyo, dentro de la primera búsqueda (2 grupos arriba y 2 abajo)."
+      >
+        <span className="h-2 w-2 rounded-full bg-orange-400" aria-hidden />
+        Fuera de rango · cercano
+      </li>
+      <li
+        className="flex items-center gap-1.5 text-[0.6875rem] text-app-text-secondary dark:text-gray-400"
+        title="Está en un grupo de edad más lejos que la primera búsqueda (más de 2 grupos arriba o abajo)."
+      >
+        <span className="h-2 w-2 rounded-full bg-red-600" aria-hidden />
+        Fuera de rango · lejano
+      </li>
     </ul>
   );
 }

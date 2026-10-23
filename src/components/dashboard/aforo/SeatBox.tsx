@@ -16,7 +16,11 @@ import { AsignarAsientoModal } from "registro/components/dashboard/aforo/Asignar
 import { ConfirmEliminarAsientoModal } from "registro/components/dashboard/aforo/ConfirmEliminarAsientoModal";
 import { darDeBajaSeat, useSeatUpdate } from "./seat-update-context";
 import { useDeleteSeats } from "./hooks";
-import { SEAT_SIZE_CLASS, isSeatRemovable } from "./seat-utils";
+import {
+  SEAT_SIZE_CLASS,
+  isSeatRemovable,
+  type RangoEdad,
+} from "./seat-utils";
 import { toast } from "sonner";
 
 const SEAT_SIZE = SEAT_SIZE_CLASS;
@@ -66,9 +70,15 @@ export function abandonadoPor(seat: Seat): string {
   return `${e.nombre} ${e.apellido_p} ${e.apellido_m} | ${e.edad} años`.trim();
 }
 
-function getSeatTooltipContent(seat: Seat): string | null {
+function getSeatTooltipContent(
+  seat: Seat,
+  rangoEdad: RangoEdad | null,
+): string | null {
   if (seat.occupied && seat.encontrado) {
-    return `${ocupadoPor(seat)} | Edad: ${seat.encontrado.edad} años`;
+    const suRango = seat.encontrado.checkins?.ageGroup?.label;
+    const fueraDeRango =
+      rangoEdad && suRango ? ` | Fuera de su rango (${suRango})` : "";
+    return `${ocupadoPor(seat)} | Edad: ${seat.encontrado.edad} años${fueraDeRango}`;
   }
   if (seat.abandonedBy) {
     return `Abandonado por: ${abandonadoPor(seat)}`;
@@ -79,9 +89,16 @@ function getSeatTooltipContent(seat: Seat): string | null {
 export interface SeatBoxProps {
   seat: Seat;
   sex: "H" | "M";
+  /** Fuera de su rango de edad: círculo naranja (cercano) o rojo (lejano) abajo a la derecha. */
+  rangoEdad?: RangoEdad | null;
 }
 
-function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
+const RANGO_EDAD_DOT_CLASS: Record<RangoEdad, string> = {
+  cercano: "bg-orange-400",
+  lejano: "bg-red-600",
+};
+
+function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{
     top: number;
@@ -130,7 +147,7 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
     ? "focus:ring-app-primary/40 dark:focus:ring-app-primary-muted/40"
     : "focus:ring-pink-400/40";
 
-  const tooltipContent = getSeatTooltipContent(seat);
+  const tooltipContent = getSeatTooltipContent(seat, rangoEdad);
 
   const handleDarDeBaja = async () => {
     setIsSubmitting(true);
@@ -222,6 +239,12 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
         {hasBautizo && (
           <span
             className="absolute -right-0 top-1 h-2 w-2 -translate-y-1/2 rounded-full bg-green-500 ring-2 ring-white dark:ring-[#202124]"
+            aria-hidden
+          />
+        )}
+        {rangoEdad && (
+          <span
+            className={`absolute -right-0 bottom-1 h-2 w-2 translate-y-1/2 rounded-full ring-2 ring-white dark:ring-[#202124] ${RANGO_EDAD_DOT_CLASS[rangoEdad]}`}
             aria-hidden
           />
         )}
@@ -445,6 +468,7 @@ function SeatBoxComponent({ seat, sex }: SeatBoxProps) {
 
 function seatPropsAreEqual(prev: SeatBoxProps, next: SeatBoxProps) {
   if (prev.sex !== next.sex) return false;
+  if ((prev.rangoEdad ?? null) !== (next.rangoEdad ?? null)) return false;
   const a = prev.seat;
   const b = next.seat;
   if (a.id !== b.id) return false;

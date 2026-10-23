@@ -4,7 +4,12 @@ import { memo, useState } from "react";
 import type { Seat } from "registro/graphql/aforo/queries";
 import { SeatBox } from "./SeatBox";
 import { TeamSeatsModal } from "./TeamSeatsModal";
-import { SEX_STYLES, TEAM_ROW_GRID, countSeats } from "./seat-utils";
+import {
+  SEX_STYLES,
+  TEAM_ROW_GRID,
+  countSeats,
+  type RangoEdad,
+} from "./seat-utils";
 
 
 type Sexo = "H" | "M";
@@ -43,10 +48,12 @@ function SeatCountButton({
 function SeatsLine({
   seats,
   sex,
+  getRangoEdad,
   className = "",
 }: {
   seats: Seat[];
   sex: Sexo;
+  getRangoEdad?: (seat: Seat) => RangoEdad | null;
   className?: string;
 }) {
   return (
@@ -62,7 +69,14 @@ function SeatsLine({
           Sin asientos
         </span>
       ) : (
-        seats.map((seat) => <SeatBox key={seat.id} seat={seat} sex={sex} />)
+        seats.map((seat) => (
+          <SeatBox
+            key={seat.id}
+            seat={seat}
+            sex={sex}
+            rangoEdad={getRangoEdad?.(seat) ?? null}
+          />
+        ))
       )}
     </div>
   );
@@ -72,6 +86,8 @@ export interface TeamSeatsRowProps {
   team: Seat["team"];
   hombres: Seat[];
   mujeres: Seat[];
+  /** Qué tan lejos de su rango de edad está cada encontrado (círculo naranja o rojo). */
+  getRangoEdad?: (seat: Seat) => RangoEdad | null;
 }
 
 /**
@@ -79,7 +95,12 @@ export interface TeamSeatsRowProps {
  * pasillo), el equipo con sus conteos al centro y mujeres a la derecha. En
  * pantallas angostas se apila: equipo, línea de hombres y línea de mujeres.
  */
-function TeamSeatsRowComponent({ team, hombres, mujeres }: TeamSeatsRowProps) {
+function TeamSeatsRowComponent({
+  team,
+  hombres,
+  mujeres,
+  getRangoEdad,
+}: TeamSeatsRowProps) {
   const [listSex, setListSex] = useState<Sexo | null>(null);
 
   const teamName = team?.teamName ?? "Sin equipo";
@@ -94,6 +115,7 @@ function TeamSeatsRowComponent({ team, hombres, mujeres }: TeamSeatsRowProps) {
       <SeatsLine
         seats={hombres}
         sex="H"
+        getRangoEdad={getRangoEdad}
         className="order-2 xl:order-1 xl:justify-end"
       />
 
@@ -124,7 +146,12 @@ function TeamSeatsRowComponent({ team, hombres, mujeres }: TeamSeatsRowProps) {
         />
       </div>
 
-      <SeatsLine seats={mujeres} sex="M" className="order-3" />
+      <SeatsLine
+        seats={mujeres}
+        sex="M"
+        getRangoEdad={getRangoEdad}
+        className="order-3"
+      />
 
       {listSex && team ? (
         <TeamSeatsModal
