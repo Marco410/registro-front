@@ -82,10 +82,16 @@ export interface IdentificationFormProps {
   disableFechaNacimiento?: boolean;
   /** Enfoca el campo nombre al mostrarse en pantalla. */
   autoFocusNombre?: boolean;
+  /** Contenido a la derecha del título (p. ej. el selector de sexo en la página de registro). */
+  headerAside?: React.ReactNode;
 }
 
 /**
  * Sección del formulario: Identificación (nombre, apellidos, fecha de nacimiento, estado civil, teléfono).
+ * La cuadrícula responde al ancho de la sección (container query), no de la ventana: en columnas
+ * angostas (p. ej. el modal de edición) conserva 2 columnas; con la sección a ≥40rem (página de
+ * registro) pone nombre y apellidos en una fila y fecha + estado civil en otra. Las clases
+ * `[@container(min-width:40rem)]:…` van escritas completas para que Tailwind las detecte.
  */
 export function IdentificationForm({
   formData,
@@ -102,6 +108,7 @@ export function IdentificationForm({
   className,
   disableFechaNacimiento = false,
   autoFocusNombre = true,
+  headerAside,
 }: IdentificationFormProps) {
   const sexo = formData.sexo === "M" ? "M" : "H";
   const inputClass = getInputClass(sexo);
@@ -111,6 +118,7 @@ export function IdentificationForm({
     : "";
 
   const isNinosEvent = useIsNinosEvent();
+  const fechaInvalid = Boolean(fechaError || errors.fecha_n);
 
   useEffect(() => {
     if (!autoFocusNombre) return;
@@ -158,14 +166,22 @@ export function IdentificationForm({
   );
 
   return (
-    <section className={getFormSectionClass(sexo, className)}>
-      <h2
-        className={`mb-5 border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${sexo === "H" ? "border-app-primary" : "border-pink-600"}`}
-      >
-        Identificación
-      </h2>
-      <div className="mb-4 grid gap-4 sm:grid-cols-1">
-        <div>
+    <section
+      className={getFormSectionClass(
+        sexo,
+        `[container-type:inline-size] ${className ?? ""}`,
+      )}
+    >
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h2
+          className={`border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${sexo === "H" ? "border-app-primary" : "border-pink-600"}`}
+        >
+          Identificación
+        </h2>
+        {headerAside}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 [@container(min-width:40rem)]:grid-cols-3">
+        <div className="sm:col-span-2 [@container(min-width:40rem)]:col-span-1">
           <label htmlFor="nombre" className={labelClass}>
             Nombre *
           </label>
@@ -185,8 +201,6 @@ export function IdentificationForm({
             </p>
           )}
         </div>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="apellido_p" className={labelClass}>
             Apellido paterno *
@@ -223,7 +237,7 @@ export function IdentificationForm({
         <div className={`w-full sm:col-span-2 ${fechaDisabledClass}`.trim()}>
           <fieldset className="flex w-full flex-row flex-nowrap items-end gap-2">
             <legend className={`${labelClass} shrink-0 pb-0`}>
-              Fecha de nacimiento (DD/MM/AAAA)
+              Fecha de nacimiento * (DD/MM/AAAA)
             </legend>
             <div className="flex flex-1 flex-row flex-nowrap items-center gap-2">
               <input
@@ -241,7 +255,7 @@ export function IdentificationForm({
                   applyFechaInputs(v, fechaInputs.mes, fechaInputs.ano);
                   if (v.length === 2) fechaMesRef.current?.focus();
                 }}
-                className={`${inputClass} min-w-0 flex-1 text-center tabular-nums`}
+                className={`${inputClass} ${fechaInvalid ? inputError : ""} min-w-0 flex-1 text-center tabular-nums`}
                 aria-label="Día"
               />
               <span className="shrink-0 text-app-text-secondary dark:text-gray-500">
@@ -256,7 +270,7 @@ export function IdentificationForm({
                 }}
                 onSelectNext={() => fechaAnoRef.current?.focus()}
                 inputRef={fechaMesRef}
-                className={inputClass}
+                className={`${inputClass} ${fechaInvalid ? inputError : ""}`}
                 aria-label="Mes"
               />
               <span className="shrink-0 text-app-text-secondary dark:text-gray-500">
@@ -277,7 +291,7 @@ export function IdentificationForm({
                   onFechaInputsChange({ ano: v });
                   applyFechaInputs(fechaInputs.dia, fechaInputs.mes, v);
                 }}
-                className={`${inputClass} min-w-0 flex-1 text-center tabular-nums`}
+                className={`${inputClass} ${fechaInvalid ? inputError : ""} min-w-0 flex-1 text-center tabular-nums`}
                 aria-label="Año"
               />
             </div>
@@ -297,15 +311,14 @@ export function IdentificationForm({
           <>
             <div>
               <label htmlFor="estado_c" className={labelClass}>
-                Estado civil
+                Estado civil *
               </label>
               <select
                 id="estado_c"
                 name="estado_c"
                 value={formData.estado_c ?? ""}
                 onChange={onChange}
-                className={inputClass}
-                aria-label="Estado civil"
+                className={`${inputClass} ${errors.estado_c ? inputError : ""}`}
               >
                 <option value="">Seleccionar</option>
                 <option value="Soltero(a)">Soltero(a)</option>
@@ -323,15 +336,14 @@ export function IdentificationForm({
             </div>
             <div>
               <label htmlFor="religion" className={labelClass}>
-                Religión
+                Religión *
               </label>
               <select
                 id="religion"
                 name="religion"
                 value={formData.religion ?? ""}
                 onChange={onChange}
-                className={inputClass}
-                aria-label="Religión"
+                className={`${inputClass} ${errors.religion ? inputError : ""}`}
               >
                 <option value="">Seleccionar</option>
                 <option value="Católica">Católica</option>
@@ -366,7 +378,7 @@ export function IdentificationForm({
             </div>
           </>
         ) : (
-          <div className="sm:col-span-2">
+          <div className="sm:col-span-2 [@container(min-width:40rem)]:col-span-3">
             <label htmlFor="address" className={labelClass}>
               Dirección *
             </label>

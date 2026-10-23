@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  CheckmarkCircle01Icon,
-  Edit01Icon,
+  CheckmarkCircle02Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import {
@@ -21,22 +20,44 @@ function fullName(e: EncontradoListItem): string {
   return parts.join(" ").trim() || "Sin nombre";
 }
 
-function getCheckinAt(e: EncontradoListItem): string | null {
-  return e.checkins?.checkinAt ?? null;
+function formatHora(d: Date): string {
+  return d.toLocaleTimeString("es", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
-/** Formato "HH:MM am/pm" para tooltip. */
-function formatCheckinTime(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleTimeString("es", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  } catch {
-    return iso;
+/**
+ * "10:42 a. m." si es de hoy; "23 oct, 10:42 a. m." si es de otro día.
+ * Con `soloHora` siempre devuelve solo la hora (el día ya se mostró al lado).
+ */
+function formatMomento(
+  iso: string | null | undefined,
+  soloHora = false,
+): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const hora = formatHora(d);
+  if (soloHora || d.toDateString() === new Date().toDateString()) return hora;
+  const dia = d.toLocaleDateString("es", { day: "numeric", month: "short" });
+  return `${dia}, ${hora}`;
+}
+
+/**
+ * Coincidencia por nombre o por clave: "H12" / "m3" (sexo + número) o solo el número.
+ */
+function matchesSearch(e: EncontradoListItem, searchNorm: string): boolean {
+  if (fullName(e).toLowerCase().includes(searchNorm)) return true;
+  const clave = String(e.clave ?? "").replace(/\s+/g, "");
+  const sexo = (e.sexo ?? "").toUpperCase();
+  if (!clave || !["H", "M"].includes(sexo)) return false;
+  const conSexo = searchNorm.match(/^([hm])(\d+)$/i);
+  if (conSexo) {
+    return conSexo[1].toUpperCase() === sexo && conSexo[2] === clave;
   }
+  return /^\d+$/.test(searchNorm) && searchNorm === clave;
 }
 
 export interface RegistrosListProps {
@@ -46,8 +67,10 @@ export interface RegistrosListProps {
 }
 
 /**
- * Lista de encontrados del usuario actual, mostrados como badges (nombre, clave)
- * con color por sexo (azul H, rosa M) y botón editar.
+ * Panel con los encontrados que registró el usuario actual, del más reciente al
+ * más antiguo: nombre, hora de registro, estado de check-in y clave (color por
+ * sexo). Cada fila abre la edición del registro. La lista tiene su propio
+ * scroll para que el panel quede fijo junto al formulario.
  */
 export function RegistrosList({
   userId,
@@ -68,148 +91,127 @@ export function RegistrosList({
     skip: !userId,
   });
 
+  if (!userId) return null;
+
   const all = data?.encontrados ?? [];
   const searchNorm = search.trim().toLowerCase();
   const list = searchNorm
-    ? all.filter((e) => {
-        const nameMatch = fullName(e).toLowerCase().includes(searchNorm);
-        const clave = String(e.clave ?? "").replace(/\s+/g, "");
-        const sexo = (e.sexo ?? "").toUpperCase();
-        let claveMatch = false;
-        if (clave && sexo && ["H", "M"].includes(sexo)) {
-          const clavePattern = new RegExp(`^${sexo.toLowerCase()}${clave}$`);
-          const match = searchNorm.match(/^([hm])(\d+)$/i);
-          if (match) {
-            const [_, sLetra, sNum] = match;
-            claveMatch =
-              sLetra.toUpperCase() === sexo &&
-              clave === sNum;
-          } else {
-            const searchDigits = searchNorm.replace(/^[hm]/, "");
-            if (/^\d+$/.test(searchDigits) && searchDigits === clave) {
-              claveMatch = true;
-            }
-          }
-        }
-        return nameMatch || claveMatch;
-      })
+    ? all.filter((e) => matchesSearch(e, searchNorm))
     : all;
 
-  if (!userId) return null;
-
-  if (loading) {
-    return (
-      <div className={className}>
-        <p className="text-sm text-app-text-secondary dark:text-gray-400">
-          Cargando registros…
-        </p>
+  let body: React.ReactNode;
+  if (loading && !data) {
+    body = (
+      <div className="flex flex-col gap-2" aria-hidden>
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="h-[4.25rem] animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800"
+          />
+        ))}
       </div>
     );
-  }
-
-  if (error) {
-    return (
-      <div className={className}>
-        <p className="text-sm text-red-600 dark:text-red-400">
-          Error al cargar registros
-        </p>
-      </div>
+  } else if (error && !data) {
+    body = (
+      <p className="text-sm text-red-600 dark:text-red-400">
+        No se pudieron cargar tus registros.
+      </p>
+    );
+  } else if (list.length === 0) {
+    body = (
+      <p className="rounded-xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-app-text-secondary dark:border-gray-600 dark:text-gray-400">
+        {searchNorm
+          ? "Ningún registro coincide con la búsqueda."
+          : "Aquí aparecerán las personas que registres."}
+      </p>
+    );
+  } else {
+    body = (
+      <ul className="-mx-1 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain px-1 py-1">
+        {list.map((encontrado) => {
+          const sexo = encontrado.sexo === "M" ? "M" : "H";
+          const checkinAt = encontrado.checkins?.checkinAt ?? null;
+          return (
+            <li key={encontrado.id}>
+              <button
+                type="button"
+                onClick={onEdit ? () => onEdit(encontrado.id) : undefined}
+                disabled={!onEdit}
+                title={onEdit ? "Editar registro" : undefined}
+                className={getGlassCardClass(sexo, {
+                  interactive: !!onEdit,
+                  className:
+                    "flex w-full items-start justify-between gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/60 disabled:cursor-default",
+                })}
+              >
+                <span className="min-w-0">
+                  <span
+                    className="block truncate font-medium"
+                    title={fullName(encontrado)}
+                  >
+                    {fullName(encontrado)}
+                  </span>
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-app-text-secondary dark:text-gray-400">
+                    <span>{formatMomento(encontrado.create_at)}</span>
+                    <span aria-hidden>·</span>
+                    {checkinAt ? (
+                      <span className="inline-flex items-center gap-1 font-medium text-green-700 dark:text-green-400">
+                        <HugeiconsIcon
+                          icon={CheckmarkCircle02Icon}
+                          size={12}
+                          aria-hidden
+                        />
+                        Check-in {formatMomento(checkinAt, true)}
+                      </span>
+                    ) : (
+                      <span>Sin check-in</span>
+                    )}
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm font-semibold tabular-nums">
+                  {sexo}
+                  {encontrado.clave}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4 ">
-      <div className="flex flex-col gap-10 sm:flex-row sm:items-center">
-        <h2 className="text-2xl font-bold tracking-tight text-app-text-primary dark:text-white sm:text-2xl">
-          Registros recientes ({list.length})
+    <section
+      aria-labelledby="mis-registros-title"
+      className={`flex min-h-0 flex-col gap-3 ${className ?? ""}`.trim()}
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <h2
+          id="mis-registros-title"
+          className="text-lg font-semibold tracking-tight text-app-text-primary dark:text-white"
+        >
+          Mis registros
         </h2>
-        <div className="relative shrink-0 sm:w-1/2">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-secondary dark:text-gray-400"
-          />
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nombre o clave. Ejem: 'Juan Perez', 'H1' o 'M1'"
-            className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:border-app-primary focus:outline-none focus:ring-1 focus:ring-app-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400"
-            aria-label="Buscar registros por nombre"
-          />
-        </div>
+        <span className="text-sm tabular-nums text-app-text-secondary dark:text-gray-400">
+          {searchNorm ? `${list.length} de ${all.length}` : all.length}
+        </span>
       </div>
-      {list.length === 0 ? (
-        <p className="text-sm text-app-text-secondary dark:text-gray-400">
-          {searchNorm
-            ? "Ningún registro coincide con la búsqueda"
-            : "Aún no hay registros"}
-        </p>
-      ) : (
-        <div className={`flex flex-wrap gap-3 ${className ?? ""}`.trim()}>
-          {list.map((encontrado) => {
-            const sexo = encontrado.sexo === "M" ? "M" : "H";
-            const checkinAt = getCheckinAt(encontrado);
-            return (
-              <div
-                key={encontrado.id}
-                role={onEdit ? "button" : undefined}
-                tabIndex={onEdit ? 0 : undefined}
-                onClick={onEdit ? () => onEdit(encontrado.id) : undefined}
-                onKeyDown={
-                  onEdit
-                    ? (ev) => {
-                        if (ev.key === "Enter" || ev.key === " ") {
-                          ev.preventDefault();
-                          onEdit(encontrado.id);
-                        }
-                      }
-                    : undefined
-                }
-                className={getGlassCardClass(sexo, {
-                  interactive: !!onEdit,
-                  compact: true,
-                  className: "inline-flex items-center gap-2",
-                })}
-                aria-label={onEdit ? `Editar ${fullName(encontrado)}` : undefined}
-              >
-                {onEdit ? (
-                  <HugeiconsIcon
-                    icon={Edit01Icon}
-                    size={18}
-                    className="shrink-0 opacity-80"
-                    aria-hidden
-                  />
-                ) : null}
-                <span className="font-medium">{fullName(encontrado)}</span>
-                <span className="opacity-90">·</span>
-                <span className="text-sm font-semibold">
-                  Clave: {encontrado.sexo}
-                  {encontrado.clave}
-                </span>
-                {checkinAt ? (
-                  <span className="group relative inline-flex shrink-0">
-                    <span className="inline-flex items-center justify-center text-green-600 dark:text-green-400">
-                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} />
-                    </span>
-                    <span
-                      role="tooltip"
-                      className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100 dark:bg-gray-700"
-                    >
-                      El encontrado ya hizo checkin a las{" "}
-                      {formatCheckinTime(checkinAt)}
-                      <span
-                        className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"
-                        aria-hidden
-                      />
-                    </span>
-                  </span>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+      <div className="relative">
+        <HugeiconsIcon
+          icon={Search01Icon}
+          size={16}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-app-text-secondary dark:text-gray-400"
+        />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Nombre o clave (H1, M3)"
+          className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-app-text-primary placeholder:text-app-text-secondary focus:border-app-primary focus:outline-none focus:ring-1 focus:ring-app-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-400"
+          aria-label="Buscar en mis registros por nombre o clave"
+        />
+      </div>
+      {body}
+    </section>
   );
 }

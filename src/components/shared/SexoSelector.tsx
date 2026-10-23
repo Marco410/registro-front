@@ -11,6 +11,8 @@ export interface SexoSelectorProps {
   className?: string;
   label?: string;
   disabled?: boolean;
+  /** Etiqueta en línea y botones más bajos, para encabezados de sección. */
+  compact?: boolean;
 }
 
 /**
@@ -23,9 +25,13 @@ export function SexoSelector({
   className,
   label = "Sexo a registrar",
   disabled = false,
+  compact = false,
 }: SexoSelectorProps) {
+  const pillSize = compact ? "px-3 py-1.5" : "px-4 py-2.5";
   return (
-    <div className={`flex flex-col gap-2 ${className ?? ""}`.trim()}>
+    <div
+      className={`flex ${compact ? "flex-row items-center gap-3" : "flex-col gap-2"} ${className ?? ""}`.trim()}
+    >
       <span className="text-xs font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400">
         {label}
       </span>
@@ -35,9 +41,9 @@ export function SexoSelector({
         aria-label="Sexo a registrar"
       >
         <label
-          className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${!disabled && "cursor-pointer"} ${
+          className={`rounded-lg ${pillSize} text-sm font-medium transition-all duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-app-primary/60 ${!disabled && "cursor-pointer"} ${
             value === "H"
-              ? "bg-white text-app-primary shadow-sm dark:bg-gray-700 dark:text-app-primary-muted"
+              ? "bg-white text-app-primary shadow-sm ring-1 ring-app-primary/30 dark:bg-gray-700 dark:text-app-primary-muted dark:ring-app-primary-muted/40"
               : "text-app-text-secondary hover:text-app-text-primary dark:text-gray-400 dark:hover:text-white"
           }`}
         >
@@ -53,9 +59,9 @@ export function SexoSelector({
           Hombre
         </label>
         <label
-          className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${!disabled && "cursor-pointer"} ${
+          className={`rounded-lg ${pillSize} text-sm font-medium transition-all duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose-500/60 ${!disabled && "cursor-pointer"} ${
             value === "M"
-              ? "bg-white text-rose-600 shadow-sm dark:bg-gray-700 dark:text-rose-400"
+              ? "bg-white text-rose-600 shadow-sm ring-1 ring-rose-500/30 dark:bg-gray-700 dark:text-rose-400 dark:ring-rose-400/40"
               : "text-app-text-secondary hover:text-app-text-primary dark:text-gray-400 dark:hover:text-white"
           }`}
         >

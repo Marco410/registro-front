@@ -5,6 +5,7 @@ import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 import {
   getFormSectionClass,
   getInputClass,
+  inputError,
   labelClass,
 } from "registro/components/shared/FormInputStyles";
 import { useActiveEvent } from "registro/contexts/active-event-context";
@@ -34,22 +35,32 @@ export function ContactForm({
 
 
   return (
-    <section className={getFormSectionClass(sexo, className)}>
+    <section
+      className={getFormSectionClass(
+        sexo,
+        `[container-type:inline-size] ${className ?? ""}`,
+      )}
+    >
       <div>
         <h2
           className={`border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${sexo === "H" ? "border-app-primary" : "border-pink-600"}`}
         >
           Contacto de Emergencia
         </h2>
-        <small className="pl-3 text-xs text-app-text-secondary">
+        <small className="mt-1 block pl-4 text-xs text-app-text-secondary dark:text-gray-400">
           Nombre y teléfono de una persona de confianza que pueda ayudar en caso
           de emergencia.
         </small>
       </div>
-      <div className="grid gap-4 sm:grid-cols-1">
+      {/*
+        Con la sección a ≥26rem, nombre y teléfono van en una sola fila. Las
+        etiquetas visibles son cortas (el título ya dice de quién son); el
+        texto completo queda para lectores de pantalla.
+      */}
+      <div className="grid gap-4 [@container(min-width:26rem)]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div>
           <label htmlFor="nom_ref" className={labelClass}>
-            Nombre del contacto de emergencia
+            Nombre<span className="sr-only"> del contacto de emergencia</span> *
           </label>
           <input
             id="nom_ref"
@@ -57,8 +68,8 @@ export function ContactForm({
             type="text"
             value={nomRef}
             onChange={onChange}
-            className={inputClass}
-            placeholder="Contacto de emergencia"
+            className={`${inputClass} ${errors.nom_ref ? inputError : ""}`}
+            placeholder="Nombre completo"
           />
           {errors.nom_ref && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-400">
@@ -68,7 +79,7 @@ export function ContactForm({
         </div>
         <div>
           <label htmlFor="tel_ref" className={labelClass}>
-            Teléfono del contacto de emergencia
+            Teléfono<span className="sr-only"> del contacto de emergencia</span> *
           </label>
           <input
             id="tel_ref"
@@ -78,8 +89,8 @@ export function ContactForm({
             maxLength={10}
             value={telRef}
             onChange={onChange}
-            className={inputClass}
-            placeholder="Teléfono del contacto de emergencia"
+            className={`${inputClass} ${errors.tel_ref ? inputError : ""}`}
+            placeholder="10 dígitos"
           />
           {errors.tel_ref && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-400">

@@ -8,6 +8,7 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   AuditIcon,
+  UserAdd01Icon,
 } from "@hugeicons/core-free-icons";
 import { routes } from "registro/constants/routes";
 import {
@@ -16,6 +17,7 @@ import {
   type UsersQueryResponse,
 } from "registro/graphql/users/queries";
 import { AnimatedMount } from "registro/components/shared";
+import { NuevoUsuarioModal } from "registro/components/dashboard/usuarios";
 
 type SortColumn = "registros" | "mediaRegistro" | "checkins" | "mediaCheckin";
 type SortDir = "asc" | "desc";
@@ -89,6 +91,7 @@ export default function DashboardUsuariosPage() {
   const { data, loading, error } = useQuery<UsersQueryResponse>(USERS_QUERY);
   const [sortBy, setSortBy] = useState<SortColumn | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [showNuevoUsuario, setShowNuevoUsuario] = useState(false);
 
   const rawList = useMemo(() => data?.users ?? [], [data]);
 
@@ -168,14 +171,24 @@ export default function DashboardUsuariosPage() {
 
   return (
     <div className="w-full max-w-6xl">
-      <div className="border-l-4 border-app-primary pl-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
-          Usuarios
-        </h1>
-        <p className="mt-1 text-sm text-app-text-secondary dark:text-gray-400">
-          Listado con registros, check-ins y tiempo medio por registro y por
-          check-in.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="border-l-4 border-app-primary pl-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
+            Usuarios
+          </h1>
+          <p className="mt-1 text-sm text-app-text-secondary dark:text-gray-400">
+            Listado con registros, check-ins y tiempo medio por registro y por
+            check-in.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowNuevoUsuario(true)}
+          className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-app-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary focus-visible:ring-offset-2 dark:bg-app-primary-muted dark:text-gray-900 dark:hover:bg-app-primary-muted/90 sm:self-auto"
+        >
+          <HugeiconsIcon icon={UserAdd01Icon} size={18} />
+          Nuevo usuario
+        </button>
       </div>
 
       <AnimatedMount show={true} animationKey="usuarios-list">
@@ -286,6 +299,11 @@ export default function DashboardUsuariosPage() {
           )}
         </div>
       </AnimatedMount>
+
+      <NuevoUsuarioModal
+        open={showNuevoUsuario}
+        onClose={() => setShowNuevoUsuario(false)}
+      />
     </div>
   );
 }

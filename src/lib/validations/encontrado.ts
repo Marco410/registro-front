@@ -26,7 +26,7 @@ export function getEncontradoSchema(eventType: EncontradoEventMode) {
       .string()
       .min(
         1,
-        " El nombre del contacto de emergencia es obligatorio. Puede ser sus padres, hermanos, amigos, tios, conocidos, etc.",
+        "El nombre del contacto de emergencia es obligatorio. Puede ser sus padres, hermanos, amigos, tíos, conocidos, etc.",
       ),
     tel_ref: z
       .string()

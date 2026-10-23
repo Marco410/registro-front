@@ -12,53 +12,56 @@ import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 import { useIsNinosEvent } from "registro/contexts/active-event-context";
 import { GlassModal } from "registro/components/shared/GlassModal";
 
-function buildConfirmRows(
+type ConfirmRow = { label: string; value: string };
+
+/**
+ * Agrupa los datos del formulario para revisarlos de un vistazo: la persona
+ * (nombre, sexo, edad, nacimiento) arriba y tres grupos cortos debajo.
+ */
+function buildConfirmGroups(
   formData: EncontradoFormData,
   isNinosEvent: boolean,
-): { label: string; value: string }[] {
-  const base: { label: string; value: string }[] = [
-    { label: "Nombre", value: displayValue(formData.nombre) },
-    { label: "Apellido paterno", value: displayValue(formData.apellido_p) },
-    { label: "Apellido materno", value: displayValue(formData.apellido_m) },
-    {
-      label: "Sexo",
-      value: formData.sexo === "H" ? "Hombre" : "Mujer",
-    },
-    {
-      label: "Fecha de nacimiento",
-      value: formatFechaDisplay(formData.fecha_n),
-    },
-    { label: "Edad", value: displayEdad(formData.fecha_n) },
-  ];
-  if (isNinosEvent) {
-    base.push({
-      label: "Dirección",
-      value: displayValue(formData.address),
-    });
-  } else {
-    base.push(
-      { label: "Estado civil", value: displayValue(formData.estado_c) },
-      { label: "Religión", value: displayValue(formData.religion) },
-      { label: "Teléfono", value: displayValue(formData.telefono) },
-    );
-  }
-  return [
-    ...base,
-    { label: "Nombre del referido", value: displayValue(formData.nom_ref) },
-    { label: "Teléfono del referido", value: displayValue(formData.tel_ref) },
-    {
-      label: "Enfermedad / padecimiento",
-      value: displayValue(formData.enfermedad),
-    },
-    {
-      label: "Tiene celular",
-      value: formData.celular ? "Sí" : "No",
-    },
-    {
-      label: "Tiene medicamento",
-      value: formData.medicamento ? "Sí" : "No",
-    },
-  ];
+): { nombreCompleto: string; resumen: string; groups: { title: string; rows: ConfirmRow[] }[] } {
+  const nombreCompleto = [formData.nombre, formData.apellido_p, formData.apellido_m]
+    .map((parte) => (parte ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+  const resumen = [
+    formData.sexo === "H" ? "Hombre" : "Mujer",
+    displayEdad(formData.fecha_n),
+    `Nació el ${formatFechaDisplay(formData.fecha_n)}`,
+  ].join(" · ");
+
+  const datos: ConfirmRow[] = isNinosEvent
+    ? [{ label: "Dirección", value: displayValue(formData.address) }]
+    : [
+        { label: "Estado civil", value: displayValue(formData.estado_c) },
+        { label: "Religión", value: displayValue(formData.religion) },
+        { label: "Teléfono", value: displayValue(formData.telefono) },
+      ];
+
+  return {
+    nombreCompleto: nombreCompleto || "Sin nombre",
+    resumen,
+    groups: [
+      { title: "Datos", rows: datos },
+      {
+        title: "Contacto de emergencia",
+        rows: [
+          { label: "Nombre", value: displayValue(formData.nom_ref) },
+          { label: "Teléfono", value: displayValue(formData.tel_ref) },
+        ],
+      },
+      {
+        title: "Salud",
+        rows: [
+          { label: "Enfermedad", value: displayValue(formData.enfermedad) },
+          { label: "Celular", value: formData.celular ? "Sí" : "No" },
+          { label: "Medicamento", value: formData.medicamento ? "Sí" : "No" },
+        ],
+      },
+    ],
+  };
 }
 
 export interface ConfirmRegistroModalProps {
@@ -127,14 +130,17 @@ export function ConfirmRegistroModal({
     return () => document.removeEventListener("keydown", handleKeyDown, true);
   }, [open]);
 
-  const rows = buildConfirmRows(formData, isNinosEvent);
+  const { nombreCompleto, resumen, groups } = buildConfirmGroups(
+    formData,
+    isNinosEvent,
+  );
 
   return (
     <GlassModal
       open={open}
       onClose={onCancel}
       ariaLabelledBy="confirm-modal-title"
-      panelClassName="max-w-6xl max-h-[min(94vh,calc(100dvh-2rem))] overflow-y-auto overscroll-contain p-6"
+      panelClassName="max-w-3xl max-h-[min(94vh,calc(100dvh-2rem))] overflow-y-auto overscroll-contain p-6"
       disableBackdropClose={loading}
     >
         <h1
@@ -144,23 +150,43 @@ export function ConfirmRegistroModal({
           Confirmar registro
         </h1>
         <p className="mt-1 text-sm text-app-text-secondary dark:text-gray-400">
-          Revise los datos antes de guardar.
+          Revisa los datos antes de guardar.
         </p>
-        <dl className="mt-5 grid grid-cols-3 gap-x-6 gap-y-4 rounded-xl bg-white/50 py-4 pl-4 pr-4 dark:bg-black/20">
-          {rows.map(({ label, value }) => (
-            <div
-              key={label}
-              className="flex flex-col gap-0.5 border-b border-gray-100 pb-3 last:border-0 last:pb-0 dark:border-gray-700"
-            >
-              <dt className="text-sm font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
-                {label}
-              </dt>
-              <dd className="text-base font-medium text-app-text-primary break-words dark:text-white">
-                {value}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <div className="mt-4 rounded-xl bg-white/70 p-4 ring-1 ring-gray-200/80 dark:bg-black/20 dark:ring-white/10">
+          <p
+            className={`text-xl font-semibold tracking-tight ${
+              formData.sexo === "H"
+                ? "text-app-primary dark:text-app-primary-muted"
+                : "text-rose-600 dark:text-rose-400"
+            }`}
+          >
+            {nombreCompleto}
+          </p>
+          <p className="mt-0.5 text-sm tabular-nums text-app-text-secondary dark:text-gray-400">
+            {resumen}
+          </p>
+          <div className="mt-4 grid gap-x-8 gap-y-5 border-t border-gray-200 pt-4 dark:border-gray-700 sm:grid-cols-3">
+            {groups.map((group) => (
+              <section key={group.title}>
+                <h2 className="text-xs font-semibold text-app-text-primary dark:text-gray-200">
+                  {group.title}
+                </h2>
+                <dl className="mt-2 space-y-1.5">
+                  {group.rows.map(({ label, value }) => (
+                    <div key={label} className="flex justify-between gap-3 text-sm">
+                      <dt className="shrink-0 text-app-text-secondary dark:text-gray-400">
+                        {label}
+                      </dt>
+                      <dd className="min-w-0 break-words text-right font-medium text-app-text-primary dark:text-white">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            ))}
+          </div>
+        </div>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
           <div className="flex flex-col items-center">
             <button

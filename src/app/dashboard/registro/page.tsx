@@ -31,7 +31,6 @@ import {
 import { routes } from "registro/constants/routes";
 import { toast } from "sonner";
 import { usePrintGafete } from "registro/components/dashboard/checkin/hooks/use-printer-gafete";
-import { AnimatedMount } from "registro/components/shared";
 
 const initialValues: EncontradoFormData = {
   nombre: "",
@@ -58,6 +57,34 @@ function parseFechaN(
   const [y, m, d] = value.split("-").map(Number);
   if (!y || !m || !d) return null;
   return { day: d, month: m, year: y };
+}
+
+/** Orden en que se enfoca el primer campo con error (id del input en el formulario). */
+const ERROR_FOCUS_ORDER: [keyof EncontradoFormData, string][] = [
+  ["nombre", "nombre"],
+  ["apellido_p", "apellido_p"],
+  ["fecha_n", "fecha_dia"],
+  ["estado_c", "estado_c"],
+  ["religion", "religion"],
+  ["address", "address"],
+  ["nom_ref", "nom_ref"],
+  ["tel_ref", "tel_ref"],
+];
+
+/**
+ * Enfoca el siguiente campo del formulario (Enter avanza como Tab). De un grupo
+ * de radios solo cuenta el seleccionado.
+ */
+function focusNextField(form: HTMLFormElement, current: HTMLElement) {
+  const fields = Array.from(
+    form.querySelectorAll<HTMLElement>(
+      "input:not([type=hidden]):not(:disabled), select:not(:disabled), textarea:not(:disabled)",
+    ),
+  ).filter(
+    (el) => !(el instanceof HTMLInputElement && el.type === "radio" && !el.checked),
+  );
+  const index = fields.indexOf(current);
+  fields[index + 1]?.focus();
 }
 
 /** Retorna true si el formulario tiene algún dato (excluyendo sexo). */
@@ -131,6 +158,13 @@ export default function DashboardRegistroPage() {
   };
   clearFormRef.current = handleClearForm;
 
+  /** Enfoca un campo del formulario de registro por id (evita ids repetidos en modales). */
+  const focusField = (id: string) => {
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>(`#${id}`)?.focus();
+    });
+  };
+
   const resetFormAfterSave = () => {
     setShowConfirmModal(false);
     setFormData((prev) => ({
@@ -140,6 +174,7 @@ export default function DashboardRegistroPage() {
     }));
     setErrors({});
     setFechaInputs({ dia: "", mes: "", ano: "" });
+    focusField("nombre");
   };
 
   const { submitEncontrado, loading } = useCreateEncontrado({
@@ -150,8 +185,14 @@ export default function DashboardRegistroPage() {
 
   const loadingRef = useRef(loading);
   loadingRef.current = loading;
+  // Con un modal abierto (confirmar, descartar o editar) los atajos de la página
+  // se pausan: cada modal maneja los suyos.
+  const modalOpenRef = useRef(false);
+  modalOpenRef.current =
+    showConfirmModal || showDiscardModal || editingEncontradoId != null;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (modalOpenRef.current) return;
       if (
         e.key === "Enter" &&
         (e.ctrlKey || e.metaKey) &&
@@ -300,6 +341,8 @@ export default function DashboardRegistroPage() {
         }
       });
       setErrors(fieldErrors);
+      const firstInvalid = ERROR_FOCUS_ORDER.find(([key]) => fieldErrors[key]);
+      if (firstInvalid) focusField(firstInvalid[1]);
       return;
     }
     setErrors({});
@@ -336,12 +379,6 @@ export default function DashboardRegistroPage() {
     if (!result.success || !userId) return;
     const created = await submitEncontrado(result.data);
     if (!created?.id) return;
-    console.log("created");
-    console.log(created);
-    console.log("formData");
-    console.log(formData);
-    console.log("result");
-    console.log(result);
     try {
       await PrintGafete(
         formData.nombre,
@@ -355,151 +392,137 @@ export default function DashboardRegistroPage() {
     }
   };
 
-  const pageAccent =
-    formData.sexo === "M"
-      ? "border-pink-500 dark:border-pink-400"
-      : "border-app-primary";
+  const isHombre = formData.sexo !== "M";
+  const kbdClass =
+    "rounded border bg-gray-100 px-1 font-mono text-xs shadow-sm dark:border-gray-600 dark:bg-gray-800";
+
+  /** Enter en un campo pasa al siguiente, como Tab; registrar es Ctrl+Enter. */
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (
+      e.key !== "Enter" ||
+      e.defaultPrevented ||
+      e.ctrlKey ||
+      e.metaKey ||
+      e.altKey ||
+      e.shiftKey
+    ) {
+      return;
+    }
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement) || target.type === "checkbox") {
+      return;
+    }
+    e.preventDefault();
+    focusNextField(e.currentTarget, target);
+  };
 
   return (
-    <div className="w-full max-w-7xl">
-      <header className="mb-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className={`border-l-4 pl-4 ${pageAccent}`}>
-            <h1 className="text-2xl font-semibold tracking-tight text-app-text-primary dark:text-white sm:text-3xl">
-              Registro de encontrado
-            </h1>
-            <p className="mt-1 text-sm text-app-text-secondary dark:text-gray-400">
-              Completa los datos del encontrado para registrarlo.
-            </p>
-          </div>
-          <SexoSelector
-            value={formData.sexo === "M" ? "M" : "H"}
-            error={errors.sexo}
+    <div className="grid w-full max-w-[110rem] grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr),minmax(300px,380px)]">
+      <div className="min-w-0">
+        {/* La pestaña "Registro" ya titula la vista; el h1 queda para lectores de pantalla. */}
+        <h1 className="sr-only">
+          Registro de {isHombre ? "encontrado" : "encontrada"}
+        </h1>
+
+        {/*
+          El formulario es contenedor de consulta: Contacto y Salud se ponen
+          lado a lado cuando hay ancho (≥44rem), sin depender de la ventana.
+          scroll-mb evita que la barra fija de acciones tape el campo enfocado.
+        */}
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          onKeyDown={handleFormKeyDown}
+          className="space-y-6 [container-type:inline-size] [&_input]:scroll-mb-28 [&_select]:scroll-mb-28 [&_textarea]:scroll-mb-28"
+        >
+          <IdentificationForm
+            formData={formData}
+            errors={errors}
+            fechaInputs={fechaInputs}
+            fechaError={fechaError}
             onChange={handleChange}
+            onFechaInputsChange={(partial) =>
+              setFechaInputs((prev) => ({ ...prev, ...partial }))
+            }
+            onFechaNChange={(fechaN) =>
+              setFormData((prev) => ({ ...prev, fecha_n: fechaN }))
+            }
+            onFechaError={setFechaError}
+            onClearFechaError={() =>
+              setErrors((prev) => ({ ...prev, fecha_n: undefined }))
+            }
+            fechaMesRef={fechaMesRef}
+            fechaAnoRef={fechaAnoRef}
+            headerAside={
+              <SexoSelector
+                value={isHombre ? "H" : "M"}
+                error={errors.sexo}
+                onChange={handleChange}
+                label="Sexo"
+                compact
+              />
+            }
           />
-        </div>
-      </header>
-
-      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <AnimatedMount
-              show
-              animationKey={'identification-form'}
-              className="space-y-6"
-            >
-            <IdentificationForm
+          <div className="grid gap-6 [@container(min-width:44rem)]:grid-cols-2">
+            <ContactForm
               formData={formData}
-              errors={errors}
-              fechaInputs={fechaInputs}
-              fechaError={fechaError}
               onChange={handleChange}
-              onFechaInputsChange={(partial) =>
-                setFechaInputs((prev) => ({ ...prev, ...partial }))
-              }
-              onFechaNChange={(fechaN) =>
-                setFormData((prev) => ({ ...prev, fecha_n: fechaN }))
-              }
-              onFechaError={setFechaError}
-              onClearFechaError={() =>
-                setErrors((prev) => ({ ...prev, fecha_n: undefined }))
-              }
-              fechaMesRef={fechaMesRef}
-              fechaAnoRef={fechaAnoRef}
+              errors={errors}
+              className="flex flex-col gap-4"
             />
-          </AnimatedMount>
-          <div className="flex flex-col gap-6">
-            <AnimatedMount
-              show
-              animationKey={'contact-form'}
-              className="space-y-6"
-            >
-              <ContactForm
-                formData={formData}
-                onChange={handleChange}
-                errors={errors}
-                className="flex flex-col gap-6"
-              />
-            </AnimatedMount>
-            <AnimatedMount
-              show
-              animationKey={'health-indicators-form'}
-              className="space-y-6"
-            >
-              <FormHealthIndicators
-                formData={formData}
-                onChange={handleChange}
-                className="flex flex-col gap-6"
-              />
-            </AnimatedMount>
+            <FormHealthIndicators
+              formData={formData}
+              onChange={handleChange}
+              className="flex flex-col gap-4"
+            />
           </div>
-        </div>
 
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <div className="flex flex-col items-center">
-            <button
-              type="button"
-              onClick={handleClearForm}
-              className={`w-full rounded-xl border px-5 py-2.5 text-sm font-medium text-app-text-primary transition-colors dark:text-gray-300 dark:hover:bg-gray-800 ${formData.sexo === "H" ? "border-gray-300 hover:bg-app-selected dark:border-gray-600" : "hover:bg-pink-500/10 dark:border-pink-400"}`}
-            >
-              Limpiar
-            </button>
-            <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
-                Ctrl
-              </kbd>{" "}
-              + (
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
-                Backspace
-              </kbd>{" "}
-              o{" "}
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
-                ESC
-              </kbd>
-              )
-            </span>
+          <div className="sticky bottom-0 z-10 flex flex-col-reverse gap-3 border-t border-gray-200 bg-app-surface py-3 sm:flex-row sm:justify-end dark:border-gray-700 dark:bg-[#202124]">
+            <div className="flex flex-col items-center">
+              <button
+                type="button"
+                onClick={handleClearForm}
+                className={`w-full rounded-xl border px-5 py-2.5 text-sm font-medium text-app-text-primary transition-colors dark:text-gray-300 dark:hover:bg-gray-800 ${isHombre ? "border-gray-300 hover:bg-app-selected dark:border-gray-600" : "hover:bg-pink-500/10 dark:border-pink-400"}`}
+              >
+                Limpiar
+              </button>
+              <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
+                <kbd className={kbdClass}>Ctrl</kbd> + (
+                <kbd className={kbdClass}>Backspace</kbd> o{" "}
+                <kbd className={kbdClass}>ESC</kbd>)
+              </span>
+            </div>
+            <div className="flex flex-col items-center">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+                  isHombre
+                    ? "bg-app-primary hover:bg-app-primary/90 focus:ring-app-primary focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
+                    : "bg-rose-600 hover:bg-rose-700 focus:ring-rose-500 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
+                }`}
+              >
+                <HugeiconsIcon icon={Add01Icon} size={18} />
+                {loading
+                  ? "Guardando…"
+                  : `Registrar ${isHombre ? "encontrado" : "encontrada"}`}
+              </button>
+              <span className="mt-1 select-none text-xs text-app-text-secondary dark:text-gray-400">
+                <kbd className={kbdClass}>Ctrl</kbd> +{" "}
+                <kbd className={kbdClass}>Enter</kbd>
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col items-center">
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
-                formData.sexo === "H"
-                  ? "bg-app-primary hover:bg-app-primary/90 focus:ring-app-primary focus:ring-offset-2 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
-                  : "bg-rose-600 hover:bg-rose-700 focus:ring-rose-500 focus:ring-offset-2 focus:ring-offset-app-surface dark:focus:ring-offset-[#202124]"
-              }`}
-            >
-              <HugeiconsIcon icon={Add01Icon} size={18} />
-              {loading
-                ? "Guardando…"
-                : `Registrar ${
-                    formData.sexo === "H" ? "encontrado" : "encontrada"
-                  } `}
-            </button>
-            <span className="mt-1 text-xs text-app-text-secondary dark:text-gray-400 select-none">
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
-                Ctrl
-              </kbd>{" "}
-              +{" "}
-              <kbd className="px-1 bg-gray-100 rounded border text-xs shadow-sm font-mono dark:bg-gray-800 dark:border-gray-600">
-                Enter
-              </kbd>
-            </span>
-          </div>
-        </div>
-      </form>
+        </form>
+      </div>
 
-      <div
-        className="my-8 h-px w-full bg-gray-200 dark:bg-gray-700"
-        role="separator"
-        aria-orientation="horizontal"
-      />
-
-      <div className="flex flex-col gap-6 mt-6">
+      <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100dvh-7.5rem)] lg:flex-col lg:self-start lg:border-l lg:border-gray-200 lg:pl-8 dark:lg:border-gray-700">
         <RegistrosList
           userId={user?.id}
           onEdit={(id) => setEditingEncontradoId(id)}
+          className="lg:flex-1"
         />
-      </div>
+      </aside>
 
       <EditEncontradoModal
         open={editingEncontradoId != null}
@@ -512,7 +535,7 @@ export default function DashboardRegistroPage() {
       <ConfirmRegistroModal
         open={showConfirmModal}
         formData={formData}
-        loading={loading || performingCheckin}
+        loading={loading || performingCheckin || printingGafete}
         onConfirm={handleConfirmSave}
         onConfirmAndCheckin={handleConfirmAndCheckin}
         onConfirmAndPrint={handleConfirmAndPrint} 

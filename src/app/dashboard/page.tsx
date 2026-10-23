@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const tab = parseTab(searchParams.get("tab"));
 
   return (
-    <div className="w-full max-w-7xl">
+    <div className="w-full">
       <div className="mb-6 flex border-b border-gray-200 dark:border-gray-700">
       <Link
           href={routes.dashboardRegistro()}

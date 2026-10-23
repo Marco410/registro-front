@@ -92,6 +92,13 @@ export function MonthAutocomplete({
             handleSelect(matches[0].value);
           }
         }}
+        onKeyDown={(e) => {
+          // Enter elige la primera coincidencia (la que anuncia aria-activedescendant) y pasa al año.
+          if (e.key === "Enter" && open && filter && filtered[0]) {
+            e.preventDefault();
+            handleSelect(filtered[0].value);
+          }
+        }}
         onFocus={() => setOpen(true)}
         onBlur={() => {
           setTimeout(() => {
