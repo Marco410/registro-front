@@ -201,7 +201,7 @@ export default function CheckinPage() {
     : null;
 
   return (
-    <div className="w-full max-w-7xl">
+    <div className="w-full max-w-[110rem]">
       <div className={`border-l-4 pl-4 border-green-500`}>
         <h1 className="text-2xl font-semibold tracking-tight bg-green dark:text-white sm:text-3xl">
           Check-in
@@ -212,7 +212,7 @@ export default function CheckinPage() {
         </p>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr,minmax(300px,380px)]">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr),minmax(300px,380px)]">
         <div className="min-w-0">
           {resultData ? (
             <AnimatedMount
