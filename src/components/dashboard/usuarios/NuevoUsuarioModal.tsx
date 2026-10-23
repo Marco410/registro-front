@@ -10,6 +10,8 @@ import {
 import { GlassModal } from "registro/components/shared/GlassModal";
 import {
   ROLES_USUARIO,
+  emailDeUsuario,
+  generarUsername,
   nuevoUsuarioSchema,
   type NuevoUsuarioFormData,
 } from "registro/lib/validations/usuario";
@@ -101,9 +103,17 @@ export function NuevoUsuarioModal({ open, onClose }: NuevoUsuarioModalProps) {
       if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
     };
 
+  // Si no se escribe usuario, se usa el generado con nombre y apellido; de él
+  // sale el correo (usuario@email.com), que el backend exige único.
+  const usernameGenerado = generarUsername(form.name, form.lastName);
+  const usernameFinal = form.username || usernameGenerado;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = nuevoUsuarioSchema.safeParse(form);
+    const parsed = nuevoUsuarioSchema.safeParse({
+      ...form,
+      username: usernameFinal,
+    });
     if (!parsed.success) {
       const fieldErrors: Partial<Record<keyof NuevoUsuarioFormData, string>> =
         {};
@@ -208,18 +218,32 @@ export function NuevoUsuarioModal({ open, onClose }: NuevoUsuarioModalProps) {
               autoComplete="off"
               autoCapitalize="none"
               spellCheck={false}
-              placeholder="Se genera si lo dejas vacío"
+              placeholder={usernameGenerado || "Se genera con nombre y apellido"}
               disabled={loading}
               aria-invalid={Boolean(errors.username)}
               aria-describedby={
-                errors.username ? "nuevo-usuario-username-error" : undefined
+                errors.username
+                  ? "nuevo-usuario-username-error"
+                  : "nuevo-usuario-username-help"
               }
               className={inputClass(Boolean(errors.username))}
             />
-            <FieldError
-              id="nuevo-usuario-username-error"
-              message={errors.username}
-            />
+            {errors.username ? (
+              <FieldError
+                id="nuevo-usuario-username-error"
+                message={errors.username}
+              />
+            ) : (
+              <p
+                id="nuevo-usuario-username-help"
+                className="mt-1 truncate text-xs text-app-text-secondary dark:text-gray-400"
+                title={usernameFinal ? emailDeUsuario(usernameFinal) : undefined}
+              >
+                {usernameFinal
+                  ? `Correo: ${emailDeUsuario(usernameFinal)}`
+                  : "Si lo dejas vacío, se genera con nombre y apellido."}
+              </p>
+            )}
           </div>
           <div>
             <label htmlFor="nuevo-usuario-phone" className={labelClass}>

@@ -21,10 +21,36 @@ export const ROLES_USUARIO = [
 
 export type RolUsuario = (typeof ROLES_USUARIO)[number]["value"];
 
+/** Dominio del correo que se asigna a cada usuario (`email` es único en el backend). */
+export const EMAIL_DOMAIN = "email.com";
+
 /**
- * Formulario de nuevo usuario. `username` es opcional: si va vacío, el backend
- * lo genera con nombre y apellido. La contraseña sigue la regla de Keystone
- * (mínimo 8 caracteres).
+ * Usuario a partir de nombre y apellido, como lo genera el backend
+ * (`genUniqueLink`): minúsculas y espacios a puntos. Además quita acentos y
+ * caracteres no válidos para que el correo derivado también sea válido.
+ * "Marco Castañeda" → "marco.castaneda".
+ */
+export function generarUsername(name: string, lastName: string): string {
+  return `${name} ${lastName}`
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s._-]/g, "")
+    .replace(/\s+/g, ".")
+    .replace(/\.{2,}/g, ".")
+    .replace(/^\.|\.$/g, "");
+}
+
+/** Correo que se guarda para el usuario: `usuario@email.com`. */
+export function emailDeUsuario(username: string): string {
+  return `${username}@${EMAIL_DOMAIN}`;
+}
+
+/**
+ * Formulario de nuevo usuario. Si `username` va vacío, el formulario lo genera
+ * con `generarUsername` antes de validar, porque el correo se deriva de él.
+ * La contraseña sigue la regla de Keystone (mínimo 8 caracteres).
  */
 export const nuevoUsuarioSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio"),

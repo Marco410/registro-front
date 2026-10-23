@@ -8,13 +8,16 @@ import {
   type CreateUserVariables,
 } from "registro/graphql/users/mutations";
 import { USERS_QUERY } from "registro/graphql/users/queries";
-import type { NuevoUsuarioFormData } from "registro/lib/validations/usuario";
+import {
+  emailDeUsuario,
+  type NuevoUsuarioFormData,
+} from "registro/lib/validations/usuario";
 
 /** Traduce los errores conocidos del backend a un mensaje con la solución. */
 function getCreateUserErrorMessage(err: unknown): string {
   const message = err instanceof Error ? err.message : "";
-  if (/unique constraint/i.test(message) && /username/i.test(message)) {
-    return "Ese usuario ya existe. Elige otro o deja el campo vacío para generarlo.";
+  if (/unique constraint/i.test(message) && /username|email/i.test(message)) {
+    return "Ese usuario ya existe. Escribe otro en el campo Usuario.";
   }
   if (/teléfono/i.test(message)) {
     return "El teléfono debe tener 10 dígitos.";
@@ -23,9 +26,10 @@ function getCreateUserErrorMessage(err: unknown): string {
 }
 
 /**
- * Hook para crear un usuario del sistema (createUser). Refresca USERS_QUERY y
- * muestra los toasts; el de éxito incluye el usuario con el que podrá entrar,
- * porque puede haberlo generado el backend.
+ * Hook para crear un usuario del sistema (createUser). `input.username` ya
+ * viene resuelto (escrito o generado) y de él se deriva el correo
+ * `usuario@email.com`. Refresca USERS_QUERY y muestra los toasts; el de éxito
+ * incluye el usuario con el que podrá entrar.
  * `createUser` devuelve el usuario creado, o `null` si falló.
  */
 export function useCreateUser() {
@@ -46,7 +50,8 @@ export function useCreateUser() {
           data: {
             name: input.name,
             lastName: input.lastName || undefined,
-            username: input.username || undefined,
+            username: input.username,
+            email: emailDeUsuario(input.username),
             password: input.password,
             phone: input.phone || undefined,
             roles: { connect: [{ name: input.role }] },
