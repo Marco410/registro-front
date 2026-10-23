@@ -20,6 +20,8 @@ export interface CardBeforeCheckinProps {
   performingCheckin: boolean;
   onCancel: () => void;
   onSelectedUpdate?: (item: EncontradoListItem) => void;
+  /** Pausa los atajos de teclado (por ejemplo, con otro modal abierto encima). */
+  shortcutsDisabled?: boolean;
 }
 
 /**
@@ -39,6 +41,7 @@ export function CardBeforeCheckin({
   performingCheckin,
   onCancel,
   onSelectedUpdate,
+  shortcutsDisabled = false,
 }: CardBeforeCheckinProps) {
   const isHombre = sexo === "H";
   const hasCheckin = Boolean(selected.checkins?.checkinAt);
@@ -53,6 +56,7 @@ export function CardBeforeCheckin({
   const performingCheckinRef = useRef(performingCheckin);
   const savingOptionsRef = useRef(savingOptions);
   const selectedIdRef = useRef(selected.id);
+  const shortcutsDisabledRef = useRef(shortcutsDisabled);
   const [editingEncontradoId, setEditingEncontradoId] = useState<string | null>(
     null,
   );
@@ -63,9 +67,11 @@ export function CardBeforeCheckin({
   performingCheckinRef.current = performingCheckin;
   savingOptionsRef.current = savingOptions;
   selectedIdRef.current = selected.id;
+  shortcutsDisabledRef.current = shortcutsDisabled;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (shortcutsDisabledRef.current) return;
       if (
         (e.key === "S" || e.key === "s") &&
         (e.ctrlKey || e.metaKey) &&

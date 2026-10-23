@@ -6,6 +6,7 @@ import {
   CheckinActions,
   CheckinEncontradoSelector,
   CheckinResultCard,
+  ElegirAsientoModal,
   usePerformCheckin,
   useUpdateCheckinOptions,
   MyCheckinsList,
@@ -48,6 +49,8 @@ export default function CheckinPage() {
   const [editingEncontradoId, setEditingEncontradoId] = useState<
     string | null
   >(null);
+  /** El check-in no encontró lugar: el usuario elige el asiento en el modal. */
+  const [sinLugarOpen, setSinLugarOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.sessionStorage) return;
@@ -66,6 +69,7 @@ export default function CheckinPage() {
 
   const handleSelectEncontrado = (item: EncontradoListItem | null) => {
     setSelected(item);
+    setSinLugarOpen(false);
     if (item != null) {
       setCelular(item.celular ?? true);
       setMedicamento(item.medicamento ?? false);
@@ -75,7 +79,11 @@ export default function CheckinPage() {
   const { updateCheckinOptions, loading: savingOptions } =
     useUpdateCheckinOptions();
   const { performCheckin, loading: performingCheckin } = usePerformCheckin({
-    onSuccess: (result) => setCheckinResult(result),
+    onSuccess: (result) => {
+      setSinLugarOpen(false);
+      setCheckinResult(result);
+    },
+    onSinLugar: () => setSinLugarOpen(true),
   });
 
   const sexo = (selected?.sexo === "M" ? "M" : "H") as "H" | "M";
@@ -263,8 +271,33 @@ export default function CheckinPage() {
                       setCelular(item.celular ?? true);
                       setMedicamento(item.medicamento ?? false);
                     }}
+                    shortcutsDisabled={sinLugarOpen}
                   />
                 )}
+                <ElegirAsientoModal
+                  open={sinLugarOpen && selected != null}
+                  encontrado={
+                    selected
+                      ? {
+                          nombre: [
+                            selected.nombre,
+                            selected.apellido_p,
+                            selected.apellido_m,
+                          ]
+                            .filter(Boolean)
+                            .join(" "),
+                          sexo,
+                        }
+                      : null
+                  }
+                  onConfirm={(seatId) =>
+                    selected
+                      ? performCheckin(selected.id, userId, null, seatId)
+                      : Promise.resolve(false)
+                  }
+                  confirming={performingCheckin}
+                  onClose={() => setSinLugarOpen(false)}
+                />
 
               <CheckinEncontradoSelector
                 userId={userId}

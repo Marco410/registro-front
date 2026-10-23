@@ -33,6 +33,10 @@ export const SEATS_QUERY = gql`
         tel_ref
         checkins {
           claveOld
+          ageGroup {
+            id
+            label
+          }
         }
       }
       team {
@@ -49,9 +53,15 @@ export const SEATS_QUERY = gql`
         auxiliar2_h
         auxiliar3_h
         ageGroup {
+          id
           label
         }
       }
+    }
+    ageGroups {
+      id
+      label
+      minAge
     }
   }
 `;
@@ -72,6 +82,8 @@ export interface SeatEncontrado {
   tel_ref?: string | null;
   checkins: {
     claveOld: string;
+    /** Grupo de edad que le tocó por su edad al hacer check-in. */
+    ageGroup: { id: string; label: string } | null;
   };
 }
 
@@ -88,7 +100,7 @@ export interface SeatTeam {
   auxiliar1_h?: string | null;
   auxiliar2_h?: string | null;
   auxiliar3_h?: string | null;
-  ageGroup: { label: string };
+  ageGroup: { id: string; label: string };
 }
 
 export interface SeatAbandonedBy {
@@ -109,8 +121,16 @@ export interface Seat {
   team: SeatTeam | null;
 }
 
+export interface SeatsAgeGroup {
+  id: string;
+  label: string;
+  minAge: number;
+}
+
 export interface SeatsQueryResponse {
   seats: Seat[];
+  /** Para saber qué tan lejos de su rango de edad está sentado cada encontrado. */
+  ageGroups: SeatsAgeGroup[];
 }
 
 /** IDs de encontrados que abandonaron su asiento (bajas). */

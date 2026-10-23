@@ -83,3 +83,50 @@ export interface CheckinsQueryVariables {
 export interface CheckinsQueryResponse {
   checkins: CheckinListItem[];
 }
+
+/**
+ * Equipos con asientos libres de un sexo, en orden desde el altar. Se usa para elegir
+ * asiento a mano cuando el check-in no encontró lugar automático (error `SIN_LUGAR`).
+ */
+export const ASIENTOS_LIBRES_QUERY = gql`
+  query AsientosLibres($sexo: String!) {
+    teams(
+      where: {
+        seats: {
+          some: { occupied: { equals: false }, gender: { equals: $sexo } }
+        }
+      }
+      orderBy: [{ order: asc }, { teamNumber: asc }]
+    ) {
+      id
+      teamNumber
+      teamName
+      ageGroup {
+        label
+      }
+      seats(
+        where: { occupied: { equals: false }, gender: { equals: $sexo } }
+        orderBy: { letter: asc }
+      ) {
+        id
+        letter
+      }
+    }
+  }
+`;
+
+export interface EquipoConAsientosLibres {
+  id: string;
+  teamNumber: number;
+  teamName: string;
+  ageGroup: { label: string } | null;
+  seats: { id: string; letter: string }[];
+}
+
+export interface AsientosLibresResponse {
+  teams: EquipoConAsientosLibres[];
+}
+
+export interface AsientosLibresVariables {
+  sexo: "H" | "M";
+}

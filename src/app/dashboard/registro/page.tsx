@@ -20,7 +20,10 @@ import {
   useCreateEncontrado,
   ConfirmRegistroModal,
 } from "registro/components/dashboard/registro";
-import { usePerformCheckin } from "registro/components/dashboard/checkin";
+import {
+  ElegirAsientoModal,
+  usePerformCheckin,
+} from "registro/components/dashboard/checkin";
 import { useAuth } from "registro/hooks/use-auth";
 import {
   DEFAULT_CELULAR,
@@ -104,6 +107,12 @@ function hasFormData(data: EncontradoFormData): boolean {
   );
 }
 
+interface SinLugarEncontrado {
+  id: string;
+  nombre: string;
+  sexo: "H" | "M";
+}
+
 export default function DashboardRegistroPage() {
   const [formData, setFormData] = useState<EncontradoFormData>(() => ({
     ...initialValues,
@@ -126,6 +135,10 @@ export default function DashboardRegistroPage() {
   const [pendingNavigateTo, setPendingNavigateTo] = useState<string | null>(
     null,
   );
+  /** Recién registrado sin lugar automático: el usuario elige el asiento en el modal. */
+  const [sinLugarEncontrado, setSinLugarEncontrado] =
+    useState<SinLugarEncontrado | null>(null);
+  const pendingCheckinRef = useRef<SinLugarEncontrado | null>(null);
   const fechaMesRef = useRef<HTMLInputElement>(null);
   const fechaAnoRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -189,7 +202,10 @@ export default function DashboardRegistroPage() {
   // se pausan: cada modal maneja los suyos.
   const modalOpenRef = useRef(false);
   modalOpenRef.current =
-    showConfirmModal || showDiscardModal || editingEncontradoId != null;
+    showConfirmModal ||
+    showDiscardModal ||
+    editingEncontradoId != null ||
+    sinLugarEncontrado != null;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (modalOpenRef.current) return;
@@ -231,11 +247,34 @@ export default function DashboardRegistroPage() {
           JSON.stringify(result),
         );
       }
+      setSinLugarEncontrado(null);
       resetFormAfterSave();
       router.push(routes.dashboardCheckin());
     },
-    onError: handleCheckinError,
+    onSinLugar: () => {
+      setShowConfirmModal(false);
+      setSinLugarEncontrado(pendingCheckinRef.current);
+    },
+    onError: (err) => {
+      // Con el modal abierto (falló el asiento elegido) no se sale de la página.
+      if (sinLugarEncontrado) {
+        toast.error(err.message ?? "Error al hacer check-in");
+        return;
+      }
+      handleCheckinError();
+    },
   });
+
+  /** Cierra el modal sin elegir asiento: el encontrado ya quedó registrado, sin check-in. */
+  const handleSinLugarClose = () => {
+    const nombre = sinLugarEncontrado?.nombre ?? "";
+    setSinLugarEncontrado(null);
+    resetFormAfterSave();
+    toast.info(
+      `Se registró a ${nombre} sin check-in. Hazlo desde la pestaña Check-in cuando elijas lugar.`,
+    );
+    router.push(routes.dashboardCheckin());
+  };
 
   useEffect(() => {
     if (user?.id == null) return;
@@ -363,6 +402,13 @@ export default function DashboardRegistroPage() {
     try {
       const created = await submitEncontrado(result.data);
       if (!created?.id) return;
+      pendingCheckinRef.current = {
+        id: created.id,
+        nombre: [result.data.nombre, result.data.apellido_p, result.data.apellido_m]
+          .filter(Boolean)
+          .join(" "),
+        sexo: result.data.sexo === "M" ? "M" : "H",
+      };
       await performCheckin(created.id, userId);
     } catch {
       handleCheckinError();
@@ -540,6 +586,18 @@ export default function DashboardRegistroPage() {
         onConfirmAndCheckin={handleConfirmAndCheckin}
         onConfirmAndPrint={handleConfirmAndPrint} 
         onCancel={() => setShowConfirmModal(false)}
+      />
+
+      <ElegirAsientoModal
+        open={sinLugarEncontrado != null}
+        encontrado={sinLugarEncontrado}
+        onConfirm={(seatId) =>
+          sinLugarEncontrado
+            ? performCheckin(sinLugarEncontrado.id, userId, null, seatId)
+            : Promise.resolve(false)
+        }
+        confirming={performingCheckin}
+        onClose={handleSinLugarClose}
       />
 
       <DiscardChangesModal
