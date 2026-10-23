@@ -1,6 +1,12 @@
 "use client";
 
-import { memo, useState, useRef, useLayoutEffect } from "react";
+import {
+  memo,
+  useState,
+  useRef,
+  useLayoutEffect,
+  type RefObject,
+} from "react";
 import { createPortal } from "react-dom";
 import { useMutation } from "@apollo/client";
 import { Seat, SEATS_QUERY } from "registro/graphql/aforo/queries";
@@ -28,6 +34,7 @@ const SEAT_SIZE = SEAT_SIZE_CLASS;
 const SEAT_TEXT = "text-xs";
 const MENU_OFFSET = 4;
 const VIEWPORT_PADDING = 8;
+const TOOLTIP_OFFSET = 6;
 
 /** Copia texto al portapapeles; usa fallback si navigator.clipboard no está disponible (ej. sin HTTPS). */
 async function copyToClipboard(text: string): Promise<boolean> {
@@ -87,6 +94,83 @@ function getSeatTooltipContent(
   return null;
 }
 
+/**
+ * Tooltip del asiento en un portal con posición fija. La tarjeta de asientos recorta lo
+ * que se sale (`overflow-hidden`), así que se dibuja sobre la página y se acomoda dentro
+ * de la ventana: centrado arriba del asiento, corrido hacia adentro en las orillas y abajo
+ * si no cabe arriba. Se recoloca al hacer scroll o cambiar el tamaño de la ventana.
+ */
+function SeatTooltip({
+  anchorRef,
+  content,
+}: {
+  anchorRef: RefObject<HTMLElement | null>;
+  content: string;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    arrowLeft: number;
+    below: boolean;
+  } | null>(null);
+
+  useLayoutEffect(() => {
+    const colocar = () => {
+      const anchor = anchorRef.current;
+      const tip = ref.current;
+      if (!anchor || !tip) return;
+      const a = anchor.getBoundingClientRect();
+      const t = tip.getBoundingClientRect();
+      const centro = a.left + a.width / 2;
+      const left = Math.max(
+        VIEWPORT_PADDING,
+        Math.min(centro - t.width / 2, window.innerWidth - t.width - VIEWPORT_PADDING),
+      );
+      const arriba = a.top - t.height - TOOLTIP_OFFSET;
+      const below = arriba < VIEWPORT_PADDING;
+      setPos({
+        top: below ? a.bottom + TOOLTIP_OFFSET : arriba,
+        left,
+        arrowLeft: Math.max(10, Math.min(centro - left, t.width - 10)),
+        below,
+      });
+    };
+    colocar();
+    window.addEventListener("scroll", colocar, true);
+    window.addEventListener("resize", colocar);
+    return () => {
+      window.removeEventListener("scroll", colocar, true);
+      window.removeEventListener("resize", colocar);
+    };
+  }, [anchorRef, content]);
+
+  return createPortal(
+    <span
+      ref={ref}
+      role="tooltip"
+      className="pointer-events-none fixed z-50 w-max max-w-[calc(100vw-1rem)] rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-md dark:bg-gray-700"
+      style={{
+        top: pos?.top ?? -9999,
+        left: pos?.left ?? -9999,
+        visibility: pos ? "visible" : "hidden",
+      }}
+    >
+      {content}
+      <span
+        className={`absolute -translate-x-1/2 border-4 border-transparent ${
+          pos?.below
+            ? "bottom-full border-b-gray-900 dark:border-b-gray-700"
+            : "top-full border-t-gray-900 dark:border-t-gray-700"
+        }`}
+        style={{ left: pos?.arrowLeft ?? 0 }}
+        aria-hidden
+      />
+    </span>,
+    document.body,
+  );
+}
+
 export interface SeatBoxProps {
   seat: Seat;
   sex: "H" | "M";
@@ -109,6 +193,7 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
   const [showAsignar, setShowAsignar] = useState(false);
   const [showConfirmEliminar, setShowConfirmEliminar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -208,11 +293,17 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
 
   return (
     <>
-      <div className="group relative inline-flex hover:z-20">
+      <div
+        className="relative inline-flex hover:z-20"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
         <button
           ref={buttonRef}
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
+          onFocus={() => setShowTooltip(true)}
+          onBlur={() => setShowTooltip(false)}
           className={`flex shrink-0 cursor-pointer items-center justify-center rounded border ${SEAT_SIZE} ${SEAT_TEXT} font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 ${seatInteractionClass} ${focusRingClass} ${filledClass}`}
           aria-label={tooltipContent ?? seat.letter ?? seat.id}
           aria-expanded={menuOpen}
@@ -220,17 +311,8 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
         >
           {seat.letter || seat.id.slice(0, 2)}
         </button>
-        {tooltipContent && !menuOpen ? (
-          <span
-            role="tooltip"
-            className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 dark:bg-gray-700"
-          >
-            {tooltipContent}
-            <span
-              className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"
-              aria-hidden
-            />
-          </span>
+        {showTooltip && tooltipContent && !menuOpen && typeof document !== "undefined" ? (
+          <SeatTooltip anchorRef={buttonRef} content={tooltipContent} />
         ) : null}
         {hasBautizo && (
           <span
