@@ -23,6 +23,7 @@ Env: copy `env.template` to `.env`. `src/hooks/apollo-client.ts` picks the Graph
 - Import alias is `registro/*` → `src/*` (not `@/`).
 - Icons always come from `@hugeicons/react` (`<HugeiconsIcon icon={...} />`) with icons from `@hugeicons/core-free-icons`.
 - Validate with Zod and style with Tailwind. Use the custom `app-*` palette in `tailwind.config.ts` (`app-primary`, `app-surface`, `app-text-primary`, …) with `dark:` variants.
+- Size text in rem, never px (`text-[0.6875rem]`, not `text-[11px]`). The header's text-size control (`components/dashboard/font-size-control.tsx`, `src/lib/font-scale.ts`) scales the root font size through `--font-scale` on `<html>`, applied before first paint by a script in `app/layout.tsx`, so anything sized in px stays the same size. The control itself is the exception: it uses px on purpose so it doesn't move under the cursor.
 - Use toasts from `sonner` for user feedback. Mutation hooks show success and error toasts themselves.
 - Add JSDoc on non-trivial functions and hooks, written in Spanish like the existing ones.
 

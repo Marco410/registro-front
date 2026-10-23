@@ -168,7 +168,7 @@ export function EventFormModal({
           <div>
             <label
               htmlFor="event-name"
-              className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400"
+              className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400"
             >
               Nombre *
             </label>
@@ -187,7 +187,7 @@ export function EventFormModal({
           <div>
             <label
               htmlFor="event-description"
-              className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400"
+              className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400"
             >
               Descripción
             </label>
@@ -205,7 +205,7 @@ export function EventFormModal({
           <div>
             <label
               htmlFor="event-type"
-              className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400"
+              className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400"
             >
               Tipo
             </label>

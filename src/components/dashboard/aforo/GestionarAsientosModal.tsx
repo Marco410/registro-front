@@ -43,7 +43,7 @@ type TeamRow = {
 };
 
 const labelClass =
-  "mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400";
+  "mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400";
 
 const inputClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-app-text-primary shadow-sm outline-none transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted";
@@ -126,7 +126,7 @@ function SeatChip({
     variant === "ocupado" ? chipOcupadoClass[sex] : chipVariantClass[variant];
   return (
     <span
-      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border text-[11px] font-medium ${colorClass}`}
+      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border text-[0.6875rem] font-medium ${colorClass}`}
     >
       {letter}
     </span>
@@ -187,7 +187,7 @@ function Segmented<T extends string>({
 
 function RowWarning({ text }: { text: string }) {
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
+    <span className="inline-flex items-center gap-1 text-[0.6875rem] text-amber-600 dark:text-amber-400">
       <HugeiconsIcon icon={Alert02Icon} size={12} className="shrink-0" />
       {text}
     </span>
@@ -527,11 +527,11 @@ export function GestionarAsientosModal({
 
           <div className="rounded-xl border border-gray-200 bg-white/70 p-3 dark:border-gray-700 dark:bg-[#151515]">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+              <span className="text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                 Vista previa
               </span>
               {alcance === "todos" && total > 0 ? (
-                <span className="text-[11px] text-app-text-secondary dark:text-gray-400">
+                <span className="text-[0.6875rem] text-app-text-secondary dark:text-gray-400">
                   {asientosLabel(total)} en {equiposAfectados}{" "}
                   {equiposAfectados === 1 ? "equipo" : "equipos"}
                 </span>
@@ -563,7 +563,7 @@ export function GestionarAsientosModal({
                       >
                         {row.label}
                       </span>
-                      <span className="w-10 shrink-0 text-[11px] tabular-nums text-app-text-secondary dark:text-gray-400">
+                      <span className="w-10 shrink-0 text-[0.6875rem] tabular-nums text-app-text-secondary dark:text-gray-400">
                         {formatLetterRange(row.seats) || "—"}
                       </span>
                       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">

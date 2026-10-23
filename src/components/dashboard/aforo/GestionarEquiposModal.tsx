@@ -162,7 +162,7 @@ export function GestionarEquiposModal({ open, onClose }: GestionarEquiposModalPr
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto border-y border-gray-200 bg-white dark:border-gray-700 dark:bg-[#1e1f22]">
-        <p className="sticky top-0 z-10 border-b border-gray-100 bg-gray-50 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-app-text-secondary dark:border-gray-800 dark:bg-[#26272a] dark:text-gray-400">
+        <p className="sticky top-0 z-10 border-b border-gray-100 bg-gray-50 py-1.5 text-center text-[0.625rem] font-semibold uppercase tracking-[0.3em] text-app-text-secondary dark:border-gray-800 dark:bg-[#26272a] dark:text-gray-400">
           Altar
         </p>
         {loading && !data ? (

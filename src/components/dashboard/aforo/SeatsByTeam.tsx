@@ -81,7 +81,7 @@ function GenderSummary({
   const { total, ocupados, libres } = countSeats(seats);
   return (
     <GenderHeading sex={sex} align={align}>
-      <p className="text-[11px] tabular-nums text-app-text-secondary dark:text-gray-400">
+      <p className="text-[0.6875rem] tabular-nums text-app-text-secondary dark:text-gray-400">
         <span className="font-semibold text-app-text-primary dark:text-gray-200">
           {ocupados}
         </span>{" "}

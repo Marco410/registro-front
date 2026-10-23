@@ -9,14 +9,75 @@
 :root {
   --skeleton-track: #eceef1;
   --skeleton-shine: rgba(255, 255, 255, 0.85);
+  --slider-track: #dadce0;
+  --slider-ring: #ffffff;
 }
 
 .dark {
   --skeleton-track: #303135;
   --skeleton-shine: rgba(255, 255, 255, 0.07);
+  --slider-track: #5f6368;
+  --slider-ring: #202124;
+}
+
+@layer base {
+  /*
+   * Tamaño de texto del sistema (src/lib/font-scale.ts). Parte del 100% del navegador
+   * para respetar el tamaño que la persona ya tenga configurado; todo lo que está en
+   * rem escala con él.
+   */
+  html {
+    font-size: calc(100% * var(--font-scale, 1));
+  }
 }
 
 @layer components {
+  /*
+   * Slider del control de tamaño de texto. La parte recorrida (--fill, en %) se pinta
+   * con el color de texto del input; el resto, con --slider-track.
+   */
+  .font-scale-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      currentColor var(--fill, 50%),
+      var(--slider-track) var(--fill, 50%)
+    );
+    cursor: pointer;
+  }
+
+  .font-scale-slider::-moz-range-track {
+    background: transparent;
+  }
+
+  .font-scale-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: currentColor;
+    border: 2px solid var(--slider-ring);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  }
+
+  .font-scale-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: currentColor;
+    border: 2px solid var(--slider-ring);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  }
+
+  .font-scale-slider:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 6px;
+  }
+
   /*
    * Un solo brillo cruza la pantalla de izquierda a derecha cada 1.4s: el degradado
    * es fijo al viewport (background-attachment: fixed), así todos los huesos se

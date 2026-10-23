@@ -6,6 +6,7 @@ import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "registro/hooks/use-auth";
 import { useActiveEvent } from "registro/contexts/active-event-context";
 import { MobileMenuButton } from "registro/components/dashboard/mobile-menu-button";
+import { FontSizeControl } from "./font-size-control";
 import { typeLabels } from "./events/events-grid";
 
 interface HeaderProps {
@@ -69,44 +70,47 @@ export function Header({ onToggleSidebar, onOpenMobileMenu }: HeaderProps) {
           </span>
         ) : null}
       </div>
-      <div className="relative" ref={menuRef}>
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          className="flex items-center gap-3 rounded-lg px-1 py-2 text-left transition-colors hover:bg-app-selected/50 dark:hover:bg-gray-700"
-          aria-expanded={menuOpen}
-          aria-haspopup="true"
-          aria-label="Menú de usuario"
-        >
-          <span className="text-sm font-medium text-app-text-primary dark:text-gray-200">
-            {displayName}
-          </span>
-          <div
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-app-primary text-sm font-semibold text-white"
-            aria-hidden
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <FontSizeControl />
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="flex items-center gap-3 rounded-lg px-1 py-2 text-left transition-colors hover:bg-app-selected/50 dark:hover:bg-gray-700"
+            aria-expanded={menuOpen}
+            aria-haspopup="true"
+            aria-label="Menú de usuario"
           >
-            {initial.toUpperCase()}
-          </div>
-        </button>
-        {menuOpen && (
-          <div
-            className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-gray-200 bg-app-sidebar py-1 shadow-lg dark:border-gray-700 dark:bg-[#202124]"
-            role="menu"
-          >
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setMenuOpen(false);
-                logout();
-              }}
-              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-app-text-primary transition-colors hover:bg-app-selected dark:text-gray-200 dark:hover:bg-gray-700"
+            <span className="text-sm font-medium text-app-text-primary dark:text-gray-200">
+              {displayName}
+            </span>
+            <div
+              className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-app-primary text-sm font-semibold text-white"
+              aria-hidden
             >
-              <HugeiconsIcon icon={Logout01Icon} size={18} />
-              Cerrar sesión
-            </button>
-          </div>
-        )}
+              {initial.toUpperCase()}
+            </div>
+          </button>
+          {menuOpen && (
+            <div
+              className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-gray-200 bg-app-sidebar py-1 shadow-lg dark:border-gray-700 dark:bg-[#202124]"
+              role="menu"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  logout();
+                }}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-app-text-primary transition-colors hover:bg-app-selected dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                <HugeiconsIcon icon={Logout01Icon} size={18} />
+                Cerrar sesión
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

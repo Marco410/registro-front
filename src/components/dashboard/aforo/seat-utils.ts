@@ -14,7 +14,7 @@ export const SEAT_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 export const TEAM_ROW_GRID = "xl:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1fr)]";
 
 /**
- * Tamaño de un asiento: 28px; en xl+ toma `--seat-size` del contenedor (SeatsByTeam).
+ * Tamaño de un asiento: 1.75rem; en xl+ toma `--seat-size` del contenedor (SeatsGrid).
  * Lo usan el asiento real (SeatBox) y su hueso en el esqueleto, para que midan igual.
  */
 export const SEAT_SIZE_CLASS =

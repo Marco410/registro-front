@@ -125,7 +125,7 @@ export function GenerarEquiposPanel({ ageGroups, loading }: GenerarEquiposPanelP
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-white/[0.03]">
-                <tr className="whitespace-nowrap text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <tr className="whitespace-nowrap text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   <th scope="col" className="py-2.5 pl-5 pr-3">
                     Grupo de edad
                   </th>

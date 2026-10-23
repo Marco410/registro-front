@@ -144,7 +144,7 @@ export function ConfirmarBautizoModal({
             </p>
             <div className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Nombre
                 </label>
                 <input
@@ -161,7 +161,7 @@ export function ConfirmarBautizoModal({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Apellido paterno
                 </label>
                 <input
@@ -178,7 +178,7 @@ export function ConfirmarBautizoModal({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Apellido materno
                 </label>
                 <input
@@ -195,7 +195,7 @@ export function ConfirmarBautizoModal({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Teléfono
                 </label>
                 <input
@@ -247,7 +247,7 @@ export function ConfirmarBautizoModal({
               </button>
               <dl className="space-y-2 rounded-xl border border-gray-200 bg-white py-3 pl-4 pr-12 dark:border-gray-700 dark:bg-[#151515]">
                 <div>
-                  <dt className="text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                  <dt className="text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                     Nombre
                   </dt>
                   <dd className="mt-0.5 font-medium text-app-text-primary dark:text-white">
@@ -255,7 +255,7 @@ export function ConfirmarBautizoModal({
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                  <dt className="text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                     Teléfono
                   </dt>
                   <dd className="mt-0.5 font-medium text-app-text-primary dark:text-white">

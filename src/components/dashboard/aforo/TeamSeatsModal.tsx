@@ -441,7 +441,7 @@ export function TeamSeatsModal({
       <div className="min-h-0 flex-1 overflow-auto border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-[#1e1f22]">
         <table className="w-full min-w-[46rem] text-sm">
           <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-[#26272a]">
-            <tr className="whitespace-nowrap text-left text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+            <tr className="whitespace-nowrap text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
               <th scope="col" className="w-20 py-2.5 pl-5 pr-3">
                 Clave
               </th>
@@ -514,7 +514,7 @@ export function TeamSeatsModal({
                         </>
                       ) : estado === "baja" ? (
                         <span className="inline-flex flex-wrap items-center gap-2 text-gray-500 dark:text-gray-400">
-                          <span className="rounded bg-gray-500 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white dark:bg-gray-600">
+                          <span className="rounded bg-gray-500 px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-white dark:bg-gray-600">
                             Baja
                           </span>
                           {nombreCompleto(seat.abandonedBy)}

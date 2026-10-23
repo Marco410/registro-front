@@ -112,7 +112,7 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
           <table className="w-full text-sm">
             <caption className="sr-only">Registros y check-ins por hora</caption>
             <thead className="sticky top-0 bg-white dark:bg-[#202124]">
-              <tr className="text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+              <tr className="text-[0.6875rem] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                 <th scope="col" className="pb-2 text-left">
                   Hora
                 </th>
@@ -150,7 +150,7 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
             {marcas.map((m) => (
               <span
                 key={m}
-                className="absolute right-0 translate-y-1/2 text-[11px] tabular-nums text-app-text-secondary dark:text-gray-400"
+                className="absolute right-0 translate-y-1/2 text-[0.6875rem] tabular-nums text-app-text-secondary dark:text-gray-400"
                 style={{ bottom: `${(m / tope) * 100}%` }}
               >
                 {m}
@@ -197,7 +197,7 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
                     left: `clamp(80px, ${((activo! + 0.5) / cubetas.length) * 100}%, calc(100% - 80px))`,
                   }}
                 >
-                  <p className="mb-1 text-[11px] text-gray-300">{rango(actual.inicio)}</p>
+                  <p className="mb-1 text-[0.6875rem] text-gray-300">{rango(actual.inicio)}</p>
                   <p className="flex items-center gap-2">
                     <span className="h-0.5 w-3 rounded-full bg-[#8b5cf6]" aria-hidden />
                     <span className="font-semibold tabular-nums">{actual.registros}</span>
@@ -219,7 +219,7 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
                 return (
                   <span
                     key={c.inicio}
-                    className="absolute -translate-x-1/2 whitespace-nowrap text-center text-[11px] leading-tight text-app-text-secondary dark:text-gray-400"
+                    className="absolute -translate-x-1/2 whitespace-nowrap text-center text-[0.6875rem] leading-tight text-app-text-secondary dark:text-gray-400"
                     style={{ left: `${((i + 0.5) / cubetas.length) * 100}%` }}
                   >
                     {hora(c.inicio)}

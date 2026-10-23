@@ -28,7 +28,7 @@ export function EdadPiramide({ filas }: EdadPiramideProps) {
         <col className="w-10" />
       </colgroup>
       <thead>
-        <tr className="text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+        <tr className="text-[0.6875rem] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
           <th scope="col" className="pb-2 text-right">
             H
           </th>

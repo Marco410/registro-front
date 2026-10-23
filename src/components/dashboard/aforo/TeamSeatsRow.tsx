@@ -32,7 +32,7 @@ function SeatCountButton({
       disabled={!onClick}
       title={`${style.label}: ${ocupados} ocupados, ${libres} libres. Clic para ver la lista.`}
       aria-label={`Ver lista de ${style.label.toLowerCase()} del ${teamName}: ${ocupados} de ${total} ocupados`}
-      className={`shrink-0 rounded-md px-1.5 py-1 text-[11px] font-semibold tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 disabled:cursor-default xl:py-0.5 ${style.text} ${style.hover} ${className}`}
+      className={`shrink-0 rounded-md px-1.5 py-1 text-[0.6875rem] font-semibold tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 disabled:cursor-default xl:py-0.5 ${style.text} ${style.hover} ${className}`}
     >
       <span className="xl:hidden">{sex} </span>
       {ocupados}/{total}
@@ -52,13 +52,13 @@ function SeatsLine({
   return (
     <div className={`flex flex-wrap items-center gap-1 ${className}`}>
       <span
-        className={`w-4 shrink-0 text-[11px] font-semibold xl:hidden ${SEX_STYLES[sex].text}`}
+        className={`w-4 shrink-0 text-[0.6875rem] font-semibold xl:hidden ${SEX_STYLES[sex].text}`}
         aria-hidden
       >
         {sex}
       </span>
       {seats.length === 0 ? (
-        <span className="text-[11px] italic text-app-text-secondary dark:text-gray-500">
+        <span className="text-[0.6875rem] italic text-app-text-secondary dark:text-gray-500">
           Sin asientos
         </span>
       ) : (
@@ -103,7 +103,7 @@ function TeamSeatsRowComponent({ team, hombres, mujeres }: TeamSeatsRowProps) {
             {teamName}
           </p>
           {ageGroup ? (
-            <p className="truncate text-[10px] leading-tight text-app-text-secondary dark:text-gray-400">
+            <p className="truncate text-[0.625rem] leading-tight text-app-text-secondary dark:text-gray-400">
               {ageGroup}
             </p>
           ) : null}

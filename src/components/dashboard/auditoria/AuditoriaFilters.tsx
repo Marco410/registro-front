@@ -19,7 +19,7 @@ const inputClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-app-text-primary shadow-sm outline-none transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted";
 
 const labelClass =
-  "mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400";
+  "mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400";
 
 const CATEGORIA_PREFIX = "cat:";
 

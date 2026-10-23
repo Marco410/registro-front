@@ -11,7 +11,7 @@ import {
 } from "./constants";
 
 const sectionTitle =
-  "mb-2 text-[11px] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400";
+  "mb-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400";
 
 /** Pares campo/valor de un registro borrado, sin las FK internas (`teamId`, …). */
 function deletedFields(value: unknown): Array<[string, unknown]> {

@@ -12,7 +12,7 @@ export interface DiscardChangesModalProps {
 }
 
 const kbdClass =
-  "rounded-md border border-white/50 bg-white/60 px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm backdrop-blur-sm dark:border-white/15 dark:bg-white/10";
+  "rounded-md border border-white/50 bg-white/60 px-1.5 py-0.5 font-mono text-[0.625rem] font-medium shadow-sm backdrop-blur-sm dark:border-white/15 dark:bg-white/10";
 
 /**
  * Modal para confirmar si el usuario desea descartar los cambios del formulario

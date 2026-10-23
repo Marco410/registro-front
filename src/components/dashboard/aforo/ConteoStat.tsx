@@ -44,7 +44,7 @@ export function ConteoStat({
       <div className={`min-w-0 flex-1 px-4 py-2.5 ${className}`}>
         {labelRow}
         {/* Misma altura que la fila real (cifra de 28px + desglose). */}
-        <div className="mt-0.5 flex h-[30px] items-center gap-3">
+        <div className="mt-0.5 flex h-[1.875rem] items-center gap-3">
           <TextBone size="figure" width={label.length > 10 ? 52 : 40} />
           <TextBone width={64} />
         </div>

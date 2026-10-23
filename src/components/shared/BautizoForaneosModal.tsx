@@ -166,7 +166,7 @@ export function BautizoForaneosModal({
           >
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Nombre *
                 </label>
                 <input
@@ -183,7 +183,7 @@ export function BautizoForaneosModal({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Apellido paterno
                 </label>
                 <input
@@ -200,7 +200,7 @@ export function BautizoForaneosModal({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Apellido materno
                 </label>
                 <input
@@ -217,7 +217,7 @@ export function BautizoForaneosModal({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Género
                 </label>
                 <select
@@ -232,7 +232,7 @@ export function BautizoForaneosModal({
                 </select>
               </div>
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Teléfono
                 </label>
                 <input
@@ -247,7 +247,7 @@ export function BautizoForaneosModal({
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
+                <label className="mb-1 block text-[0.6875rem] font-medium uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
                   Notas
                 </label>
                 <input
@@ -330,7 +330,7 @@ export function BautizoForaneosModal({
                               onClick={() => void handlePrintCertificate(row)}
                               disabled={printingCertificateId === row.id}
                               title="Imprimir certificado"
-                              className="inline-flex items-center gap-1 rounded-lg border border-app-primary/40 bg-app-primary/10 px-2 py-1 text-[10px] font-semibold text-app-primary transition-colors hover:bg-app-primary/20 focus:outline-none focus:ring-2 focus:ring-app-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-app-primary-muted/50 dark:bg-app-primary-muted/15 dark:text-app-primary-muted dark:hover:bg-app-primary-muted/25 sm:text-xs"
+                              className="inline-flex items-center gap-1 rounded-lg border border-app-primary/40 bg-app-primary/10 px-2 py-1 text-[0.625rem] font-semibold text-app-primary transition-colors hover:bg-app-primary/20 focus:outline-none focus:ring-2 focus:ring-app-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-app-primary-muted/50 dark:bg-app-primary-muted/15 dark:text-app-primary-muted dark:hover:bg-app-primary-muted/25 sm:text-xs"
                             >
                               <HugeiconsIcon
                                 icon={PrinterIcon}

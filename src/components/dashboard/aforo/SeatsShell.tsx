@@ -55,7 +55,7 @@ function SeatsLegend() {
       {LEGEND_ITEMS.map((item) => (
         <li
           key={item.label}
-          className="flex items-center gap-1.5 text-[11px] text-app-text-secondary dark:text-gray-400"
+          className="flex items-center gap-1.5 text-[0.6875rem] text-app-text-secondary dark:text-gray-400"
         >
           <span
             className={`h-3.5 w-3.5 rounded-[3px] border ${item.className}`}
@@ -64,7 +64,7 @@ function SeatsLegend() {
           {item.label}
         </li>
       ))}
-      <li className="flex items-center gap-1.5 text-[11px] text-app-text-secondary dark:text-gray-400">
+      <li className="flex items-center gap-1.5 text-[0.6875rem] text-app-text-secondary dark:text-gray-400">
         <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden />
         Bautizado
       </li>
@@ -158,7 +158,7 @@ export function AltarMarker() {
   return (
     <div className="mb-3 flex flex-col items-center gap-1" aria-hidden>
       <div className="h-1.5 w-full max-w-sm rounded-full bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600" />
-      <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-app-text-secondary dark:text-gray-400">
+      <span className="text-[0.625rem] font-semibold uppercase tracking-[0.3em] text-app-text-secondary dark:text-gray-400">
         Altar
       </span>
     </div>
@@ -168,12 +168,13 @@ export function AltarMarker() {
 /**
  * Contenedor de la cuadrícula con el pasillo central. El tamaño de asiento (xl+) se
  * calcula con el ancho de este contenedor, no de la ventana, para que quepan 18 asientos
- * por lado con o sin la barra lateral: (50cqw − 100px de pasillo y márgenes − 17 huecos
- * de 4px) / 18, entre 20px y 28px.
+ * por lado con o sin la barra lateral: (50cqw − 6.25rem de pasillo y márgenes − 17 huecos
+ * de 0.25rem) / 18, entre 1.25rem y 1.75rem (20–28px al 100%). Va en rem para que
+ * escale con el tamaño de texto del sistema.
  */
 export function SeatsGrid({ children }: { children: ReactNode }) {
   return (
-    <div className="relative [--seat-size:clamp(20px,calc((50cqw_-_168px)_/_18),28px)] [container-type:inline-size]">
+    <div className="relative [--seat-size:clamp(1.25rem,calc((50cqw_-_10.5rem)_/_18),1.75rem)] [container-type:inline-size]">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-40 -translate-x-1/2 rounded-xl bg-gray-50 dark:bg-white/[0.03] xl:block"
@@ -215,7 +216,7 @@ export function SeatsColumnsHeader({
   return (
     <div className={`relative grid grid-cols-2 gap-x-3 gap-y-2 px-2 pb-2 ${TEAM_ROW_GRID}`}>
       {hombres}
-      <p className="hidden self-end text-center text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400 xl:block">
+      <p className="hidden self-end text-center text-[0.625rem] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-400 xl:block">
         Equipo
       </p>
       {mujeres}
@@ -247,7 +248,7 @@ function SeatsLineSkeleton({
   return (
     <div className={`flex flex-wrap items-center gap-1 ${className}`}>
       <span
-        className={`w-4 shrink-0 text-[11px] font-semibold xl:hidden ${SEX_STYLES[sex].text}`}
+        className={`w-4 shrink-0 text-[0.6875rem] font-semibold xl:hidden ${SEX_STYLES[sex].text}`}
         aria-hidden
       >
         {sex}
@@ -263,7 +264,7 @@ function SeatsLineSkeleton({
 function CountSkeleton({ sex, className }: { sex: "H" | "M"; className: string }) {
   return (
     <span
-      className={`flex shrink-0 items-center gap-1 px-1.5 py-1 text-[11px] font-semibold xl:py-0.5 ${SEX_STYLES[sex].text} ${className}`}
+      className={`flex shrink-0 items-center gap-1 px-1.5 py-1 text-[0.6875rem] font-semibold xl:py-0.5 ${SEX_STYLES[sex].text} ${className}`}
     >
       <span className="xl:hidden">{sex}</span>
       <TextBone width={24} />
@@ -271,10 +272,10 @@ function CountSkeleton({ sex, className }: { sex: "H" | "M"; className: string }
   );
 }
 
-/** Totales de un lado mientras cargan: misma altura que la línea real (11px). */
+/** Totales de un lado mientras cargan: misma altura que la línea real (0.6875rem × 1.5). */
 function GenderLineSkeleton({ align }: { align: "start" | "end" }) {
   return (
-    <div className={`flex h-[16.5px] items-center ${align === "end" ? "xl:justify-end" : ""}`}>
+    <div className={`flex h-[1.03125rem] items-center ${align === "end" ? "xl:justify-end" : ""}`}>
       <TextBone width={align === "end" ? 176 : 164} />
     </div>
   );
@@ -319,7 +320,7 @@ export function SeatsGridSkeleton() {
                   <span className="flex h-4 items-center">
                     <TextBone width={row.nombre} />
                   </span>
-                  <span className="flex h-[12.5px] items-center">
+                  <span className="flex h-[0.78125rem] items-center">
                     <TextBone width={row.edad} />
                   </span>
                 </div>

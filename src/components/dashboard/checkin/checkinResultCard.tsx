@@ -123,7 +123,7 @@ export function CheckinResultCard({
                     : "border-pink-500/20 bg-pink-500/5 dark:border-pink-400/20 dark:bg-pink-500/10"
                 }`}
               >
-                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-app-text-secondary dark:text-gray-400">
+                <p className="mb-3 text-[0.625rem] font-semibold uppercase tracking-widest text-app-text-secondary dark:text-gray-400">
                   Datos
                 </p>
                 <div className="grid min-w-[12rem] grid-cols-2 gap-x-6 gap-y-3 p-4">
@@ -139,7 +139,7 @@ export function CheckinResultCard({
                         <HugeiconsIcon icon={CalendarIcon} size={16} />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+                        <p className="text-[0.625rem] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
                           Edad
                         </p>
                         <p className="text-sm font-medium text-app-text-primary dark:text-gray-200">
@@ -160,7 +160,7 @@ export function CheckinResultCard({
                         <HugeiconsIcon icon={AccountSetting01Icon} size={16} />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+                        <p className="text-[0.625rem] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
                           Estado civil
                         </p>
                         <p className="truncate text-sm font-medium text-app-text-primary dark:text-gray-200">
@@ -181,7 +181,7 @@ export function CheckinResultCard({
                         <HugeiconsIcon icon={ChurchIcon} size={16} />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+                        <p className="text-[0.625rem] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
                           Religión
                         </p>
                         <p className="truncate text-sm font-medium text-app-text-primary dark:text-gray-200">
@@ -202,7 +202,7 @@ export function CheckinResultCard({
                         <HugeiconsIcon icon={SmartPhone01Icon} size={16} />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
+                        <p className="text-[0.625rem] font-medium uppercase tracking-wider text-app-text-secondary dark:text-gray-500">
                           Teléfono
                         </p>
                         <p className="truncate text-sm font-medium font-mono text-app-text-primary dark:text-gray-200">
