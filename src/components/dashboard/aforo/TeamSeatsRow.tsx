@@ -86,7 +86,7 @@ export interface TeamSeatsRowProps {
   team: Seat["team"];
   hombres: Seat[];
   mujeres: Seat[];
-  /** Qué tan lejos de su rango de edad está cada encontrado (círculo naranja o rojo). */
+  /** Qué tan lejos de su rango de edad está cada encontrado (raya naranja o roja). */
   getRangoEdad?: (seat: Seat) => RangoEdad | null;
 }
 

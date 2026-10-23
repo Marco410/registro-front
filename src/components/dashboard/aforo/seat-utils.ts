@@ -130,6 +130,16 @@ const OVERFLOW_GROUPS_PER_SIDE = 2;
 export type RangoEdad = "cercano" | "lejano";
 
 /**
+ * Colores de la raya de rango. Va fuera del asiento, sobre el fondo de la tarjeta: sobre el
+ * azul o el rosa del asiento ocupado el rojo casi no contrasta. Naranja claro y rojo oscuro
+ * para que también se distingan por brillo (daltonismo).
+ */
+export const RANGO_EDAD_BAR_CLASS: Record<RangoEdad, string> = {
+  cercano: "bg-orange-500 dark:bg-orange-400",
+  lejano: "bg-red-700 dark:bg-red-500",
+};
+
+/**
  * Arma la función que calcula el `RangoEdad` de un asiento, con la misma búsqueda que
  * `findOverflowTeam` en el backend. Compara el grupo que le tocó al encontrado en el check-in
  * con el grupo del equipo donde está sentado.

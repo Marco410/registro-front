@@ -19,6 +19,7 @@ import { useDeleteSeats } from "./hooks";
 import {
   SEAT_SIZE_CLASS,
   isSeatRemovable,
+  RANGO_EDAD_BAR_CLASS,
   type RangoEdad,
 } from "./seat-utils";
 import { toast } from "sonner";
@@ -89,14 +90,9 @@ function getSeatTooltipContent(
 export interface SeatBoxProps {
   seat: Seat;
   sex: "H" | "M";
-  /** Fuera de su rango de edad: círculo naranja (cercano) o rojo (lejano) abajo a la derecha. */
+  /** Fuera de su rango de edad: raya naranja (cercano) o roja (lejano) debajo del asiento. */
   rangoEdad?: RangoEdad | null;
 }
-
-const RANGO_EDAD_DOT_CLASS: Record<RangoEdad, string> = {
-  cercano: "bg-orange-400",
-  lejano: "bg-red-600",
-};
 
 function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -244,7 +240,7 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
         )}
         {rangoEdad && (
           <span
-            className={`absolute -right-0 bottom-1 h-2 w-2 translate-y-1/2 rounded-full ring-2 ring-white dark:ring-[#202124] ${RANGO_EDAD_DOT_CLASS[rangoEdad]}`}
+            className={`pointer-events-none absolute -bottom-1 left-1/2 h-[0.1875rem] w-3/5 -translate-x-1/2 rounded-full ${RANGO_EDAD_BAR_CLASS[rangoEdad]}`}
             aria-hidden
           />
         )}

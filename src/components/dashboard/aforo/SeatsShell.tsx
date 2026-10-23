@@ -16,7 +16,12 @@ import {
   TextBone,
   WaitBar,
 } from "registro/components/shared/Skeleton";
-import { SEAT_SIZE_CLASS, SEX_STYLES, TEAM_ROW_GRID } from "./seat-utils";
+import {
+  RANGO_EDAD_BAR_CLASS,
+  SEAT_SIZE_CLASS,
+  SEX_STYLES,
+  TEAM_ROW_GRID,
+} from "./seat-utils";
 
 /*
  * Piezas de la tarjeta "Asientos por equipo" que no dependen de los datos. Las comparten
@@ -72,14 +77,20 @@ function SeatsLegend() {
         className="flex items-center gap-1.5 text-[0.6875rem] text-app-text-secondary dark:text-gray-400"
         title="Está en un grupo de edad que no es el suyo, dentro de la primera búsqueda (2 grupos arriba y 2 abajo)."
       >
-        <span className="h-2 w-2 rounded-full bg-orange-400" aria-hidden />
+        <span
+          className={`h-[0.1875rem] w-3 rounded-full ${RANGO_EDAD_BAR_CLASS.cercano}`}
+          aria-hidden
+        />
         Fuera de rango · cercano
       </li>
       <li
         className="flex items-center gap-1.5 text-[0.6875rem] text-app-text-secondary dark:text-gray-400"
         title="Está en un grupo de edad más lejos que la primera búsqueda (más de 2 grupos arriba o abajo)."
       >
-        <span className="h-2 w-2 rounded-full bg-red-600" aria-hidden />
+        <span
+          className={`h-[0.1875rem] w-3 rounded-full ${RANGO_EDAD_BAR_CLASS.lejano}`}
+          aria-hidden
+        />
         Fuera de rango · lejano
       </li>
     </ul>
