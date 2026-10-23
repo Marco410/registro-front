@@ -1,9 +1,6 @@
 import { AforoResumen } from "registro/components/dashboard/aforo/AforoResumen";
+import { BautizosResumen } from "registro/components/dashboard/aforo/BautizosResumen";
 import { SeatsByTeamLazy } from "registro/components/dashboard/aforo/SeatsByTeamLazy";
-import {
-  AnimatedMount,
-  BautizoCountsCards,
-} from "registro/components/shared";
 
 export default function AforoPage() {
   return (
@@ -21,9 +18,7 @@ export default function AforoPage() {
         <AforoResumen />
       </header>
       <SeatsByTeamLazy />
-      <AnimatedMount show={true} animationKey="bautizo-counts-cards">
-        <BautizoCountsCards />
-      </AnimatedMount>
+      <BautizosResumen />
     </div>
   );
 }

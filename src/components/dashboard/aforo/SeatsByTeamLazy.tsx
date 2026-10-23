@@ -1,15 +1,17 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { SeatsByTeamSkeleton } from "./SeatsShell";
 
+/**
+ * Mientras llega el código de SeatsByTeam se muestra la misma tarjeta en esqueleto
+ * que SeatsByTeam usa mientras llegan los datos, así el cambio no mueve nada.
+ */
 const SeatsByTeam = dynamic(
-  () =>
-    import("./SeatsByTeam").then((mod) => mod.SeatsByTeam),
+  () => import("./SeatsByTeam").then((mod) => mod.SeatsByTeam),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-[32rem] animate-pulse rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800" />
-    ),
+    loading: () => <SeatsByTeamSkeleton />,
   },
 );
 

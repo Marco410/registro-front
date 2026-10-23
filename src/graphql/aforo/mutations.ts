@@ -95,6 +95,35 @@ export interface DeleteSeatsResponse {
   deleteSeats: { id: string }[];
 }
 
+/**
+ * Reordenar todos los equipos desde el altar (resolver custom, solo admin). `teamIds` va
+ * completo y en el orden nuevo; el backend asigna order = posición (1, 2, 3…).
+ */
+export const REORDER_TEAMS_MUTATION = gql`
+  mutation ReorderTeams($teamIds: [ID!]!) {
+    reorderTeams(teamIds: $teamIds) {
+      updated
+    }
+  }
+`;
+
+export interface ReorderTeamsVariables {
+  teamIds: string[];
+}
+
+/** Eliminar un equipo vacío con sus asientos (resolver custom, solo admin). */
+export const DELETE_EMPTY_TEAM_MUTATION = gql`
+  mutation DeleteEmptyTeam($teamId: ID!) {
+    deleteEmptyTeam(teamId: $teamId) {
+      seatsDeleted
+    }
+  }
+`;
+
+export interface DeleteEmptyTeamVariables {
+  teamId: string;
+}
+
 /** Actualizar los responsables (capitán y auxiliares) de un equipo. */
 export const UPDATE_TEAM_RESPONSABLES_MUTATION = gql`
   mutation UpdateTeamResponsables(

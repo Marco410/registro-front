@@ -6,6 +6,20 @@ import type { Seat } from "registro/graphql/aforo/queries";
  */
 export const SEAT_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+/**
+ * Columnas de la vista de salón (xl+): hombres | pasillo con el equipo | mujeres.
+ * La comparten el encabezado, cada fila y el esqueleto para que todo quede alineado.
+ * Si cambia el ancho del pasillo (10rem), hay que ajustar `--seat-size` en SeatsShell.
+ */
+export const TEAM_ROW_GRID = "xl:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1fr)]";
+
+/**
+ * Tamaño de un asiento: 28px; en xl+ toma `--seat-size` del contenedor (SeatsByTeam).
+ * Lo usan el asiento real (SeatBox) y su hueso en el esqueleto, para que midan igual.
+ */
+export const SEAT_SIZE_CLASS =
+  "h-7 w-7 xl:h-[var(--seat-size,1.75rem)] xl:w-[var(--seat-size,1.75rem)]";
+
 /** Texto pequeño por sexo; blue-700 / pink-700 para pasar 4.5:1 sobre fondos grises. */
 export const SEX_STYLES: Record<
   "H" | "M",

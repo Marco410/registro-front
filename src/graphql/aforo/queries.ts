@@ -162,6 +162,57 @@ export interface TeamsQueryResponse {
   teams: TeamListItem[];
 }
 
+/**
+ * Equipos para "Gestionar equipos": en orden desde el altar, con asientos por sexo y
+ * cuántos tienen personas o bajas (un equipo solo se puede eliminar vacío).
+ */
+export const EQUIPOS_GESTION_QUERY = gql`
+  query EquiposGestion {
+    teams(orderBy: [{ order: asc }, { teamNumber: asc }]) {
+      id
+      teamNumber
+      teamName
+      order
+      ageGroup {
+        id
+        label
+      }
+      hombres: seatsCount(where: { gender: { equals: "H" } })
+      mujeres: seatsCount(where: { gender: { equals: "M" } })
+      conPersonas: seatsCount(
+        where: {
+          OR: [
+            { occupied: { equals: true } }
+            { abandoned: { equals: true } }
+            { encontrado: { id: { not: null } } }
+            { abandonedBy: { id: { not: null } } }
+          ]
+        }
+      )
+    }
+    ageGroups(orderBy: [{ created_at: asc }, { id: asc }]) {
+      id
+      label
+    }
+  }
+`;
+
+export interface EquipoGestion {
+  id: string;
+  teamNumber: number;
+  teamName: string;
+  order: number | null;
+  ageGroup: { id: string; label: string } | null;
+  hombres: number;
+  mujeres: number;
+  conPersonas: number;
+}
+
+export interface EquiposGestionResponse {
+  teams: EquipoGestion[];
+  ageGroups: { id: string; label: string }[];
+}
+
 export const AFORO_QUERY = gql`
   query DashboardCounts {
     encontradosCount

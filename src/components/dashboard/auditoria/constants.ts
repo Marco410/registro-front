@@ -2,6 +2,7 @@ import {
   CalendarCheckIn01Icon,
   CalendarLock02Icon,
   ClipboardIcon,
+  DatabaseIcon,
   SeatSelectorIcon,
   SquareLock01Icon,
   UserSearch01Icon,
@@ -15,7 +16,8 @@ export type AuditCategoria =
   | "checkin"
   | "aforo"
   | "eventos"
-  | "usuarios";
+  | "usuarios"
+  | "sistema";
 
 /** Categorías de acciones, con el mismo icono que su sección en el sidebar. */
 export const AUDIT_CATEGORIAS: Record<
@@ -58,6 +60,11 @@ export const AUDIT_CATEGORIAS: Record<
     badgeClass:
       "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",
   },
+  sistema: {
+    label: "Base de datos",
+    icon: DatabaseIcon,
+    badgeClass: "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+  },
 };
 
 /**
@@ -85,6 +92,7 @@ export const AUDIT_ACTIONS: Record<
   equipo_creado: { label: "Creó equipo", categoria: "aforo" },
   equipo_editado: { label: "Editó equipo", categoria: "aforo" },
   equipo_eliminado: { label: "Eliminó equipo", categoria: "aforo" },
+  equipos_reordenados: { label: "Reordenó equipos", categoria: "aforo" },
   bautizo_aplicado: { label: "Aplicó bautizo", categoria: "aforo" },
   bautizo_retirado: { label: "Quitó bautizo", categoria: "aforo" },
   bautizo_foraneo_creado: { label: "Registró bautizo foráneo", categoria: "aforo" },
@@ -100,6 +108,12 @@ export const AUDIT_ACTIONS: Record<
   usuario_creado: { label: "Creó usuario", categoria: "usuarios" },
   usuario_editado: { label: "Editó usuario", categoria: "usuarios" },
   usuario_eliminado: { label: "Eliminó usuario", categoria: "usuarios" },
+  grupos_edad_restaurados: {
+    label: "Creó los grupos de edad del seed",
+    categoria: "sistema",
+  },
+  equipos_generados: { label: "Generó equipos y asientos", categoria: "sistema" },
+  base_limpiada: { label: "Limpió la base de datos", categoria: "sistema" },
 };
 
 /** Datos de una acción; las desconocidas (agregadas en el backend después) caen en Sesión con su valor crudo. */

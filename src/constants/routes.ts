@@ -11,6 +11,8 @@ export const routes = {
   dashboardEstadisticas: () => `${DASHBOARD}/estadisticas`,
   dasboardUsers: () => `${DASHBOARD}/usuarios`,
   dasboardEvents: () => `${DASHBOARD}/eventos`,
+  /** Mantenimiento (solo admin): generar equipos y limpiar la base. */
+  dashboardBaseDeDatos: () => `${DASHBOARD}/base-de-datos`,
   /** Bitácora de auditoría; con `userId` abre filtrada por ese usuario. */
   dashboardAuditoria: (userId?: string) =>
     userId

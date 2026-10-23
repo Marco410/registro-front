@@ -16,12 +16,10 @@ import { AsignarAsientoModal } from "registro/components/dashboard/aforo/Asignar
 import { ConfirmEliminarAsientoModal } from "registro/components/dashboard/aforo/ConfirmEliminarAsientoModal";
 import { darDeBajaSeat, useSeatUpdate } from "./seat-update-context";
 import { useDeleteSeats } from "./hooks";
-import { isSeatRemovable } from "./seat-utils";
+import { SEAT_SIZE_CLASS, isSeatRemovable } from "./seat-utils";
 import { toast } from "sonner";
 
-/** En xl+ toma `--seat-size` del contenedor (SeatsByTeam); si no existe, 28px. */
-const SEAT_SIZE =
-  "h-7 w-7 xl:h-[var(--seat-size,1.75rem)] xl:w-[var(--seat-size,1.75rem)]";
+const SEAT_SIZE = SEAT_SIZE_CLASS;
 const SEAT_TEXT = "text-xs";
 const MENU_OFFSET = 4;
 const VIEWPORT_PADDING = 8;

@@ -4,16 +4,8 @@ import { memo, useState } from "react";
 import type { Seat } from "registro/graphql/aforo/queries";
 import { SeatBox } from "./SeatBox";
 import { TeamSeatsModal } from "./TeamSeatsModal";
-import { SEX_STYLES, countSeats } from "./seat-utils";
+import { SEX_STYLES, TEAM_ROW_GRID, countSeats } from "./seat-utils";
 
-/**
- * Columnas de la vista de salón (xl+): hombres | pasillo con el equipo | mujeres.
- * La comparten el encabezado y cada fila para que todo quede alineado. Si
- * cambia el ancho del pasillo (10rem), hay que ajustar `--seat-size` en
- * SeatsByTeam.
- */
-export const TEAM_ROW_GRID =
-  "xl:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1fr)]";
 
 type Sexo = "H" | "M";
 

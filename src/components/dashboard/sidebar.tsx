@@ -13,6 +13,7 @@ import {
   UserSearch01Icon,
   CalendarLock02Icon,
   AuditIcon,
+  DatabaseIcon,
 } from "@hugeicons/core-free-icons";
 import { routes } from "registro/constants/routes";
 import { TAB_CHECKIN, TAB_REGISTRO } from "registro/constants/const";
@@ -69,6 +70,7 @@ export function Sidebar({
         { href: routes.dasboardEvents(), label: "Eventos", icon: CalendarLock02Icon },
         { href: routes.dasboardUsers(), label: "Usuarios", icon: UserSearch01Icon },
         { href: routes.dashboardAuditoria(), label: "Auditoría", icon: AuditIcon },
+        { href: routes.dashboardBaseDeDatos(), label: "Base de datos", icon: DatabaseIcon },
       ]
     : [...baseNavItems];
 
