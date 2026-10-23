@@ -20,6 +20,7 @@ import { ConfirmQuitarCheckinModal } from "registro/components/dashboard/aforo/C
 import { ConfirmarBautizoModal } from "registro/components/dashboard/aforo/ConfirmarBautizoModal";
 import { AsignarAsientoModal } from "registro/components/dashboard/aforo/AsignarAsientoModal";
 import { ConfirmEliminarAsientoModal } from "registro/components/dashboard/aforo/ConfirmEliminarAsientoModal";
+import { DetalleEncontradoModal } from "./DetalleEncontradoModal";
 import { darDeBajaSeat, useSeatUpdate } from "./seat-update-context";
 import { useDeleteSeats } from "./hooks";
 import {
@@ -29,42 +30,13 @@ import {
   type RangoEdad,
 } from "./seat-utils";
 import { toast } from "sonner";
+import { copyToClipboard } from "registro/lib/clipboard";
 
 const SEAT_SIZE = SEAT_SIZE_CLASS;
 const SEAT_TEXT = "text-xs";
 const MENU_OFFSET = 4;
 const VIEWPORT_PADDING = 8;
 const TOOLTIP_OFFSET = 6;
-
-/** Copia texto al portapapeles; usa fallback si navigator.clipboard no está disponible (ej. sin HTTPS). */
-async function copyToClipboard(text: string): Promise<boolean> {
-  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      return copyFallback(text);
-    }
-  }
-  return copyFallback(text);
-}
-
-function copyFallback(text: string): boolean {
-  try {
-    const el = document.createElement("textarea");
-    el.value = text;
-    el.setAttribute("readonly", "");
-    el.style.position = "absolute";
-    el.style.left = "-9999px";
-    document.body.appendChild(el);
-    el.select();
-    const ok = document.execCommand("copy");
-    document.body.removeChild(el);
-    return ok;
-  } catch {
-    return false;
-  }
-}
 
 export function ocupadoPor(seat: Seat): string {
   if (!seat.occupied || !seat.encontrado) return "";
@@ -194,6 +166,7 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
   const [showConfirmEliminar, setShowConfirmEliminar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showDetalle, setShowDetalle] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -369,6 +342,19 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
                     Asiento desocupado
                   </div>
                 )}
+                {seat.encontrado?.id ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setShowDetalle(true);
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                  >
+                    Ver detalle
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   role="menuitem"
@@ -528,6 +514,14 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
           sex={sex}
           onSuccess={() => setShowAsignar(false)}
           onCancel={() => setShowAsignar(false)}
+        />
+      )}
+
+      {showDetalle && seat.encontrado?.id && (
+        <DetalleEncontradoModal
+          open={showDetalle}
+          encontradoId={seat.encontrado.id}
+          onClose={() => setShowDetalle(false)}
         />
       )}
 

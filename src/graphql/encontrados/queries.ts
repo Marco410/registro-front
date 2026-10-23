@@ -292,3 +292,95 @@ export interface EncontradoByIdQueryVariables {
 export interface EncontradoByIdQueryResponse {
   encontrado: EncontradoListItem | null;
 }
+
+/**
+ * Todo lo de un encontrado para el modal "Ver detalle" de Aforo: datos personales,
+ * contacto, salud, quién lo registró y su check-in (equipo, asiento, grupo de edad).
+ */
+export const ENCONTRADO_DETALLE_QUERY = gql`
+  query EncontradoDetalle($id: ID!) {
+    encontrado(where: { id: $id }) {
+      id
+      clave
+      nombre
+      apellido_p
+      apellido_m
+      sexo
+      fecha_n
+      edad
+      address
+      estado_c
+      religion
+      telefono
+      nom_ref
+      tel_ref
+      enfermedad
+      bautizo
+      celular
+      medicamento
+      notes
+      create_at
+      user {
+        name
+      }
+      checkins {
+        clave
+        claveOld
+        checkinAt
+        user {
+          name
+        }
+        ageGroup {
+          label
+        }
+        team {
+          teamName
+        }
+        seat {
+          letter
+        }
+      }
+    }
+  }
+`;
+
+export interface EncontradoDetalle {
+  id: string;
+  clave: number | null;
+  nombre: string | null;
+  apellido_p: string | null;
+  apellido_m: string | null;
+  sexo: string | null;
+  fecha_n: string | null;
+  edad: string | number | null;
+  address: string | null;
+  estado_c: string | null;
+  religion: string | null;
+  telefono: string | null;
+  nom_ref: string | null;
+  tel_ref: string | null;
+  enfermedad: string | null;
+  bautizo: boolean | null;
+  celular: boolean | null;
+  medicamento: boolean | null;
+  notes: string | null;
+  create_at: string | null;
+  user: { name: string | null } | null;
+  checkins: {
+    clave: string | null;
+    claveOld: string | null;
+    checkinAt: string | null;
+    user: { name: string | null } | null;
+    ageGroup: { label: string } | null;
+    team: { teamName: string } | null;
+    seat: { letter: string } | null;
+  } | null;
+}
+
+export interface EncontradoDetalleResponse {
+  encontrado: EncontradoDetalle | null;
+}
+
+export interface EncontradoDetalleVariables {
+  id: string;
+}
