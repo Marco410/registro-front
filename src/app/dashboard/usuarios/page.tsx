@@ -8,6 +8,7 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   AuditIcon,
+  Logout01Icon,
   UserAdd01Icon,
 } from "@hugeicons/core-free-icons";
 import { routes } from "registro/constants/routes";
@@ -17,7 +18,12 @@ import {
   type UsersQueryResponse,
 } from "registro/graphql/users/queries";
 import { AnimatedMount } from "registro/components/shared";
-import { NuevoUsuarioModal } from "registro/components/dashboard/usuarios";
+import {
+  CerrarSesionUsuarioModal,
+  NuevoUsuarioModal,
+  useRevokeUserSessions,
+} from "registro/components/dashboard/usuarios";
+import { useAuth } from "registro/hooks/use-auth";
 
 type SortColumn = "registros" | "mediaRegistro" | "checkins" | "mediaCheckin";
 type SortDir = "asc" | "desc";
@@ -92,6 +98,23 @@ export default function DashboardUsuariosPage() {
   const [sortBy, setSortBy] = useState<SortColumn | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showNuevoUsuario, setShowNuevoUsuario] = useState(false);
+  const [cerrandoSesionDe, setCerrandoSesionDe] = useState<UserListItem | null>(
+    null,
+  );
+  const { user: currentUser } = useAuth();
+  const { revokeUserSessions, loading: revoking } = useRevokeUserSessions();
+
+  const userLabel = (u: UserListItem) =>
+    u.username ? `${fullName(u)} (${u.username})` : fullName(u);
+
+  const confirmarCerrarSesion = async () => {
+    if (!cerrandoSesionDe) return;
+    const ok = await revokeUserSessions(
+      cerrandoSesionDe.id,
+      userLabel(cerrandoSesionDe),
+    );
+    if (ok) setCerrandoSesionDe(null);
+  };
 
   const rawList = useMemo(() => data?.users ?? [], [data]);
 
@@ -230,7 +253,7 @@ export default function DashboardUsuariosPage() {
                         Alta
                       </th>
                       <th className="px-4 py-3">
-                        <span className="sr-only">Actividad</span>
+                        <span className="sr-only">Acciones</span>
                       </th>
                     </tr>
                   </thead>
@@ -275,13 +298,33 @@ export default function DashboardUsuariosPage() {
                             {formatCreatedAt(u.createdAt)}
                           </td>
                           <td className="px-4 py-3">
-                            <Link
-                              href={routes.dashboardAuditoria(u.id)}
-                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-sm font-medium text-app-primary transition-colors hover:bg-app-selected dark:text-app-primary-muted dark:hover:bg-app-primary/20"
-                            >
-                              <HugeiconsIcon icon={AuditIcon} size={16} />
-                              Ver actividad
-                            </Link>
+                            <div className="flex items-center justify-end gap-1">
+                              <Link
+                                href={routes.dashboardAuditoria(u.id)}
+                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-sm font-medium text-app-primary transition-colors hover:bg-app-selected dark:text-app-primary-muted dark:hover:bg-app-primary/20"
+                              >
+                                <HugeiconsIcon icon={AuditIcon} size={16} />
+                                Ver actividad
+                              </Link>
+                              {u.id === currentUser?.id ? (
+                                <span
+                                  className="whitespace-nowrap px-2 py-1 text-sm text-app-text-secondary dark:text-gray-500"
+                                  title="Para salir usa «Cerrar sesión» en tu menú"
+                                >
+                                  Tu sesión
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setCerrandoSesionDe(u)}
+                                  aria-label={`Cerrar la sesión de ${userLabel(u)}`}
+                                  className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 dark:text-red-400 dark:hover:bg-red-500/10"
+                                >
+                                  <HugeiconsIcon icon={Logout01Icon} size={16} />
+                                  Cerrar sesión
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -303,6 +346,13 @@ export default function DashboardUsuariosPage() {
       <NuevoUsuarioModal
         open={showNuevoUsuario}
         onClose={() => setShowNuevoUsuario(false)}
+      />
+      <CerrarSesionUsuarioModal
+        open={cerrandoSesionDe != null}
+        userLabel={cerrandoSesionDe ? userLabel(cerrandoSesionDe) : ""}
+        loading={revoking}
+        onConfirm={confirmarCerrarSesion}
+        onCancel={() => setCerrandoSesionDe(null)}
       />
     </div>
   );

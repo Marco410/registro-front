@@ -15,9 +15,12 @@ import {
   LOGOUT_MUTATION,
 } from "registro/graphql/auth/mutations";
 import {
+  SESSION_CHECK_EVENT,
   clearSessionToken,
   getAuthenticatedUser,
+  readSessionUser,
   setSessionToken,
+  storeSessionUser,
 } from "registro/lib/auth";
 import { logger } from "registro/lib/logger";
 import type { User } from "registro/types/user";
@@ -29,10 +32,20 @@ export interface AuthResponse {
   message?: string;
 }
 
+/** Resultado de confirmar la sesión con el servidor. */
+type SessionCheck = "activa" | "terminada" | "sin-conexion";
+
+/** Cada cuánto se confirma con el servidor que la sesión sigue activa. */
+const SESSION_CHECK_INTERVAL_MS = 60_000;
+/** Esperas entre reintentos mientras el servidor no responde al abrir el sistema. */
+const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000];
+
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  /** true si la última verificación no pudo hablar con el servidor; la sesión se conserva. */
+  connectionError: boolean;
   login: (username: string, password: string) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -41,77 +54,118 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * Sesión del usuario. La sesión solo termina cuando el servidor responde que ya no es
+ * válida (un admin la cerró desde Usuarios, o el usuario salió); un error de red o un
+ * servidor lento nunca manda al login. Al abrir el sistema se usa el último usuario
+ * confirmado (localStorage) y se verifica en segundo plano; después se vuelve a verificar
+ * cada minuto, al regresar a la pestaña y cuando una petición responde "No autorizado".
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
   const client = useApolloClient();
-  const mountedRef = useRef(true);
+  const userRef = useRef<User | null>(null);
+  const checkingRef = useRef<Promise<SessionCheck> | null>(null);
+  /** Cambia con cada login/logout para descartar verificaciones que empezaron antes. */
+  const generationRef = useRef(0);
 
-  const [loginMutation, { loading: loginLoading }] = useMutation<LoginResponse>(
-    LOGIN_MUTATION,
-    {
-      onCompleted: (data) => {
-        const result = data?.authenticateUserWithPassword;
-        if (result && "sessionToken" in result && result.sessionToken) {
-          setSessionToken(result.sessionToken);
-          setUser(mapAuthenticatedUserToUser(result.item));
-        } else if (result && "message" in result) {
-          logger.error("Authentication failed", {
-            message: result.message,
-          });
-        }
-      },
-      onError: (error) => {
-        logger.error("Login error", { error: error.message });
-      },
-    },
-  );
+  const [loginMutation, { loading: loginLoading }] =
+    useMutation<LoginResponse>(LOGIN_MUTATION);
+  const [logoutMutation] = useMutation(LOGOUT_MUTATION);
 
-  const [logoutMutation] = useMutation(LOGOUT_MUTATION, {
-    onCompleted: () => {
-      clearSessionToken();
-      setUser(null);
-    },
-    onError: () => {
-      clearSessionToken();
-      setUser(null);
-    },
-  });
-
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
+  /** Fija el usuario sin re-renderizar si los datos no cambiaron. */
+  const applyUser = useCallback((next: User | null) => {
+    userRef.current = next;
+    setUser((prev) =>
+      prev && next && JSON.stringify(prev) === JSON.stringify(next)
+        ? prev
+        : next,
+    );
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    const timeout = setTimeout(() => {
-      if (cancelled) return;
-      setIsLoading(false);
-    }, 5000);
+  const checkSession = useCallback((): Promise<SessionCheck> => {
+    if (checkingRef.current) return checkingRef.current;
+    const generation = generationRef.current;
 
-    const initAuth = async () => {
+    const run = (async (): Promise<SessionCheck> => {
       try {
-        const userData = await getAuthenticatedUser(client);
-        if (!cancelled) setUser(userData);
-      } catch (error) {
-        logger.error("Failed to initialize authentication", { error });
-        if (!cancelled) setUser(null);
-      } finally {
-        if (!cancelled) {
-          clearTimeout(timeout);
-          setIsLoading(false);
+        const current = await getAuthenticatedUser(client);
+        if (generation !== generationRef.current) return "activa";
+        setConnectionError(false);
+        if (current) {
+          storeSessionUser(current);
+          applyUser(current);
+          return "activa";
         }
+        if (userRef.current) {
+          toast.info("Tu sesión se cerró. Vuelve a iniciar sesión.");
+        }
+        clearSessionToken();
+        applyUser(null);
+        return "terminada";
+      } catch (error) {
+        if (generation !== generationRef.current) return "activa";
+        // Esperable (red caída, servidor ocupado): la sesión se conserva y se reintenta.
+        console.warn("[Auth] No se pudo verificar la sesión; se conserva.", error);
+        setConnectionError(true);
+        return "sin-conexion";
+      } finally {
+        checkingRef.current = null;
+        setIsLoading(false);
       }
+    })();
+
+    checkingRef.current = run;
+    return run;
+  }, [client, applyUser]);
+
+  // Al abrir: retoma el último usuario confirmado y verifica; si no hay conexión, reintenta.
+  useEffect(() => {
+    const stored = readSessionUser();
+    if (stored) {
+      applyUser(stored);
+      setIsLoading(false);
+    }
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempt = 0;
+    const verify = async () => {
+      const result = await checkSession();
+      if (cancelled || result !== "sin-conexion") return;
+      const delay = RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)];
+      attempt += 1;
+      timer = setTimeout(verify, delay);
     };
-    initAuth();
+    void verify();
+
     return () => {
       cancelled = true;
-      clearTimeout(timeout);
+      if (timer) clearTimeout(timer);
     };
-  }, [client]);
+  }, [applyUser, checkSession]);
+
+  // Con sesión: verifica cada minuto, al volver a la pestaña o a la red, y cuando se pida.
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (!userId) return;
+    const check = () => void checkSession();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") check();
+    };
+    const interval = setInterval(check, SESSION_CHECK_INTERVAL_MS);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("online", check);
+    window.addEventListener(SESSION_CHECK_EVENT, check);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("online", check);
+      window.removeEventListener(SESSION_CHECK_EVENT, check);
+    };
+  }, [userId, checkSession]);
 
   const login = useCallback(
     async (username: string, password: string): Promise<AuthResponse> => {
@@ -122,13 +176,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = result.data?.authenticateUserWithPassword;
 
         if (data && "sessionToken" in data) {
-          const { sessionToken, item } = data;
-          if (sessionToken) setSessionToken(sessionToken);
-          setUser(mapAuthenticatedUserToUser(item));
+          generationRef.current += 1;
+          const loggedIn = mapAuthenticatedUserToUser(data.item);
+          if (data.sessionToken) setSessionToken(data.sessionToken);
+          storeSessionUser(loggedIn);
+          applyUser(loggedIn);
+          setConnectionError(false);
           toast.success("Sesión iniciada");
           return { success: true };
         }
         if (data && "message" in data) {
+          logger.error("Authentication failed", { message: data.message });
           return { success: false, message: data.message };
         }
         return {
@@ -142,36 +200,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message };
       }
     },
-    [loginMutation],
+    [loginMutation, applyUser],
   );
 
   const logout = useCallback(async () => {
+    generationRef.current += 1;
     try {
       await logoutMutation();
       toast.success("Sesión cerrada");
     } catch {
+      /* el token se borra igual: el usuario pidió salir */
+    } finally {
       clearSessionToken();
-      setUser(null);
+      applyUser(null);
     }
-  }, [logoutMutation]);
+  }, [logoutMutation, applyUser]);
 
   const refreshUser = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const userData = await getAuthenticatedUser(client);
-      if (mountedRef.current) setUser(userData);
-    } catch (error) {
-      logger.error("Failed to refresh user", { error });
-      if (mountedRef.current) setUser(null);
-    } finally {
-      if (mountedRef.current) setIsLoading(false);
-    }
-  }, [client]);
+    await checkSession();
+  }, [checkSession]);
 
   const value: AuthContextValue = {
     user,
     isLoading: isLoading || loginLoading,
     isAuthenticated: !!user,
+    connectionError,
     login,
     logout,
     refreshUser,

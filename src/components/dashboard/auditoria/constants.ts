@@ -78,6 +78,10 @@ export const AUDIT_ACTIONS: Record<
   sesion_iniciada: { label: "Inició sesión", categoria: "sesion" },
   sesion_fallida: { label: "Intento de sesión fallido", categoria: "sesion" },
   sesion_cerrada: { label: "Cerró sesión", categoria: "sesion" },
+  sesiones_revocadas: {
+    label: "Cerró la sesión de un usuario",
+    categoria: "sesion",
+  },
   encontrado_creado: { label: "Registró encontrado", categoria: "registro" },
   encontrado_editado: { label: "Editó encontrado", categoria: "registro" },
   encontrado_eliminado: { label: "Eliminó encontrado", categoria: "registro" },
