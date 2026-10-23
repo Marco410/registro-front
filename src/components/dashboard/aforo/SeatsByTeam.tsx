@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@apollo/client";
+import { NetworkStatus, useQuery } from "@apollo/client";
 import { useAuth } from "registro/hooks/use-auth";
 import { isAdmin } from "registro/lib/auth";
 import {
@@ -20,7 +20,7 @@ import {
 import { TeamSeatsRow } from "./TeamSeatsRow";
 import { useExportEncontradosExcel } from "./hooks";
 import { SeatUpdateProvider } from "./seat-update-context";
-import { countSeats, getSeatSex } from "./seat-utils";
+import { AFORO_POLL_MS, countSeats, getSeatSex } from "./seat-utils";
 import {
   AltarMarker,
   GenderHeading,
@@ -94,8 +94,9 @@ function GenderSummary({
 /**
  * Tarjeta "Asientos por equipo". Trae su esqueleto: en la primera carga se pintan el
  * encabezado, el altar y los encabezados de columna, y laten las filas. Al volver a
- * leer (refetch) el contenido se queda, atenuado, bajo la barra de espera. Si falla, el
- * error aparece en el mismo sitio con la opción de reintentar.
+ * leer (refetch) el contenido se queda, atenuado, bajo la barra de espera. El refresco
+ * automático (cada `AFORO_POLL_MS`) es silencioso: solo cambian los asientos. Si falla,
+ * el error aparece en el mismo sitio con la opción de reintentar.
  */
 export function SeatsByTeam() {
   const [showGestionarAsientos, setShowGestionarAsientos] = useState(false);
@@ -104,14 +105,13 @@ export function SeatsByTeam() {
     useState(false);
   const { user } = useAuth();
   const admin = isAdmin(user);
-  const { data, loading, error, refetch } = useQuery<SeatsQueryResponse>(
-    SEATS_QUERY,
-    {
+  const { data, loading, error, refetch, networkStatus } =
+    useQuery<SeatsQueryResponse>(SEATS_QUERY, {
       fetchPolicy: "cache-and-network",
       nextFetchPolicy: "cache-first",
       notifyOnNetworkStatusChange: true,
-    },
-  );
+      pollInterval: AFORO_POLL_MS,
+    });
   const { exportEncontradosToExcel } = useExportEncontradosExcel();
 
   const seats = useMemo(() => data?.seats ?? [], [data]);
@@ -125,7 +125,9 @@ export function SeatsByTeam() {
   );
 
   const firstLoad = loading && !data;
-  const refreshing = useDelayedFlag(loading && Boolean(data));
+  const refreshing = useDelayedFlag(
+    loading && Boolean(data) && networkStatus !== NetworkStatus.poll,
+  );
 
   let body: React.ReactNode;
   if (error && !data) {

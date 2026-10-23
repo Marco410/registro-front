@@ -8,6 +8,7 @@ import {
 } from "registro/graphql/aforo/queries";
 import { getAforoCounts } from "registro/lib/helpers/aforo-counts";
 import { ConteoStat as Stat } from "./ConteoStat";
+import { AFORO_POLL_MS } from "./seat-utils";
 
 const panelClass =
   "flex divide-x divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm dark:divide-gray-700 dark:border-gray-700 dark:bg-[#202124] sm:min-w-[22rem]";
@@ -17,7 +18,9 @@ const panelClass =
  * una sola franja compacta para el encabezado de la página.
  */
 export function AforoResumen() {
-  const { data, loading, error, refetch } = useQuery<AforoResponse>(AFORO_QUERY);
+  const { data, loading, error, refetch } = useQuery<AforoResponse>(AFORO_QUERY, {
+    pollInterval: AFORO_POLL_MS,
+  });
   const firstLoad = loading && !data;
 
   if (error && !data) {

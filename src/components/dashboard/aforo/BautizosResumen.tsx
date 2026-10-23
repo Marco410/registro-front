@@ -17,6 +17,7 @@ import type { ConteoPorSexo } from "registro/lib/helpers/aforo-counts";
 import { BautizoForaneosModal } from "registro/components/shared/BautizoForaneosModal";
 import { useExportListaBautizos } from "./hooks";
 import { ConteoStat } from "./ConteoStat";
+import { AFORO_POLL_MS } from "./seat-utils";
 
 const actionButtonClass =
   "flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-app-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-app-primary-muted";
@@ -29,8 +30,10 @@ const actionButtonClass =
 export function BautizosResumen() {
   const [foraneosOpen, setForaneosOpen] = useState(false);
   const { exportLista, loading: exporting } = useExportListaBautizos();
-  const { data, loading, error, refetch } =
-    useQuery<BautizoCountsResponse>(BAUTIZO_COUNTS_QUERY);
+  const { data, loading, error, refetch } = useQuery<BautizoCountsResponse>(
+    BAUTIZO_COUNTS_QUERY,
+    { pollInterval: AFORO_POLL_MS },
+  );
   const firstLoad = loading && !data;
 
   const encontrados: ConteoPorSexo = {

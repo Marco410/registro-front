@@ -1,6 +1,12 @@
 import type { Seat } from "registro/graphql/aforo/queries";
 
 /**
+ * Cada cuánto se vuelven a consultar asientos y conteos del aforo, para que la
+ * pantalla refleje lo que se registra en las demás estaciones sin recargar.
+ */
+export const AFORO_POLL_MS = 60_000;
+
+/**
  * Letras válidas para un asiento. Se limita a A–Z porque el backend ordena y
  * asigna asientos por `letter` como texto: "AA" quedaría entre "A" y "B".
  */
