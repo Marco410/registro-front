@@ -175,7 +175,13 @@ export interface CubetaHora {
   /** Inicio de la hora (ms, hora local). */
   inicio: number;
   registros: number;
+  /** Registros de hombres y de mujeres (suman `registros`). */
+  registrosH: number;
+  registrosM: number;
   checkins: number;
+  /** Check-ins de hombres y de mujeres (suman `checkins`). */
+  checkinsH: number;
+  checkinsM: number;
 }
 
 function inicioDeHora(t: number): number {
@@ -184,22 +190,37 @@ function inicioDeHora(t: number): number {
   return d.getTime();
 }
 
+/** Momento (ms) de un evento y si fue de una mujer. */
+interface EventoHora {
+  t: number;
+  mujer: boolean;
+}
+
+function eventos(
+  lista: EstadisticaEncontrado[],
+  fecha: (e: EstadisticaEncontrado) => string | null | undefined,
+): EventoHora[] {
+  const resultado: EventoHora[] = [];
+  for (const e of lista) {
+    const valor = fecha(e);
+    const t = valor ? Date.parse(valor) : Number.NaN;
+    if (Number.isFinite(t)) resultado.push({ t, mujer: esMujer(e) });
+  }
+  return resultado;
+}
+
 /**
- * Registros (`create_at`) y check-ins por hora, de la primera a la última hora con
- * actividad, incluidas las horas vacías. Si el periodo pasa de `maxHoras`, se
- * muestran solo las últimas `maxHoras` y `recortado` es `true`.
+ * Registros (`create_at`) y check-ins por hora, con su desglose H/M, de la primera a la
+ * última hora con actividad, incluidas las horas vacías. Si el periodo pasa de `maxHoras`,
+ * se muestran solo las últimas `maxHoras` y `recortado` es `true`.
  */
 export function actividadPorHora(
   lista: EstadisticaEncontrado[],
   maxHoras = 48,
 ): { cubetas: CubetaHora[]; recortado: boolean } {
-  const registros = lista
-    .map((e) => (e.create_at ? Date.parse(e.create_at) : Number.NaN))
-    .filter(Number.isFinite);
-  const checkins = lista
-    .map((e) => (e.checkins?.checkinAt ? Date.parse(e.checkins.checkinAt) : Number.NaN))
-    .filter(Number.isFinite);
-  const todos = [...registros, ...checkins];
+  const registros = eventos(lista, (e) => e.create_at);
+  const checkins = eventos(lista, (e) => e.checkins?.checkinAt);
+  const todos = [...registros, ...checkins].map((ev) => ev.t);
   if (todos.length === 0) return { cubetas: [], recortado: false };
 
   const fin = inicioDeHora(Math.max(...todos));
@@ -212,18 +233,126 @@ export function actividadPorHora(
 
   const cubetas: CubetaHora[] = [];
   for (let t = inicio; t <= fin; t += HORA_MS) {
-    cubetas.push({ inicio: t, registros: 0, checkins: 0 });
+    cubetas.push({
+      inicio: t,
+      registros: 0,
+      registrosH: 0,
+      registrosM: 0,
+      checkins: 0,
+      checkinsH: 0,
+      checkinsM: 0,
+    });
   }
-  const indice = (t: number) => Math.floor((inicioDeHora(t) - inicio) / HORA_MS);
-  for (const t of registros) {
-    const i = indice(t);
-    if (i >= 0 && i < cubetas.length) cubetas[i].registros += 1;
+  const cubeta = (t: number): CubetaHora | undefined =>
+    cubetas[Math.floor((inicioDeHora(t) - inicio) / HORA_MS)];
+  for (const { t, mujer } of registros) {
+    const c = cubeta(t);
+    if (!c) continue;
+    c.registros += 1;
+    if (mujer) c.registrosM += 1;
+    else c.registrosH += 1;
   }
-  for (const t of checkins) {
-    const i = indice(t);
-    if (i >= 0 && i < cubetas.length) cubetas[i].checkins += 1;
+  for (const { t, mujer } of checkins) {
+    const c = cubeta(t);
+    if (!c) continue;
+    c.checkins += 1;
+    if (mujer) c.checkinsM += 1;
+    else c.checkinsH += 1;
   }
   return { cubetas, recortado };
+}
+
+/** Cada cuántos minutos hay un corte en la gráfica de crecimiento. */
+export const INTERVALO_ACUMULADO_MIN = 15;
+const INTERVALO_MS = INTERVALO_ACUMULADO_MIN * 60 * 1000;
+
+function inicioDeIntervalo(t: number): number {
+  const d = new Date(t);
+  const minutos = d.getMinutes();
+  d.setMinutes(minutos - (minutos % INTERVALO_ACUMULADO_MIN), 0, 0);
+  return d.getTime();
+}
+
+/** Acumulado hasta un corte: todo lo que pasó antes de `t`. */
+export interface PuntoAcumulado {
+  /** Corte (ms, hora local, múltiplo de `INTERVALO_ACUMULADO_MIN`). */
+  t: number;
+  registros: number;
+  registrosH: number;
+  registrosM: number;
+  checkins: number;
+  checkinsH: number;
+  checkinsM: number;
+}
+
+type CampoAcumulado = Exclude<keyof PuntoAcumulado, "t">;
+
+/**
+ * Registros y check-ins acumulados cada `INTERVALO_ACUMULADO_MIN` minutos, con su desglose
+ * H/M, para ver cómo crece el evento. El primer corte es el intervalo de la primera
+ * actividad y el último, el intervalo siguiente a la última, así que termina en los
+ * totales. Si el periodo pasa de `maxHoras`, se muestran solo las últimas `maxHoras`
+ * (`recortado`), pero el acumulado sigue contando lo de antes.
+ */
+export function acumuladoPorIntervalo(
+  lista: EstadisticaEncontrado[],
+  maxHoras = 48,
+): { puntos: PuntoAcumulado[]; recortado: boolean } {
+  const registros = eventos(lista, (e) => e.create_at);
+  const checkins = eventos(lista, (e) => e.checkins?.checkinAt);
+  const todos = [...registros, ...checkins].map((ev) => ev.t);
+  if (todos.length === 0) return { puntos: [], recortado: false };
+
+  const fin = inicioDeIntervalo(Math.max(...todos)) + INTERVALO_MS;
+  let inicio = inicioDeIntervalo(Math.min(...todos));
+  let recortado = false;
+  const maxIntervalos = (maxHoras * 60) / INTERVALO_ACUMULADO_MIN;
+  if ((fin - inicio) / INTERVALO_MS > maxIntervalos) {
+    inicio = fin - maxIntervalos * INTERVALO_MS;
+    recortado = true;
+  }
+
+  const n = Math.round((fin - inicio) / INTERVALO_MS);
+  const puntos: PuntoAcumulado[] = Array.from({ length: n + 1 }, (_, k) => ({
+    t: inicio + k * INTERVALO_MS,
+    registros: 0,
+    registrosH: 0,
+    registrosM: 0,
+    checkins: 0,
+    checkinsH: 0,
+    checkinsM: 0,
+  }));
+
+  // Cada evento suma en el primer corte posterior a él (lo anterior a `inicio`, en el 0);
+  // después se acumula de corte en corte.
+  const sumar = (
+    lista: EventoHora[],
+    total: CampoAcumulado,
+    hombres: CampoAcumulado,
+    mujeres: CampoAcumulado,
+  ) => {
+    for (const { t, mujer } of lista) {
+      const k = Math.max(0, Math.floor((t - inicio) / INTERVALO_MS) + 1);
+      const p = puntos[Math.min(k, n)];
+      p[total] += 1;
+      p[mujer ? mujeres : hombres] += 1;
+    }
+  };
+  sumar(registros, "registros", "registrosH", "registrosM");
+  sumar(checkins, "checkins", "checkinsH", "checkinsM");
+
+  const campos: CampoAcumulado[] = [
+    "registros",
+    "registrosH",
+    "registrosM",
+    "checkins",
+    "checkinsH",
+    "checkinsM",
+  ];
+  for (let k = 1; k <= n; k++) {
+    for (const campo of campos) puntos[k][campo] += puntos[k - 1][campo];
+  }
+  return { puntos, recortado };
 }
 
 /** "12 %" de `parte` sobre `total`; "—" si no hay total. */

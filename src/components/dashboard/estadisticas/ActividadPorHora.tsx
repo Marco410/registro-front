@@ -4,7 +4,7 @@ import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChartColumnIcon, TableIcon } from "@hugeicons/core-free-icons";
 import type { CubetaHora } from "registro/lib/helpers/estadisticas";
-import { ChartCard, Leyenda, SERIES, SinDatos } from "./chart-ui";
+import { ChartCard, Leyenda, SERIES, SinDatos, escalaEje } from "./chart-ui";
 
 const HORA_MS = 60 * 60 * 1000;
 
@@ -14,23 +14,39 @@ const dia = (t: number) =>
   new Date(t).toLocaleDateString("es", { day: "numeric", month: "short" });
 const rango = (t: number) => `${dia(t)}, ${hora(t)} – ${hora(t + HORA_MS)}`;
 
-/** Paso "redondo" (1, 2, 5 × 10ⁿ) para unas 4 marcas del eje. */
-function pasoRedondo(max: number): number {
-  if (max <= 4) return 1;
-  const crudo = max / 4;
-  const potencia = 10 ** Math.floor(Math.log10(crudo));
-  const n = crudo / potencia;
-  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * potencia;
-}
-
 function Columna({ valor, tope, fill }: { valor: number; tope: number; fill: string }) {
   return (
     <span
-      className={`w-full max-w-[12px] rounded-t-[4px] ${fill}`}
+      className={`max-w-[12px] flex-1 rounded-t-[4px] ${fill}`}
       style={{ height: valor > 0 ? `max(2px, ${(valor / tope) * 100}%)` : 0 }}
     />
   );
 }
+
+/** Un total con sus hombres y mujeres al lado: [total | H | M]. */
+function GrupoColumnas({
+  total,
+  hombres,
+  mujeres,
+  tope,
+  fill,
+}: {
+  total: number;
+  hombres: number;
+  mujeres: number;
+  tope: number;
+  fill: string;
+}) {
+  return (
+    <div className="flex h-full max-w-[2.5rem] flex-1 items-end justify-center gap-[2px]">
+      <Columna valor={total} tope={tope} fill={fill} />
+      <Columna valor={hombres} tope={tope} fill={SERIES.H.fill} />
+      <Columna valor={mujeres} tope={tope} fill={SERIES.M.fill} />
+    </div>
+  );
+}
+
+const desglose = (h: number, m: number) => `${h} hombres · ${m} mujeres`;
 
 export interface ActividadPorHoraProps {
   cubetas: CubetaHora[];
@@ -38,8 +54,9 @@ export interface ActividadPorHoraProps {
 }
 
 /**
- * Registros y check-ins por hora (columnas agrupadas, un solo eje). Cada hora es zona
- * de hover; con el foco en la gráfica, las flechas recorren las horas. El tooltip
+ * Registros y check-ins por hora (columnas agrupadas, un solo eje). En cada hora van dos
+ * grupos, [registros | hombres | mujeres] y [check-ins | hombres | mujeres]. Cada hora es
+ * zona de hover; con el foco en la gráfica, las flechas recorren las horas. El tooltip
  * mejora pero no es el único acceso: la vista de tabla tiene todos los valores.
  */
 export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) {
@@ -47,9 +64,7 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
   const [verTabla, setVerTabla] = useState(false);
 
   const maxValor = Math.max(0, ...cubetas.map((c) => Math.max(c.registros, c.checkins)));
-  const paso = pasoRedondo(Math.max(1, maxValor));
-  const tope = Math.max(paso, Math.ceil(maxValor / paso) * paso);
-  const marcas = Array.from({ length: tope / paso + 1 }, (_, i) => i * paso);
+  const { tope, marcas } = escalaEje(maxValor);
   const cadaN = Math.max(1, Math.ceil(cubetas.length / 8));
   const pico = cubetas.reduce<CubetaHora | null>(
     (mejor, c) => (c.checkins > (mejor?.checkins ?? 0) ? c : mejor),
@@ -63,6 +78,7 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
       {recortado
         ? "Últimas 48 horas con actividad."
         : "De la primera a la última hora con actividad."}
+      {" Junto a cada total, sus hombres y mujeres."}
       {pico ? ` Pico de check-ins: ${rango(pico.inicio)} (${pico.checkins}).` : ""}
     </>
   );
@@ -92,7 +108,7 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
       subtitle={subtitle}
       aside={
         <>
-          <Leyenda series={["registros", "checkins"]} />
+          <Leyenda series={["registros", "checkins", "H", "M"]} />
           <button
             type="button"
             onClick={() => setVerTabla((v) => !v)}
@@ -113,15 +129,24 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
             <caption className="sr-only">Registros y check-ins por hora</caption>
             <thead className="sticky top-0 bg-white dark:bg-[#202124]">
               <tr className="text-[0.6875rem] font-semibold uppercase tracking-wide text-app-text-secondary dark:text-gray-400">
-                <th scope="col" className="pb-2 text-left">
+                <th scope="col" rowSpan={2} className="pb-2 text-left align-bottom">
                   Hora
                 </th>
-                <th scope="col" className="pb-2 text-right">
+                <th scope="colgroup" colSpan={3} className="pb-1 text-right">
                   Registros
                 </th>
-                <th scope="col" className="pb-2 text-right">
+                <th scope="colgroup" colSpan={3} className="pb-1 text-right">
                   Check-ins
                 </th>
+              </tr>
+              <tr className="text-[0.6875rem] font-medium text-app-text-secondary dark:text-gray-400">
+                {[0, 1].flatMap((g) =>
+                  ["Total", "Hombres", "Mujeres"].map((col) => (
+                    <th key={`${g}-${col}`} scope="col" className="pb-2 pl-3 text-right">
+                      {col}
+                    </th>
+                  )),
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -133,12 +158,25 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
                   >
                     {rango(c.inicio)}
                   </th>
-                  <td className="py-1.5 text-right tabular-nums text-app-text-primary dark:text-gray-200">
-                    {c.registros}
-                  </td>
-                  <td className="py-1.5 text-right tabular-nums text-app-text-primary dark:text-gray-200">
-                    {c.checkins}
-                  </td>
+                  {[
+                    c.registros,
+                    c.registrosH,
+                    c.registrosM,
+                    c.checkins,
+                    c.checkinsH,
+                    c.checkinsM,
+                  ].map((valor, i) => (
+                    <td
+                      key={i}
+                      className={`py-1.5 pl-3 text-right tabular-nums ${
+                        i % 3 === 0
+                          ? "font-medium text-app-text-primary dark:text-gray-200"
+                          : "text-app-text-secondary dark:text-gray-400"
+                      }`}
+                    >
+                      {valor}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
@@ -181,12 +219,24 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
                   <div
                     key={c.inicio}
                     onMouseEnter={() => setActivo(i)}
-                    className={`flex h-full flex-1 items-end justify-center gap-[2px] px-[1px] ${
+                    className={`flex h-full flex-1 items-end justify-center gap-1.5 px-[1px] ${
                       activo === i ? "bg-gray-100 dark:bg-white/[0.06]" : ""
                     }`}
                   >
-                    <Columna valor={c.registros} tope={tope} fill={SERIES.registros.fill} />
-                    <Columna valor={c.checkins} tope={tope} fill={SERIES.checkins.fill} />
+                    <GrupoColumnas
+                      total={c.registros}
+                      hombres={c.registrosH}
+                      mujeres={c.registrosM}
+                      tope={tope}
+                      fill={SERIES.registros.fill}
+                    />
+                    <GrupoColumnas
+                      total={c.checkins}
+                      hombres={c.checkinsH}
+                      mujeres={c.checkinsM}
+                      tope={tope}
+                      fill={SERIES.checkins.fill}
+                    />
                   </div>
                 ))}
               </div>
@@ -194,19 +244,31 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
                 <div
                   className="pointer-events-none absolute top-1 z-10 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg dark:bg-gray-700"
                   style={{
-                    left: `clamp(80px, ${((activo! + 0.5) / cubetas.length) * 100}%, calc(100% - 80px))`,
+                    left: `clamp(10rem, ${((activo! + 0.5) / cubetas.length) * 100}%, calc(100% - 10rem))`,
                   }}
                 >
                   <p className="mb-1 text-[0.6875rem] text-gray-300">{rango(actual.inicio)}</p>
                   <p className="flex items-center gap-2">
-                    <span className="h-0.5 w-3 rounded-full bg-[#8b5cf6]" aria-hidden />
+                    <span
+                      className={`h-0.5 w-3 rounded-full ${SERIES.registros.onDark}`}
+                      aria-hidden
+                    />
                     <span className="font-semibold tabular-nums">{actual.registros}</span>
                     registros
+                    <span className="tabular-nums text-gray-300">
+                      ({desglose(actual.registrosH, actual.registrosM)})
+                    </span>
                   </p>
                   <p className="flex items-center gap-2">
-                    <span className="h-0.5 w-3 rounded-full bg-[#16a34a]" aria-hidden />
+                    <span
+                      className={`h-0.5 w-3 rounded-full ${SERIES.checkins.onDark}`}
+                      aria-hidden
+                    />
                     <span className="font-semibold tabular-nums">{actual.checkins}</span>
                     check-ins
+                    <span className="tabular-nums text-gray-300">
+                      ({desglose(actual.checkinsH, actual.checkinsM)})
+                    </span>
                   </p>
                 </div>
               ) : null}
@@ -230,7 +292,7 @@ export function ActividadPorHora({ cubetas, recortado }: ActividadPorHoraProps) 
             </div>
             <p className="sr-only" aria-live="polite">
               {actual
-                ? `${rango(actual.inicio)}: ${actual.registros} registros, ${actual.checkins} check-ins`
+                ? `${rango(actual.inicio)}: ${actual.registros} registros (${desglose(actual.registrosH, actual.registrosM)}), ${actual.checkins} check-ins (${desglose(actual.checkinsH, actual.checkinsM)})`
                 : ""}
             </p>
           </div>

@@ -19,6 +19,7 @@ import {
 import {
   ESTADO_CIVIL_OPCIONES,
   RELIGION_OPCIONES,
+  acumuladoPorIntervalo,
   actividadPorHora,
   estaEnRetiro,
   idsDeBajas,
@@ -31,6 +32,7 @@ import {
 import { ConteoStat } from "registro/components/dashboard/aforo/ConteoStat";
 import { ActividadPorHora } from "./ActividadPorHora";
 import { CategoriaBarTable } from "./CategoriaBarTable";
+import { CrecimientoAcumulado } from "./CrecimientoAcumulado";
 import { ChartCard, Leyenda } from "./chart-ui";
 import { EdadPiramide } from "./EdadPiramide";
 import { IndicadoresMeters } from "./IndicadoresMeters";
@@ -80,6 +82,7 @@ export function EstadisticasDashboard() {
   );
   const extra = useMemo(() => indicadores(lista), [lista]);
   const actividad = useMemo(() => actividadPorHora(lista), [lista]);
+  const crecimiento = useMemo(() => acumuladoPorIntervalo(lista), [lista]);
 
   if (loading && !data) {
     return (
@@ -222,6 +225,11 @@ export function EstadisticasDashboard() {
       </div>
 
       <ActividadPorHora cubetas={actividad.cubetas} recortado={actividad.recortado} />
+
+      <CrecimientoAcumulado
+        puntos={crecimiento.puntos}
+        recortado={crecimiento.recortado}
+      />
     </div>
   );
 }
