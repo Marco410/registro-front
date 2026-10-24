@@ -20,7 +20,14 @@ import {
   IdentificationForm,
 } from "../forms/IdentificationForm";
 import { SexoSelector } from "registro/components/shared";
-import { GlassModal } from "registro/components/shared/GlassModal";
+import {
+  getFormSectionClass,
+  getInputClass,
+} from "registro/components/shared/FormInputStyles";
+import {
+  GlassModal,
+  type GlassModalZIndex,
+} from "registro/components/shared/GlassModal";
 import { useUpdateEncontrado } from "../hooks";
 
 function parseFechaN(
@@ -62,6 +69,10 @@ export interface EditEncontradoModalProps {
   onClose: () => void;
   onSaved?: (updated: EncontradoListItem) => void;
   hasCheckin?: boolean;
+  /** Para abrirlo encima de otro modal (por ejemplo, "Ver detalle" de Aforo). */
+  zIndex?: GlassModalZIndex;
+  /** Muestra y guarda el campo de notas (solo desde "Ver detalle" de Aforo). */
+  showNotes?: boolean;
 }
 
 const emptyFormData: EncontradoFormData = {
@@ -92,6 +103,8 @@ export function EditEncontradoModal({
   onClose,
   onSaved,
   hasCheckin: hasCheckinProp,
+  zIndex,
+  showNotes = false,
 }: EditEncontradoModalProps) {
   const { eventType } = useActiveEvent();
   const encontradoSchema = useMemo(
@@ -108,6 +121,8 @@ export function EditEncontradoModal({
     ano: "",
   });
   const [fechaError, setFechaError] = useState<string | null>(null);
+  // Fuera de formData: no pasa por el esquema ni por handleChange (que pone mayúsculas).
+  const [notes, setNotes] = useState("");
   const fechaMesRef = useRef<HTMLInputElement>(null);
   const fechaAnoRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -163,12 +178,14 @@ export function EditEncontradoModal({
     setFechaInputs({ dia: "", mes: "", ano: "" });
     setErrors({});
     setFechaError(null);
+    setNotes("");
   }, [encontradoId, open]);
 
   useEffect(() => {
     if (!encontrado) return;
     const next = encontradoToFormData(encontrado, userId);
     setFormData(next);
+    setNotes(encontrado.notes ?? "");
     const p = parseFechaN(next.fecha_n);
     if (p) {
       setFechaInputs({
@@ -233,7 +250,11 @@ export function EditEncontradoModal({
     }
     setErrors({});
     if (!encontradoId) return;
-    await submitUpdate(encontradoId, formData);
+    await submitUpdate(
+      encontradoId,
+      formData,
+      showNotes ? { notes: notes.trim() } : undefined,
+    );
   };
 
   return (
@@ -242,6 +263,7 @@ export function EditEncontradoModal({
       onClose={onClose}
       ariaLabelledBy="edit-modal-title"
       panelClassName="flex max-h-[min(94vh,calc(100dvh-2rem))] max-w-7xl min-h-0 flex-col overflow-hidden"
+      zIndex={zIndex}
     >
         <div className="shrink-0 border-b border-white/30 px-6 py-4 dark:border-white/10">
           <h2
@@ -337,6 +359,39 @@ export function EditEncontradoModal({
                   />
                 </div>
               </div>
+              {showNotes ? (
+                <section
+                  className={getFormSectionClass(
+                    formData.sexo === "M" ? "M" : "H",
+                    "mt-6 flex flex-col gap-3",
+                  )}
+                >
+                  <h2
+                    className={`border-l-4 pl-3 text-sm font-semibold uppercase tracking-wide text-app-text-primary dark:text-gray-300 ${
+                      formData.sexo === "M" ? "border-pink-600" : "border-app-primary"
+                    }`}
+                  >
+                    <label htmlFor="edit-notes">Notas</label>
+                  </h2>
+                  <textarea
+                    id="edit-notes"
+                    name="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={5}
+                    aria-describedby="edit-notes-hint"
+                    className={`${getInputClass(formData.sexo === "M" ? "M" : "H")} min-h-[6rem] resize-y`}
+                    placeholder="Notas sobre el encontrado"
+                  />
+                  <p
+                    id="edit-notes-hint"
+                    className="text-xs text-app-text-secondary dark:text-gray-400"
+                  >
+                    Los cambios de asiento se anotan aquí solos. Si los borras, se pierde
+                    ese historial.
+                  </p>
+                </section>
+              ) : null}
             </div>
             <div className="shrink-0 flex flex-col-reverse gap-2 border-t border-gray-200 px-6 py-4 sm:flex-row sm:justify-end dark:border-gray-700">
               <button

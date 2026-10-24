@@ -69,6 +69,8 @@ export interface EncontradoListItem {
   tel_ref?: string | null;
   telefono?: string | null;
   address?: string | null;
+  /** Solo lo trae ENCONTRADO_BY_ID_QUERY (edición). */
+  notes?: string | null;
   update_at: string;
   celular: boolean;
   medicamento: boolean;
@@ -272,6 +274,7 @@ export const ENCONTRADO_BY_ID_QUERY = gql`
       address
       celular
       medicamento
+      notes
       update_at
       checkins {
         id

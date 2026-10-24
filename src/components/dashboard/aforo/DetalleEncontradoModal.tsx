@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon, Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import {
+  Cancel01Icon,
+  Copy01Icon,
+  PencilEdit02Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 import {
   ENCONTRADO_DETALLE_QUERY,
   type EncontradoDetalle,
@@ -18,6 +23,8 @@ import {
 } from "registro/lib/helpers/encontrado-display";
 import { useIsNinosEvent } from "registro/contexts/active-event-context";
 import { GlassModal } from "registro/components/shared/GlassModal";
+import { EditEncontradoModal } from "registro/components/dashboard/registro";
+import { useAuth } from "registro/hooks/use-auth";
 import { copyToClipboard } from "registro/lib/clipboard";
 
 /** `copiar`: texto que copia el botón junto al valor (por ejemplo, un teléfono). */
@@ -165,6 +172,7 @@ export interface DetalleEncontradoModalProps {
  * Modal de solo lectura con todos los datos de un encontrado (se abre desde el menú del
  * asiento en Aforo con "Ver detalle"). Lee los datos al abrir para mostrarlos al día. Las
  * notas siempre se ven: ahí el backend deja un renglón por cada cambio de asiento.
+ * "Editar datos" abre el modal de edición de Registro encima; al guardar se vuelve a leer.
  */
 export function DetalleEncontradoModal({
   open,
@@ -172,7 +180,9 @@ export function DetalleEncontradoModal({
   onClose,
 }: DetalleEncontradoModalProps) {
   const isNinosEvent = useIsNinosEvent();
-  const { data, loading, error } = useQuery<
+  const { user } = useAuth();
+  const [editando, setEditando] = useState(false);
+  const { data, loading, error, refetch } = useQuery<
     EncontradoDetalleResponse,
     EncontradoDetalleVariables
   >(ENCONTRADO_DETALLE_QUERY, {
@@ -185,14 +195,15 @@ export function DetalleEncontradoModal({
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (ev: KeyboardEvent) => {
-      if (ev.key === "Escape") {
+      // Con la edición abierta, Esc solo cierra la edición.
+      if (ev.key === "Escape" && !editando) {
         ev.preventDefault();
         onClose();
       }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, editando]);
 
   const nombreCompleto = e
     ? [e.nombre, e.apellido_p, e.apellido_m]
@@ -308,7 +319,7 @@ export function DetalleEncontradoModal({
         </div>
       )}
 
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
         <button
           type="button"
           onClick={onClose}
@@ -316,7 +327,27 @@ export function DetalleEncontradoModal({
         >
           Cerrar
         </button>
+        <button
+          type="button"
+          onClick={() => setEditando(true)}
+          disabled={!e}
+          className="flex items-center justify-center gap-2 rounded-xl bg-app-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-primary/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-app-primary-muted dark:text-gray-900"
+        >
+          <HugeiconsIcon icon={PencilEdit02Icon} size={18} />
+          Editar datos
+        </button>
       </div>
+
+      <EditEncontradoModal
+        open={editando}
+        encontradoId={editando ? encontradoId : null}
+        userId={user?.id != null ? String(user.id) : ""}
+        hasCheckin={Boolean(e?.checkins)}
+        showNotes
+        zIndex={70}
+        onClose={() => setEditando(false)}
+        onSaved={() => void refetch()}
+      />
     </GlassModal>
   );
 }

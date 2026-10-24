@@ -7,6 +7,7 @@ import {
   ENCONTRADOS_QUERY,
   type EncontradoListItem,
 } from "registro/graphql/encontrados/queries";
+import { SEATS_QUERY } from "registro/graphql/aforo/queries";
 import type { EncontradoFormData } from "registro/lib/validations/encontrado";
 
 export interface UseUpdateEncontradoOptions {
@@ -46,7 +47,8 @@ export function useUpdateEncontrado(options: UseUpdateEncontradoOptions = {}) {
   const [updateEncontrado, { loading }] = useMutation<{
     updateEncontrado: EncontradoListItem;
   }>(UPDATE_ENCONTRADO_MUTATION, {
-    refetchQueries: [ENCONTRADOS_QUERY],
+    // SEATS_QUERY solo se refresca si Aforo está abierto (nombre y datos en los asientos).
+    refetchQueries: [ENCONTRADOS_QUERY, SEATS_QUERY],
     onCompleted: (data) => {
       toast.success("Registro actualizado correctamente");
       if (data?.updateEncontrado) onSuccess?.(data.updateEncontrado);
@@ -56,14 +58,22 @@ export function useUpdateEncontrado(options: UseUpdateEncontradoOptions = {}) {
     },
   });
 
+  /**
+   * @param extra Campos fuera del formulario; `notes` solo se manda si viene (así una
+   *   edición sin el campo de notas nunca las toca).
+   */
   const submitUpdate = async (
     encontradoId: string,
     data: EncontradoFormData,
+    extra?: { notes?: string },
   ) => {
     await updateEncontrado({
       variables: {
         where: { id: encontradoId },
-        data: toUpdateData(data),
+        data: {
+          ...toUpdateData(data),
+          ...(extra?.notes !== undefined && { notes: extra.notes }),
+        },
       },
     });
   };
