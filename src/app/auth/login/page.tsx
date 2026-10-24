@@ -1,34 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { useAuth } from "registro/hooks/use-auth";
 import { RedirectIfAuthenticated } from "registro/components/auth/redirect-if-authenticated";
+
+type LoginField = "username" | "password";
+
+/**
+ * Mensaje claro para un login fallido. El backend ya dice si el usuario no existe o si la
+ * contraseña está mal; esto cubre el mensaje genérico de Keystone y la falta de conexión.
+ */
+function friendlyLoginError(message?: string): string {
+  if (!message) return "No se pudo iniciar sesión. Intenta de nuevo.";
+  if (/authentication failed/i.test(message)) {
+    return "Usuario o contraseña incorrectos.";
+  }
+  if (/failed to fetch|networkerror|load failed/i.test(message)) {
+    return "No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.";
+  }
+  return message;
+}
+
+/** Campo que hay que corregir según el mensaje, para marcarlo y enfocarlo. */
+function fieldForError(message: string): LoginField | null {
+  if (/contraseña/i.test(message)) return "password";
+  if (/usuario/i.test(message)) return "username";
+  return null;
+}
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorField, setErrorField] = useState<LoginField | null>(null);
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setErrorField(null);
     setLoading(true);
     try {
       const result = await login(username, password);
       if (result.success) {
         router.push("/dashboard");
       } else {
-        setError(result.message ?? "Error al iniciar sesión");
+        const message = friendlyLoginError(result.message);
+        const field = fieldForError(message);
+        setError(message);
+        setErrorField(field);
+        const input = field === "password" ? passwordRef.current : usernameRef.current;
+        if (field) {
+          input?.focus();
+          input?.select();
+        }
       }
     } finally {
       setLoading(false);
     }
   };
+
+  const inputStateClass = (field: LoginField) =>
+    errorField === field
+      ? "border-red-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500 dark:focus:ring-red-500/30"
+      : "border-brown-200 dark:border-brown-600";
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -56,12 +99,23 @@ export default function LoginPage() {
                   Usuario
                 </label>
                 <input
+                  ref={usernameRef}
                   id="username"
                   type="text"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    // Los usuarios siempre van en minúsculas y sin espacios.
+                    setUsername(e.target.value.toLowerCase().replace(/\s+/g, ""));
+                    if (errorField === "username") setErrorField(null);
+                  }}
                   required
-                  className="w-full rounded-lg border border-brown-200 px-3 py-2 dark:border-brown-600 dark:bg-brown-900 dark:text-blue-100"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-invalid={errorField === "username" || undefined}
+                  aria-describedby={error ? "login-error" : undefined}
+                  className={`w-full rounded-lg border px-3 py-2 dark:bg-brown-900 dark:text-blue-100 ${inputStateClass("username")}`}
                   placeholder="Nombre de usuario"
                 />
               </div>
@@ -74,12 +128,19 @@ export default function LoginPage() {
                 </label>
                 <div className="relative">
                   <input
+                    ref={passwordRef}
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (errorField === "password") setErrorField(null);
+                    }}
                     required
-                    className="w-full rounded-lg border border-brown-200 px-3 py-2 pr-10 dark:border-brown-600 dark:bg-brown-900 dark:text-blue-100"
+                    autoComplete="current-password"
+                    aria-invalid={errorField === "password" || undefined}
+                    aria-describedby={error ? "login-error" : undefined}
+                    className={`w-full rounded-lg border px-3 py-2 pr-10 dark:bg-brown-900 dark:text-blue-100 ${inputStateClass("password")}`}
                     placeholder="Contraseña"
                   />
                   <button
@@ -129,7 +190,16 @@ export default function LoginPage() {
                 </div>
               </div>
               {error && (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p
+                  id="login-error"
+                  role="alert"
+                  className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                >
+                  <HugeiconsIcon
+                    icon={AlertCircleIcon}
+                    size={18}
+                    className="mt-px shrink-0"
+                  />
                   {error}
                 </p>
               )}

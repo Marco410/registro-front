@@ -185,8 +185,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           toast.success("Sesión iniciada");
           return { success: true };
         }
+        // Usuario o contraseña incorrectos: no es un error de la app (queda en la bitácora).
         if (data && "message" in data) {
-          logger.error("Authentication failed", { message: data.message });
           return { success: false, message: data.message };
         }
         return {
