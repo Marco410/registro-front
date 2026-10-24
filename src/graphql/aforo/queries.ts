@@ -48,10 +48,12 @@ export const SEATS_QUERY = gql`
         auxiliar1
         auxiliar2
         auxiliar3
+        auxiliar4
         captain_h
         auxiliar1_h
         auxiliar2_h
         auxiliar3_h
+        auxiliar4_h
         ageGroup {
           id
           label
@@ -96,10 +98,12 @@ export interface SeatTeam {
   auxiliar1?: string | null;
   auxiliar2?: string | null;
   auxiliar3?: string | null;
+  auxiliar4?: string | null;
   captain_h?: string | null;
   auxiliar1_h?: string | null;
   auxiliar2_h?: string | null;
   auxiliar3_h?: string | null;
+  auxiliar4_h?: string | null;
   ageGroup: { id: string; label: string };
 }
 

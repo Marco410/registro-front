@@ -165,10 +165,12 @@ export const FIELD_LABELS: Record<string, string> = {
   auxiliar1: "Auxiliar 1 (mujeres)",
   auxiliar2: "Auxiliar 2 (mujeres)",
   auxiliar3: "Auxiliar 3 (mujeres)",
+  auxiliar4: "Auxiliar 4 (mujeres)",
   captain_h: "Capitán",
   auxiliar1_h: "Auxiliar 1 (hombres)",
   auxiliar2_h: "Auxiliar 2 (hombres)",
   auxiliar3_h: "Auxiliar 3 (hombres)",
+  auxiliar4_h: "Auxiliar 4 (hombres)",
   order: "Orden",
   ageGroup: "Grupo de edad",
   // Check-in

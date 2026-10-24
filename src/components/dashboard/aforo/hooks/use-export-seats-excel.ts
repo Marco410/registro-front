@@ -6,9 +6,9 @@ import type { Seat } from "registro/graphql/aforo/queries";
 const TABLE_COLS = 6;
 const RIGHT_START = 7;
 const TOTAL_COLS = 13;
-const META_ROWS = 5;
-const SPACER_ROW_INDEX = 5;
-const HEADER_ROW_INDEX = 6;
+const META_ROWS = 6;
+const SPACER_ROW_INDEX = 6;
+const HEADER_ROW_INDEX = 7;
 
 interface ExportParams {
   filteredSeats: Seat[];
@@ -20,6 +20,7 @@ interface ExportParams {
   aux1?: string;
   aux2?: string;
   aux3?: string;
+  aux4?: string;
 }
 
 type CellStyle = Record<string, unknown>;
@@ -92,6 +93,7 @@ function buildTableRows({
   aux1,
   aux2,
   aux3,
+  aux4,
 }: ExportParams): string[][] {
   const empty = "";
   const metaRows: (string | null)[][] = [
@@ -100,6 +102,7 @@ function buildTableRows({
     ["Auxiliar 1", aux1 ?? ""],
     ["Auxiliar 2", aux2 ?? ""],
     ["Auxiliar 3", aux3 ?? ""],
+    ["Auxiliar 4", aux4 ?? ""],
     [empty, empty],
   ];
 

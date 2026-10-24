@@ -38,6 +38,7 @@ const RESPONSABLES: {
   { label: "Auxiliar 1", field: { H: "auxiliar1_h", M: "auxiliar1" } },
   { label: "Auxiliar 2", field: { H: "auxiliar2_h", M: "auxiliar2" } },
   { label: "Auxiliar 3", field: { H: "auxiliar3_h", M: "auxiliar3" } },
+  { label: "Auxiliar 4", field: { H: "auxiliar4_h", M: "auxiliar4" } },
 ];
 
 const inputClass =
@@ -86,7 +87,7 @@ function SiNo({ value, attention = false }: { value: boolean; attention?: boolea
 
 /**
  * Capitán y auxiliares: en modo lectura caben en una línea; "Editar" abre los
- * cuatro campos en el mismo lugar. Enter guarda y Escape cancela.
+ * cinco campos en el mismo lugar. Enter guarda y Escape cancela.
  */
 function ResponsablesEditor({
   teamId,
@@ -171,7 +172,7 @@ function ResponsablesEditor({
       }}
       className="space-y-3"
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {RESPONSABLES.map((r, i) => {
           const inputId = `responsable-${sex}-${i}`;
           return (
@@ -415,6 +416,7 @@ export function TeamSeatsModal({
                 aux1: saved[1],
                 aux2: saved[2],
                 aux3: saved[3],
+                aux4: saved[4],
               })
             }
             disabled={sexSeats.length === 0}

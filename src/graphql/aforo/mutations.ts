@@ -136,10 +136,12 @@ export const UPDATE_TEAM_RESPONSABLES_MUTATION = gql`
       auxiliar1
       auxiliar2
       auxiliar3
+      auxiliar4
       captain_h
       auxiliar1_h
       auxiliar2_h
       auxiliar3_h
+      auxiliar4_h
     }
   }
 `;
@@ -150,10 +152,12 @@ export type TeamResponsableField =
   | "auxiliar1"
   | "auxiliar2"
   | "auxiliar3"
+  | "auxiliar4"
   | "captain_h"
   | "auxiliar1_h"
   | "auxiliar2_h"
-  | "auxiliar3_h";
+  | "auxiliar3_h"
+  | "auxiliar4_h";
 
 export interface UpdateTeamResponsablesVariables {
   where: { id: string };
