@@ -134,8 +134,9 @@ function SeatChip({
 }
 
 function getExistingVariant(seat: Seat): ChipVariant {
-  if (seat.abandoned) return "baja";
-  return seat.occupied ? "ocupado" : "libre";
+  // Un asiento dado de baja que ya ocupa alguien más cuenta como ocupado.
+  if (seat.occupied) return "ocupado";
+  return seat.abandoned ? "baja" : "libre";
 }
 
 /** Grupo de botones excluyentes (segmented control). */

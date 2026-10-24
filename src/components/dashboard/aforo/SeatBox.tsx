@@ -21,12 +21,15 @@ import { ConfirmarBautizoModal } from "registro/components/dashboard/aforo/Confi
 import { AsignarAsientoModal } from "registro/components/dashboard/aforo/AsignarAsientoModal";
 import { ConfirmEliminarAsientoModal } from "registro/components/dashboard/aforo/ConfirmEliminarAsientoModal";
 import { DetalleEncontradoModal } from "./DetalleEncontradoModal";
+import { DetalleAsientoModal } from "./DetalleAsientoModal";
 import { darDeBajaSeat, useSeatUpdate } from "./seat-update-context";
 import { useDeleteSeats, useReassignSeat } from "./hooks";
 import { ElegirAsientoModal } from "registro/components/dashboard/checkin";
 import {
   SEAT_SIZE_CLASS,
+  esBajaVacia,
   isSeatRemovable,
+  ocupadoTrasBaja,
   RANGO_EDAD_BAR_CLASS,
   type RangoEdad,
 } from "./seat-utils";
@@ -45,6 +48,10 @@ export function ocupadoPor(seat: Seat): string {
   return `${e.nombre} ${e.apellido_p} ${e.apellido_m}`.trim();
 }
 
+function nombrePersona(e: { nombre: string; apellido_p: string; apellido_m: string }) {
+  return `${e.nombre} ${e.apellido_p} ${e.apellido_m}`.trim();
+}
+
 export function abandonadoPor(seat: Seat): string {
   if (!seat.abandonedBy) return "";
   const e = seat.abandonedBy;
@@ -59,7 +66,10 @@ function getSeatTooltipContent(
     const suRango = seat.encontrado.checkins?.ageGroup?.label;
     const fueraDeRango =
       rangoEdad && suRango ? ` | Fuera de su rango (${suRango})` : "";
-    return `${ocupadoPor(seat)} | Edad: ${seat.encontrado.edad} años${fueraDeRango}`;
+    const antes = seat.abandonedBy
+      ? ` | Antes lo dejó: ${nombrePersona(seat.abandonedBy)}`
+      : "";
+    return `${ocupadoPor(seat)} | Edad: ${seat.encontrado.edad} años${fueraDeRango}${antes}`;
   }
   if (seat.abandonedBy) {
     return `Abandonado por: ${abandonadoPor(seat)}`;
@@ -169,6 +179,7 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [showDetalle, setShowDetalle] = useState(false);
   const [showCambiarAsiento, setShowCambiarAsiento] = useState(false);
+  const [showDetalleAsiento, setShowDetalleAsiento] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -183,9 +194,11 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
   const { performReassign, loading: reasignando } = useReassignSeat();
 
   const occupied = seat.occupied;
-  const abandoned = seat.abandoned;
+  // Gris solo si la baja sigue vacía; si alguien más ya lo ocupa, cuenta como ocupado.
+  const abandoned = esBajaVacia(seat);
+  const teniaBaja = ocupadoTrasBaja(seat);
   const isMale = sex === "H";
-  const canDarDeBaja = occupied && seat.encontrado?.id && !abandoned;
+  const canDarDeBaja = occupied && seat.encontrado?.id;
 
   const seatInteractionClass =
     "transform-gpu transition-none hover:scale-110 hover:z-10 active:scale-95";
@@ -321,6 +334,12 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
             aria-hidden
           />
         )}
+        {teniaBaja && (
+          <span
+            className="pointer-events-none absolute left-0 top-1 h-2 w-2 -translate-y-1/2 rounded-full bg-gray-500 ring-2 ring-white dark:bg-gray-400 dark:ring-[#202124]"
+            aria-hidden
+          />
+        )}
         {rangoEdad && (
           <span
             className={`pointer-events-none absolute -bottom-1 left-1/2 h-[0.1875rem] w-3/5 -translate-x-1/2 rounded-full ${RANGO_EDAD_BAR_CLASS[rangoEdad]}`}
@@ -383,7 +402,20 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
                     Ver detalle
                   </button>
                 ) : null}
-                {occupied && seat.encontrado?.id && !abandoned ? (
+                {seat.abandonedBy ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setShowDetalleAsiento(true);
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                  >
+                    Ver detalle del asiento
+                  </button>
+                ) : null}
+                {occupied && seat.encontrado?.id ? (
                   <button
                     type="button"
                     role="menuitem"
@@ -580,6 +612,14 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
           confirming={reasignando}
           onConfirm={handleCambiarAsiento}
           onClose={() => setShowCambiarAsiento(false)}
+        />
+      )}
+
+      {showDetalleAsiento && (
+        <DetalleAsientoModal
+          open={showDetalleAsiento}
+          seatId={seat.id}
+          onClose={() => setShowDetalleAsiento(false)}
         />
       )}
 

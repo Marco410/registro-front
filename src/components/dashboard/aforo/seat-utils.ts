@@ -60,6 +60,20 @@ export function sortSeatsByLetter(seats: Seat[]): Seat[] {
 }
 
 /**
+ * Dado de baja y todavía vacío (se pinta gris). Al dar de baja, el asiento queda con
+ * `abandoned: true`; si después lo ocupa alguien más, `abandoned` sigue en true, pero el
+ * asiento cuenta como ocupado: "ocupado" siempre gana.
+ */
+export function esBajaVacia(seat: Seat): boolean {
+  return Boolean(seat.abandoned) && !seat.occupied;
+}
+
+/** Ocupado por alguien nuevo después de que otro lo dejó (punto gris). */
+export function ocupadoTrasBaja(seat: Seat): boolean {
+  return Boolean(seat.occupied) && Boolean(seat.abandonedBy);
+}
+
+/**
  * Un asiento se puede eliminar solo si nunca guardó información: libre, sin
  * encontrado y sin baja registrada (las bajas cuentan en las estadísticas).
  */

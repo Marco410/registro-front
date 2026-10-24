@@ -75,6 +75,13 @@ function SeatsLegend() {
       </li>
       <li
         className="flex items-center gap-1.5 text-[0.6875rem] text-app-text-secondary dark:text-gray-400"
+        title="Alguien dejó este asiento (baja) y ahora lo ocupa otra persona."
+      >
+        <span className="h-2 w-2 rounded-full bg-gray-500 dark:bg-gray-400" aria-hidden />
+        Ocupado tras una baja
+      </li>
+      <li
+        className="flex items-center gap-1.5 text-[0.6875rem] text-app-text-secondary dark:text-gray-400"
         title="Está en un grupo de edad que no es el suyo, dentro de la primera búsqueda (2 grupos arriba y 2 abajo)."
       >
         <span

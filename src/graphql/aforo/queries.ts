@@ -370,3 +370,78 @@ export interface BautizoListaResponse {
   checkins: BautizoListaCheckinItem[];
   bautizoForaneos: BautizoListaForaneoItem[];
 }
+
+/** Un asiento con quién lo ocupa y quién lo dejó (baja), para "Ver detalle del asiento". */
+export const SEAT_DETALLE_QUERY = gql`
+  query SeatDetalle($id: ID!) {
+    seat(where: { id: $id }) {
+      id
+      letter
+      gender
+      occupied
+      abandoned
+      assignedAt
+      team {
+        teamName
+        teamNumber
+        ageGroup {
+          label
+        }
+      }
+      encontrado {
+        id
+        nombre
+        apellido_p
+        apellido_m
+        edad
+        telefono
+      }
+      abandonedBy {
+        id
+        nombre
+        apellido_p
+        apellido_m
+        edad
+        telefono
+        checkins {
+          checkinAt
+        }
+      }
+    }
+  }
+`;
+
+export interface SeatDetallePersona {
+  id: string;
+  nombre: string | null;
+  apellido_p: string | null;
+  apellido_m: string | null;
+  edad: string | number | null;
+  telefono: string | null;
+}
+
+export interface SeatDetalle {
+  id: string;
+  letter: string;
+  gender: string | null;
+  occupied: boolean;
+  abandoned: boolean;
+  assignedAt: string | null;
+  team: {
+    teamName: string;
+    teamNumber: number;
+    ageGroup: { label: string } | null;
+  } | null;
+  encontrado: SeatDetallePersona | null;
+  abandonedBy:
+    | (SeatDetallePersona & { checkins: { checkinAt: string | null } | null })
+    | null;
+}
+
+export interface SeatDetalleResponse {
+  seat: SeatDetalle | null;
+}
+
+export interface SeatDetalleVariables {
+  id: string;
+}

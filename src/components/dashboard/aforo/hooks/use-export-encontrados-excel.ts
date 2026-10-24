@@ -51,7 +51,9 @@ function getEquipo(seat: Seat): string {
 export function useExportEncontradosExcel() {
   const exportEncontradosToExcel = (seats: Seat[]) => {
     const filtered = (seats ?? []).filter(
-      (seat) => Boolean(seat.encontrado) && !seat.abandoned,
+      // Solo quien ocupa el asiento: al dar de baja queda `occupied: false` (aunque el
+      // encontrado siga conectado) y si alguien más lo ocupa después, ese sí sale.
+      (seat) => Boolean(seat.encontrado) && seat.occupied,
     );
     if (filtered.length === 0) return;
 
