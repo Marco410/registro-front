@@ -1,2 +1,3 @@
 export { NuevoUsuarioModal } from "./NuevoUsuarioModal";
-export { useCreateUser } from "./hooks";
+export { CerrarSesionUsuarioModal } from "./CerrarSesionUsuarioModal";
+export { useCreateUser, useRevokeUserSessions } from "./hooks";
