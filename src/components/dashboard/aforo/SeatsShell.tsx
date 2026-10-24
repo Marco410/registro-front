@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Download01Icon,
+  PrinterIcon,
   Search01Icon,
   SeatSelectorIcon,
   UserGroupIcon,
@@ -113,6 +114,8 @@ export interface SeatsActionsProps {
   onGestionarAsientos?: () => void;
   onGestionarEquipos?: () => void;
   onExportar?: () => void;
+  /** Abre "Imprimir listas" (PDF carta por equipo); para cualquier usuario. */
+  onImprimirListas?: () => void;
 }
 
 /** Botones del encabezado. Un botón sin acción queda deshabilitado (p. ej. mientras carga). */
@@ -122,6 +125,7 @@ export function SeatsActions({
   onGestionarAsientos,
   onGestionarEquipos,
   onExportar,
+  onImprimirListas,
 }: SeatsActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -166,6 +170,17 @@ export function SeatsActions({
       >
         <HugeiconsIcon icon={Download01Icon} size={16} className="shrink-0" />
         Exportar Excel
+      </button>
+      <button
+        type="button"
+        aria-label="Imprimir listas de equipos en PDF"
+        title="Listas de los equipos en PDF tamaño carta"
+        onClick={onImprimirListas}
+        disabled={!onImprimirListas}
+        className={actionButtonClass}
+      >
+        <HugeiconsIcon icon={PrinterIcon} size={16} className="shrink-0" />
+        Imprimir listas
       </button>
     </div>
   );

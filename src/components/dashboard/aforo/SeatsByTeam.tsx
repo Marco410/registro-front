@@ -12,6 +12,7 @@ import {
 import { GestionarAsientosModal } from "./GestionarAsientosModal";
 import { GestionarEquiposModal } from "./GestionarEquiposModal";
 import { BuscarEncontradoModal } from "./BuscarEncontradoModal";
+import { ImprimirListasModal } from "./ImprimirListasModal";
 import {
   SEATS_QUERY,
   type Seat,
@@ -108,6 +109,7 @@ export function SeatsByTeam() {
   const [showGestionarEquipos, setShowGestionarEquipos] = useState(false);
   const [showBuscarEncontradoModal, setShowBuscarEncontradoModal] =
     useState(false);
+  const [showImprimirListas, setShowImprimirListas] = useState(false);
   const { user } = useAuth();
   const admin = isAdmin(user);
   const { data, loading, error, refetch, networkStatus } =
@@ -213,6 +215,9 @@ export function SeatsByTeam() {
               onExportar={
                 seats.length > 0 ? () => exportEncontradosToExcel(seats) : undefined
               }
+              onImprimirListas={
+                seats.length > 0 ? () => setShowImprimirListas(true) : undefined
+              }
             />
           }
         />
@@ -234,6 +239,11 @@ export function SeatsByTeam() {
       <BuscarEncontradoModal
         open={showBuscarEncontradoModal}
         onClose={() => setShowBuscarEncontradoModal(false)}
+      />
+      <ImprimirListasModal
+        open={showImprimirListas}
+        onClose={() => setShowImprimirListas(false)}
+        seats={seats}
       />
     </SeatUpdateProvider>
   );
