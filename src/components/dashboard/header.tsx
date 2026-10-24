@@ -7,6 +7,7 @@ import { useAuth } from "registro/hooks/use-auth";
 import { useActiveEvent } from "registro/contexts/active-event-context";
 import { MobileMenuButton } from "registro/components/dashboard/mobile-menu-button";
 import { FontSizeControl } from "./font-size-control";
+import { HeaderClock } from "./header-clock";
 import { typeLabels } from "./events/events-grid";
 
 interface HeaderProps {
@@ -71,6 +72,7 @@ export function Header({ onToggleSidebar, onOpenMobileMenu }: HeaderProps) {
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <HeaderClock />
         <FontSizeControl />
         <div className="relative" ref={menuRef}>
           <button
