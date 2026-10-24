@@ -14,7 +14,9 @@ import type { Seat, SeatEncontrado } from "registro/graphql/aforo/queries";
 import { GlassModal } from "registro/components/shared/GlassModal";
 import {
   armarListaEquipo,
+  formatCertificateFullName,
   useExportBautizosExcel,
+  useExportConstanciasPdf,
   useExportListaEquipoPdf,
   useExportSeatsExcel,
   usePrintCertificate,
@@ -248,6 +250,7 @@ export function TeamSeatsModal({
 
   const { exportSeatsToExcel } = useExportSeatsExcel();
   const { exportListaEquipoPdf, loading: generandoPdf } = useExportListaEquipoPdf();
+  const { exportConstanciasPdf, loading: generandoConstancias } = useExportConstanciasPdf();
   const { exportBautizosToExcel } = useExportBautizosExcel();
   const { PrintCertificate } = usePrintCertificate();
 
@@ -445,6 +448,33 @@ export function TeamSeatsModal({
           >
             <HugeiconsIcon icon={Download01Icon} size={14} className="shrink-0" />
             Bautizados
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void exportConstanciasPdf(
+                sexSeats
+                  .filter((seat) => seat.occupied && seat.encontrado?.bautizo)
+                  .map((seat) =>
+                    formatCertificateFullName(
+                      seat.encontrado!.nombre,
+                      seat.encontrado!.apellido_p,
+                      seat.encontrado!.apellido_m,
+                    ),
+                  ),
+                `Constancias-Equipo-${teamInfo?.teamNumber ?? ""}-${sex}.pdf`,
+              )
+            }
+            disabled={counts.bautizados === 0 || generandoConstancias}
+            title={
+              counts.bautizados === 0
+                ? "Nadie de este equipo está bautizado"
+                : "Constancias de todos los bautizados del equipo, una por hoja"
+            }
+            className={secondaryButtonClass}
+          >
+            <HugeiconsIcon icon={PrinterIcon} size={14} className="shrink-0" />
+            {generandoConstancias ? "Generando…" : "Constancias (PDF)"}
           </button>
         </div>
       </div>

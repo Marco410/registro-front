@@ -16,6 +16,7 @@ export { useExportBautizosExcel } from "./use-export-bautizos-excel";
 export { useExportEncontradosExcel } from "./use-export-encontrados-excel";
 export { useExportListaBautizos } from "./use-export-lista-bautizos";
 export { usePrintCertificate } from "./use-printer-certificate";
+export { useExportConstanciasPdf } from "./use-export-constancias-pdf";
 export {
   formatCertificateDate,
   formatCertificateFullName,
