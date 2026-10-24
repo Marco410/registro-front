@@ -18,6 +18,10 @@ export { useExportListaBautizos } from "./use-export-lista-bautizos";
 export { usePrintCertificate } from "./use-printer-certificate";
 export { useExportConstanciasPdf } from "./use-export-constancias-pdf";
 export {
+  codigoEtiquetaEquipo,
+  useExportEtiquetasEquiposPdf,
+} from "./use-export-etiquetas-equipos-pdf";
+export {
   formatCertificateDate,
   formatCertificateFullName,
 } from "./use-printer-certificate";

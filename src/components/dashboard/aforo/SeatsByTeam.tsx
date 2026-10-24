@@ -13,6 +13,7 @@ import { GestionarAsientosModal } from "./GestionarAsientosModal";
 import { GestionarEquiposModal } from "./GestionarEquiposModal";
 import { BuscarEncontradoModal } from "./BuscarEncontradoModal";
 import { ImprimirListasModal } from "./ImprimirListasModal";
+import { EtiquetasEquiposModal } from "./EtiquetasEquiposModal";
 import {
   SEATS_QUERY,
   type Seat,
@@ -110,6 +111,7 @@ export function SeatsByTeam() {
   const [showBuscarEncontradoModal, setShowBuscarEncontradoModal] =
     useState(false);
   const [showImprimirListas, setShowImprimirListas] = useState(false);
+  const [showEtiquetas, setShowEtiquetas] = useState(false);
   const { user } = useAuth();
   const admin = isAdmin(user);
   const { data, loading, error, refetch, networkStatus } =
@@ -218,6 +220,9 @@ export function SeatsByTeam() {
               onImprimirListas={
                 seats.length > 0 ? () => setShowImprimirListas(true) : undefined
               }
+              onEtiquetasEquipos={
+                seats.length > 0 ? () => setShowEtiquetas(true) : undefined
+              }
             />
           }
         />
@@ -243,6 +248,11 @@ export function SeatsByTeam() {
       <ImprimirListasModal
         open={showImprimirListas}
         onClose={() => setShowImprimirListas(false)}
+        seats={seats}
+      />
+      <EtiquetasEquiposModal
+        open={showEtiquetas}
+        onClose={() => setShowEtiquetas(false)}
         seats={seats}
       />
     </SeatUpdateProvider>

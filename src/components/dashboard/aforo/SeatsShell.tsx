@@ -1,12 +1,21 @@
 "use client";
 
-import type { ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  ArrowDown01Icon,
   Download01Icon,
   PrinterIcon,
   Search01Icon,
   SeatSelectorIcon,
+  Tag01Icon,
   UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import { useAuth } from "registro/hooks/use-auth";
@@ -108,6 +117,127 @@ function SeatsLegend() {
 const actionButtonClass =
   "flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-app-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-app-primary-muted";
 
+type AccionIcon = typeof SeatSelectorIcon;
+
+interface Accion {
+  label: string;
+  icon: AccionIcon;
+  /** Sin acción, la opción queda deshabilitada (p. ej. mientras carga). */
+  onClick?: () => void;
+}
+
+const MENU_GAP = 4;
+const VIEWPORT_PADDING = 8;
+
+/**
+ * Botón "Más acciones" con su menú. El menú va en un portal con posición fija porque la
+ * tarjeta recorta lo que se sale (`overflow-hidden`); se alinea a la derecha del botón,
+ * se cierra al elegir, con Esc, al hacer clic fuera o al hacer scroll.
+ */
+function MasAcciones({ acciones }: { acciones: Accion[] }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current || !menuRef.current) {
+      setPos(null);
+      return;
+    }
+    const t = triggerRef.current.getBoundingClientRect();
+    const m = menuRef.current.getBoundingClientRect();
+    const left = Math.max(
+      VIEWPORT_PADDING,
+      Math.min(t.right - m.width, window.innerWidth - m.width - VIEWPORT_PADDING),
+    );
+    setPos({ top: t.bottom + MENU_GAP, left });
+    menuRef.current.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const cerrar = () => setOpen(false);
+    const onPointerDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+      cerrar();
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      cerrar();
+      triggerRef.current?.focus();
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("scroll", cerrar, true);
+    window.addEventListener("resize", cerrar);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", cerrar, true);
+      window.removeEventListener("resize", cerrar);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={actionButtonClass}
+      >
+        Más acciones
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          size={14}
+          className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              ref={menuRef}
+              role="menu"
+              aria-label="Más acciones"
+              className="fixed z-50 min-w-[13rem] rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-[#202124]"
+              style={{
+                top: pos?.top ?? -9999,
+                left: pos?.left ?? -9999,
+                visibility: pos ? "visible" : "hidden",
+              }}
+            >
+              {acciones.map((a) => (
+                <button
+                  key={a.label}
+                  type="button"
+                  role="menuitem"
+                  disabled={!a.onClick}
+                  onClick={() => {
+                    setOpen(false);
+                    a.onClick?.();
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 focus:bg-gray-100 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-200 dark:hover:bg-gray-800 dark:focus:bg-gray-800"
+                >
+                  <HugeiconsIcon
+                    icon={a.icon}
+                    size={16}
+                    className="shrink-0 text-app-text-secondary dark:text-gray-400"
+                  />
+                  {a.label}
+                </button>
+              ))}
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
+  );
+}
+
 export interface SeatsActionsProps {
   admin: boolean;
   onBuscar?: () => void;
@@ -116,9 +246,14 @@ export interface SeatsActionsProps {
   onExportar?: () => void;
   /** Abre "Imprimir listas" (PDF carta por equipo); para cualquier usuario. */
   onImprimirListas?: () => void;
+  /** Abre "Etiquetas equipos" (PDF tipo gafete con el código de cada equipo). */
+  onEtiquetasEquipos?: () => void;
 }
 
-/** Botones del encabezado. Un botón sin acción queda deshabilitado (p. ej. mientras carga). */
+/**
+ * Acciones del encabezado: "Buscar encontrado" a la vista y las demás en "Más acciones".
+ * Una acción sin handler queda deshabilitada (p. ej. mientras carga).
+ */
 export function SeatsActions({
   admin,
   onBuscar,
@@ -126,7 +261,18 @@ export function SeatsActions({
   onGestionarEquipos,
   onExportar,
   onImprimirListas,
+  onEtiquetasEquipos,
 }: SeatsActionsProps) {
+  const acciones: Accion[] = [
+    { label: "Gestionar asientos", icon: SeatSelectorIcon, onClick: onGestionarAsientos },
+    ...(admin
+      ? [{ label: "Gestionar equipos", icon: UserGroupIcon, onClick: onGestionarEquipos }]
+      : []),
+    { label: "Exportar Excel", icon: Download01Icon, onClick: onExportar },
+    { label: "Imprimir listas", icon: PrinterIcon, onClick: onImprimirListas },
+    { label: "Etiquetas equipos", icon: Tag01Icon, onClick: onEtiquetasEquipos },
+  ];
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button
@@ -138,50 +284,7 @@ export function SeatsActions({
         <HugeiconsIcon icon={Search01Icon} size={16} className="shrink-0" />
         Buscar encontrado
       </button>
-      <button
-        type="button"
-        aria-label="Agregar o quitar asientos de los equipos"
-        onClick={onGestionarAsientos}
-        disabled={!onGestionarAsientos}
-        className={actionButtonClass}
-      >
-        <HugeiconsIcon icon={SeatSelectorIcon} size={16} className="shrink-0" />
-        Gestionar asientos
-      </button>
-      {admin ? (
-        <button
-          type="button"
-          aria-label="Ordenar, agregar o eliminar equipos"
-          onClick={onGestionarEquipos}
-          disabled={!onGestionarEquipos}
-          className={actionButtonClass}
-        >
-          <HugeiconsIcon icon={UserGroupIcon} size={16} className="shrink-0" />
-          Gestionar equipos
-        </button>
-      ) : null}
-      <button
-        type="button"
-        aria-label="Exportar encontrados en Excel"
-        title="Exportar encontrados en Excel"
-        onClick={onExportar}
-        disabled={!onExportar}
-        className={actionButtonClass}
-      >
-        <HugeiconsIcon icon={Download01Icon} size={16} className="shrink-0" />
-        Exportar Excel
-      </button>
-      <button
-        type="button"
-        aria-label="Imprimir listas de equipos en PDF"
-        title="Listas de los equipos en PDF tamaño carta"
-        onClick={onImprimirListas}
-        disabled={!onImprimirListas}
-        className={actionButtonClass}
-      >
-        <HugeiconsIcon icon={PrinterIcon} size={16} className="shrink-0" />
-        Imprimir listas
-      </button>
+      <MasAcciones acciones={acciones} />
     </div>
   );
 }

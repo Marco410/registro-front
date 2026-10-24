@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { jsPDF as JsPDF } from "jspdf";
+import { cargadorPdfAssets, type PdfAssets } from "registro/lib/pdf-assets";
 import { formatCertificateDate } from "./use-printer-certificate";
 
 /**
@@ -32,12 +33,8 @@ const IMAGEN_URL = "/images/certificado.png";
 const FUENTE_URL = "/fonts/Montserrat-Bold.ttf";
 const FUENTE_ARCHIVO = "Montserrat-Bold.ttf";
 
-export interface ConstanciaAssets {
-  /** `certificado.png`. */
-  imagen: Uint8Array;
-  /** Montserrat Bold en base64 (jsPDF la necesita así). */
-  fuenteBase64: string;
-}
+/** `certificado.png` y Montserrat Bold en base64. */
+export type ConstanciaAssets = PdfAssets;
 
 /** Ancho de un texto con el espaciado entre letras que usa el CSS (`letter-spacing`). */
 function anchoConEspacio(doc: JsPDF, texto: string, espacio: number): number {
@@ -129,39 +126,7 @@ export async function generarConstanciasPdf(
   return doc;
 }
 
-function aBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binario = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    binario += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(binario);
-}
-
-let assetsPromise: Promise<ConstanciaAssets> | null = null;
-
-/** Baja el fondo y la fuente una sola vez por sesión. */
-function cargarAssets(): Promise<ConstanciaAssets> {
-  assetsPromise ??= Promise.all([
-    fetch(IMAGEN_URL).then((r) => {
-      if (!r.ok) throw new Error("No se pudo cargar la imagen de la constancia");
-      return r.arrayBuffer();
-    }),
-    fetch(FUENTE_URL).then((r) => {
-      if (!r.ok) throw new Error("No se pudo cargar la fuente de la constancia");
-      return r.arrayBuffer();
-    }),
-  ])
-    .then(([imagen, fuente]) => ({
-      imagen: new Uint8Array(imagen),
-      fuenteBase64: aBase64(fuente),
-    }))
-    .catch((err) => {
-      assetsPromise = null;
-      throw err;
-    });
-  return assetsPromise;
-}
+const cargarAssets = cargadorPdfAssets(IMAGEN_URL, FUENTE_URL);
 
 /** Descarga en un PDF las constancias de bautismo de varias personas (una por página). */
 export function useExportConstanciasPdf() {
