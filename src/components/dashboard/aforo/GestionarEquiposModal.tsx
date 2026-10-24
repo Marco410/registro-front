@@ -15,9 +15,11 @@ import {
   EQUIPOS_GESTION_QUERY,
   type EquipoGestion,
   type EquiposGestionResponse,
+  type Seat,
 } from "registro/graphql/aforo/queries";
 import { GlassModal } from "registro/components/shared/GlassModal";
 import { useManageTeams } from "./hooks";
+import { ImprimirListasPanel } from "./ImprimirListasPanel";
 
 /** Asientos por sexo del seed (A–O). */
 const SEATS_DEFAULT = 15;
@@ -45,15 +47,26 @@ function clampInt(value: string, max: number): number {
 export interface GestionarEquiposModalProps {
   open: boolean;
   onClose: () => void;
+  /** Asientos de Aforo (SEATS_QUERY), para la pestaña "Imprimir listas". */
+  seats: Seat[];
 }
+
+type Vista = "equipos" | "imprimir";
+
+const VISTAS: { value: Vista; label: string }[] = [
+  { value: "equipos", label: "Equipos" },
+  { value: "imprimir", label: "Imprimir listas" },
+];
 
 /**
  * Modal (solo admin) para ordenar los equipos desde el altar hacia atrás —el mismo orden
  * para hombres y mujeres—, eliminar equipos vacíos y agregar equipos al final.
  * El orden se edita en borrador (arrastrando o con ↑/↓) y se guarda de una vez; mientras
- * haya cambios sin guardar, agregar y eliminar quedan en pausa.
+ * haya cambios sin guardar, agregar y eliminar quedan en pausa. La pestaña "Imprimir listas"
+ * descarga en un PDF las listas de los equipos que se elijan.
  */
-export function GestionarEquiposModal({ open, onClose }: GestionarEquiposModalProps) {
+export function GestionarEquiposModal({ open, onClose, seats }: GestionarEquiposModalProps) {
+  const [vista, setVista] = useState<Vista>("equipos");
   const { data, loading } = useQuery<EquiposGestionResponse>(EQUIPOS_GESTION_QUERY, {
     skip: !open,
     fetchPolicy: "cache-and-network",
@@ -146,8 +159,9 @@ export function GestionarEquiposModal({ open, onClose }: GestionarEquiposModalPr
             Gestionar equipos
           </h2>
           <p className="mt-0.5 text-sm text-app-text-secondary dark:text-gray-400">
-            Ordena desde el altar hacia atrás, arrastrando o con las flechas. El
-            orden es el mismo para hombres y mujeres.
+            {vista === "equipos"
+              ? "Ordena desde el altar hacia atrás, arrastrando o con las flechas. El orden es el mismo para hombres y mujeres."
+              : "Elige equipos y descarga sus listas en PDF tamaño carta: una hoja por lista, con dos copias para doblar a la mitad."}
           </p>
         </div>
         <button
@@ -161,249 +175,275 @@ export function GestionarEquiposModal({ open, onClose }: GestionarEquiposModalPr
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto border-y border-gray-200 bg-white dark:border-gray-700 dark:bg-[#1e1f22]">
-        <p className="sticky top-0 z-10 border-b border-gray-100 bg-gray-50 py-1.5 text-center text-[0.625rem] font-semibold uppercase tracking-[0.3em] text-app-text-secondary dark:border-gray-800 dark:bg-[#26272a] dark:text-gray-400">
-          Altar
-        </p>
-        {loading && !data ? (
-          <div className="space-y-2 p-4" aria-hidden>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="h-11 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"
-              />
-            ))}
-          </div>
-        ) : rows.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-app-text-secondary dark:text-gray-400">
-            No hay equipos. Agrega uno abajo o genéralos en Base de datos.
-          </p>
-        ) : (
-          <ol className="divide-y divide-gray-100 dark:divide-gray-800">
-            {rows.map((team, index) => {
-              const confirming = confirmDeleteId === team.id;
-              const canDelete = team.conPersonas === 0;
-              const isDragging = dragIndex === index;
-              const isOver =
-                overIndex === index && dragIndex != null && dragIndex !== index;
-              return (
-                <li
-                  key={team.id}
-                  draggable={!busy && !confirming}
-                  onDragStart={(e) => {
-                    setDragIndex(index);
-                    e.dataTransfer.effectAllowed = "move";
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    if (overIndex !== index) setOverIndex(index);
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    handleDrop(index);
-                  }}
-                  onDragEnd={() => {
-                    setDragIndex(null);
-                    setOverIndex(null);
-                  }}
-                  className={`flex items-center gap-3 px-4 py-2 transition-colors ${
-                    isDragging ? "opacity-40" : ""
-                  } ${
-                    isOver
-                      ? dragIndex != null && dragIndex > index
-                        ? "shadow-[inset_0_2px_0_0_rgb(26,115,232)]"
-                        : "shadow-[inset_0_-2px_0_0_rgb(26,115,232)]"
-                      : ""
-                  } ${confirming ? "bg-red-50/70 dark:bg-red-500/10" : "hover:bg-gray-50 dark:hover:bg-white/[0.03]"}`}
-                >
-                  <span
-                    className="cursor-grab text-gray-400 active:cursor-grabbing dark:text-gray-500"
-                    aria-hidden
-                  >
-                    <HugeiconsIcon icon={DragDropVerticalIcon} size={16} />
-                  </span>
-                  <span className="w-6 shrink-0 text-right text-xs tabular-nums text-app-text-secondary dark:text-gray-400">
-                    {index + 1}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-app-text-primary dark:text-gray-100">
-                      {team.teamName}
-                      {team.ageGroup?.label ? (
-                        <span className="font-normal text-app-text-secondary dark:text-gray-400">
-                          {" "}
-                          · {team.ageGroup.label}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="block text-xs tabular-nums text-app-text-secondary dark:text-gray-400">
-                      {team.hombres} H · {team.mujeres} M
-                      {team.conPersonas > 0
-                        ? ` · ${team.conPersonas} con personas`
-                        : " · vacío"}
-                    </span>
-                  </span>
-
-                  {confirming ? (
-                    <span className="flex shrink-0 items-center gap-2">
-                      <span className="text-xs font-medium text-red-700 dark:text-red-300">
-                        ¿Eliminar?
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(null)}
-                        disabled={deleting}
-                        className="rounded-lg px-2.5 py-1 text-xs font-medium text-app-text-secondary hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-white/10"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void handleDelete(team)}
-                        disabled={deleting}
-                        className="rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
-                      >
-                        {deleting ? "Eliminando…" : "Eliminar"}
-                      </button>
-                    </span>
-                  ) : (
-                    <span className="flex shrink-0 items-center">
-                      <button
-                        type="button"
-                        onClick={() => move(index, index - 1)}
-                        disabled={busy || index === 0}
-                        aria-label={`Subir ${team.teamName}`}
-                        title="Subir (más cerca del altar)"
-                        className={iconButtonClass}
-                      >
-                        <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => move(index, index + 1)}
-                        disabled={busy || index === rows.length - 1}
-                        aria-label={`Bajar ${team.teamName}`}
-                        title="Bajar (más lejos del altar)"
-                        className={iconButtonClass}
-                      >
-                        <HugeiconsIcon icon={ArrowDown01Icon} size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(team.id)}
-                        disabled={busy || dirty || !canDelete}
-                        aria-label={`Eliminar ${team.teamName}`}
-                        title={
-                          !canDelete
-                            ? `No se puede eliminar: ${team.conPersonas} asiento(s) con personas o bajas`
-                            : dirty
-                              ? "Guarda o descarta el nuevo orden primero"
-                              : "Eliminar equipo"
-                        }
-                        className={`${iconButtonClass} ml-1 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/15 dark:hover:text-red-400`}
-                      >
-                        <HugeiconsIcon icon={Delete02Icon} size={16} />
-                      </button>
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        )}
-      </div>
-
-      <div className="space-y-4 px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-app-text-secondary dark:text-gray-400">
-            {dirty
-              ? "Tienes cambios de orden sin guardar."
-              : `${rows.length} ${rows.length === 1 ? "equipo" : "equipos"}`}
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setDraft(original)}
-              disabled={!dirty || busy}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-app-text-secondary transition-colors hover:bg-gray-100 disabled:opacity-40 dark:text-gray-300 dark:hover:bg-white/10"
-            >
-              Descartar
-            </button>
-            <button
-              type="button"
-              onClick={() => void reorderTeams(draft)}
-              disabled={!dirty || busy}
-              className="rounded-lg bg-app-primary px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-primary/90 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-app-primary-muted dark:text-gray-900"
-            >
-              {reordering ? "Guardando…" : "Guardar orden"}
-            </button>
-          </div>
-        </div>
-
-        <form
-          onSubmit={handleAdd}
-          className="flex flex-wrap items-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700"
-        >
-          <div className="min-w-[10rem] flex-1">
-            <label
-              htmlFor="nuevo-equipo-grupo"
-              className="mb-1 block text-xs font-medium text-app-text-secondary dark:text-gray-400"
-            >
-              Agregar equipo al final
-            </label>
-            <select
-              id="nuevo-equipo-grupo"
-              value={newAgeGroupId}
-              onChange={(e) => setNewAgeGroupId(e.target.value)}
-              disabled={busy || dirty || ageGroups.length === 0}
-              className={`${fieldClass} w-full`}
-            >
-              {ageGroups.length === 0 ? (
-                <option value="">Sin grupos de edad</option>
-              ) : null}
-              {ageGroups.map((ag) => (
-                <option key={ag.id} value={ag.id}>
-                  {ag.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <label className="text-xs font-medium text-app-text-secondary dark:text-gray-400">
-            <span className="mb-1 block">Hombres</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={MAX_SEATS_PER_GENDER}
-              value={newSeatsH}
-              onChange={(e) => setNewSeatsH(clampInt(e.target.value, MAX_SEATS_PER_GENDER))}
-              disabled={busy || dirty}
-              className={`${fieldClass} w-20 text-right tabular-nums`}
-            />
-          </label>
-          <label className="text-xs font-medium text-app-text-secondary dark:text-gray-400">
-            <span className="mb-1 block">Mujeres</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={MAX_SEATS_PER_GENDER}
-              value={newSeatsM}
-              onChange={(e) => setNewSeatsM(clampInt(e.target.value, MAX_SEATS_PER_GENDER))}
-              disabled={busy || dirty}
-              className={`${fieldClass} w-20 text-right tabular-nums`}
-            />
-          </label>
+      <div role="tablist" aria-label="Vista" className="flex gap-1 px-5 pb-3">
+        {VISTAS.map((v) => (
           <button
-            type="submit"
-            disabled={busy || dirty || !newAgeGroupId || newSeatsH + newSeatsM === 0}
-            title={dirty ? "Guarda o descarta el nuevo orden primero" : undefined}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-app-text-primary shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            key={v.value}
+            type="button"
+            role="tab"
+            aria-selected={vista === v.value}
+            onClick={() => setVista(v.value)}
+            disabled={busy}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 disabled:opacity-50 ${
+              vista === v.value
+                ? "bg-app-selected text-blue-700 dark:bg-app-primary-muted/20 dark:text-app-primary-muted"
+                : "text-app-text-secondary hover:bg-gray-100 hover:text-app-text-primary dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+            }`}
           >
-            <HugeiconsIcon icon={Add01Icon} size={14} />
-            {adding ? "Agregando…" : "Agregar"}
+            {v.label}
           </button>
-        </form>
+        ))}
       </div>
+
+      {vista === "imprimir" ? (
+        <ImprimirListasPanel teams={teams} seats={seats} />
+      ) : (
+        <>
+          <div className="min-h-0 flex-1 overflow-y-auto border-y border-gray-200 bg-white dark:border-gray-700 dark:bg-[#1e1f22]">
+            <p className="sticky top-0 z-10 border-b border-gray-100 bg-gray-50 py-1.5 text-center text-[0.625rem] font-semibold uppercase tracking-[0.3em] text-app-text-secondary dark:border-gray-800 dark:bg-[#26272a] dark:text-gray-400">
+              Altar
+            </p>
+            {loading && !data ? (
+              <div className="space-y-2 p-4" aria-hidden>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="h-11 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"
+                  />
+                ))}
+              </div>
+            ) : rows.length === 0 ? (
+              <p className="px-5 py-10 text-center text-sm text-app-text-secondary dark:text-gray-400">
+                No hay equipos. Agrega uno abajo o genéralos en Base de datos.
+              </p>
+            ) : (
+              <ol className="divide-y divide-gray-100 dark:divide-gray-800">
+                {rows.map((team, index) => {
+                  const confirming = confirmDeleteId === team.id;
+                  const canDelete = team.conPersonas === 0;
+                  const isDragging = dragIndex === index;
+                  const isOver =
+                    overIndex === index && dragIndex != null && dragIndex !== index;
+                  return (
+                    <li
+                      key={team.id}
+                      draggable={!busy && !confirming}
+                      onDragStart={(e) => {
+                        setDragIndex(index);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (overIndex !== index) setOverIndex(index);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        handleDrop(index);
+                      }}
+                      onDragEnd={() => {
+                        setDragIndex(null);
+                        setOverIndex(null);
+                      }}
+                      className={`flex items-center gap-3 px-4 py-2 transition-colors ${
+                        isDragging ? "opacity-40" : ""
+                      } ${
+                        isOver
+                          ? dragIndex != null && dragIndex > index
+                            ? "shadow-[inset_0_2px_0_0_rgb(26,115,232)]"
+                            : "shadow-[inset_0_-2px_0_0_rgb(26,115,232)]"
+                          : ""
+                      } ${confirming ? "bg-red-50/70 dark:bg-red-500/10" : "hover:bg-gray-50 dark:hover:bg-white/[0.03]"}`}
+                    >
+                      <span
+                        className="cursor-grab text-gray-400 active:cursor-grabbing dark:text-gray-500"
+                        aria-hidden
+                      >
+                        <HugeiconsIcon icon={DragDropVerticalIcon} size={16} />
+                      </span>
+                      <span className="w-6 shrink-0 text-right text-xs tabular-nums text-app-text-secondary dark:text-gray-400">
+                        {index + 1}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-app-text-primary dark:text-gray-100">
+                          {team.teamName}
+                          {team.ageGroup?.label ? (
+                            <span className="font-normal text-app-text-secondary dark:text-gray-400">
+                              {" "}
+                              · {team.ageGroup.label}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="block text-xs tabular-nums text-app-text-secondary dark:text-gray-400">
+                          {team.hombres} H · {team.mujeres} M
+                          {team.conPersonas > 0
+                            ? ` · ${team.conPersonas} con personas`
+                            : " · vacío"}
+                        </span>
+                      </span>
+
+                      {confirming ? (
+                        <span className="flex shrink-0 items-center gap-2">
+                          <span className="text-xs font-medium text-red-700 dark:text-red-300">
+                            ¿Eliminar?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            disabled={deleting}
+                            className="rounded-lg px-2.5 py-1 text-xs font-medium text-app-text-secondary hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-white/10"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleDelete(team)}
+                            disabled={deleting}
+                            className="rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {deleting ? "Eliminando…" : "Eliminar"}
+                          </button>
+                        </span>
+                      ) : (
+                        <span className="flex shrink-0 items-center">
+                          <button
+                            type="button"
+                            onClick={() => move(index, index - 1)}
+                            disabled={busy || index === 0}
+                            aria-label={`Subir ${team.teamName}`}
+                            title="Subir (más cerca del altar)"
+                            className={iconButtonClass}
+                          >
+                            <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => move(index, index + 1)}
+                            disabled={busy || index === rows.length - 1}
+                            aria-label={`Bajar ${team.teamName}`}
+                            title="Bajar (más lejos del altar)"
+                            className={iconButtonClass}
+                          >
+                            <HugeiconsIcon icon={ArrowDown01Icon} size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(team.id)}
+                            disabled={busy || dirty || !canDelete}
+                            aria-label={`Eliminar ${team.teamName}`}
+                            title={
+                              !canDelete
+                                ? `No se puede eliminar: ${team.conPersonas} asiento(s) con personas o bajas`
+                                : dirty
+                                  ? "Guarda o descarta el nuevo orden primero"
+                                  : "Eliminar equipo"
+                            }
+                            className={`${iconButtonClass} ml-1 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/15 dark:hover:text-red-400`}
+                          >
+                            <HugeiconsIcon icon={Delete02Icon} size={16} />
+                          </button>
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+
+          <div className="space-y-4 px-5 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-app-text-secondary dark:text-gray-400">
+                {dirty
+                  ? "Tienes cambios de orden sin guardar."
+                  : `${rows.length} ${rows.length === 1 ? "equipo" : "equipos"}`}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDraft(original)}
+                  disabled={!dirty || busy}
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-app-text-secondary transition-colors hover:bg-gray-100 disabled:opacity-40 dark:text-gray-300 dark:hover:bg-white/10"
+                >
+                  Descartar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void reorderTeams(draft)}
+                  disabled={!dirty || busy}
+                  className="rounded-lg bg-app-primary px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-primary/90 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-app-primary-muted dark:text-gray-900"
+                >
+                  {reordering ? "Guardando…" : "Guardar orden"}
+                </button>
+              </div>
+            </div>
+
+            <form
+              onSubmit={handleAdd}
+              className="flex flex-wrap items-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700"
+            >
+              <div className="min-w-[10rem] flex-1">
+                <label
+                  htmlFor="nuevo-equipo-grupo"
+                  className="mb-1 block text-xs font-medium text-app-text-secondary dark:text-gray-400"
+                >
+                  Agregar equipo al final
+                </label>
+                <select
+                  id="nuevo-equipo-grupo"
+                  value={newAgeGroupId}
+                  onChange={(e) => setNewAgeGroupId(e.target.value)}
+                  disabled={busy || dirty || ageGroups.length === 0}
+                  className={`${fieldClass} w-full`}
+                >
+                  {ageGroups.length === 0 ? (
+                    <option value="">Sin grupos de edad</option>
+                  ) : null}
+                  {ageGroups.map((ag) => (
+                    <option key={ag.id} value={ag.id}>
+                      {ag.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <label className="text-xs font-medium text-app-text-secondary dark:text-gray-400">
+                <span className="mb-1 block">Hombres</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={MAX_SEATS_PER_GENDER}
+                  value={newSeatsH}
+                  onChange={(e) => setNewSeatsH(clampInt(e.target.value, MAX_SEATS_PER_GENDER))}
+                  disabled={busy || dirty}
+                  className={`${fieldClass} w-20 text-right tabular-nums`}
+                />
+              </label>
+              <label className="text-xs font-medium text-app-text-secondary dark:text-gray-400">
+                <span className="mb-1 block">Mujeres</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={MAX_SEATS_PER_GENDER}
+                  value={newSeatsM}
+                  onChange={(e) => setNewSeatsM(clampInt(e.target.value, MAX_SEATS_PER_GENDER))}
+                  disabled={busy || dirty}
+                  className={`${fieldClass} w-20 text-right tabular-nums`}
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={busy || dirty || !newAgeGroupId || newSeatsH + newSeatsM === 0}
+                title={dirty ? "Guarda o descarta el nuevo orden primero" : undefined}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-app-text-primary shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                <HugeiconsIcon icon={Add01Icon} size={14} />
+                {adding ? "Agregando…" : "Agregar"}
+              </button>
+            </form>
+          </div>
+        </>
+      )}
     </GlassModal>
   );
 }

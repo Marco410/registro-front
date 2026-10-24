@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { jsPDF as JsPDF } from "jspdf";
 import type { Seat } from "registro/graphql/aforo/queries";
+import { RESPONSABLES, getSeatSex, sortSeatsByLetter } from "../seat-utils";
 
 /** Hoja carta horizontal en mm. Cada copia de la lista ocupa una mitad. */
 const HOJA_ANCHO = 279.4;
@@ -44,6 +45,30 @@ export interface ListaEquipoPdfParams {
   teamNumber?: number;
   /** Capitán y auxiliares, en orden. */
   responsables: { label: string; nombre: string }[];
+}
+
+/**
+ * Datos de la lista de un equipo para un sexo, a partir de sus asientos de `SEATS_QUERY`
+ * (traen el equipo y sus responsables). null si el equipo no tiene asientos de ese sexo.
+ */
+export function armarListaEquipo(
+  seatsDelEquipo: Seat[],
+  sex: "H" | "M",
+): ListaEquipoPdfParams | null {
+  const seats = sortSeatsByLetter(seatsDelEquipo.filter((s) => getSeatSex(s) === sex));
+  const team = seats[0]?.team;
+  if (!team) return null;
+  const grupo = team.ageGroup?.label;
+  return {
+    seats,
+    teamLabel: grupo ? `${team.teamName} (${grupo})` : team.teamName,
+    sex,
+    teamNumber: team.teamNumber,
+    responsables: RESPONSABLES.map((r) => ({
+      label: r.label,
+      nombre: (team[r.field[sex]] ?? "").trim(),
+    })),
+  };
 }
 
 /** Escribe `texto` en la celda; si no cabe, achica la letra hasta 6.5 pt y luego lo corta con "…". */
@@ -204,11 +229,13 @@ function dibujarLista(doc: JsPDF, x0: number, p: ListaEquipoPdfParams, impreso: 
 }
 
 /**
- * Arma el PDF tamaño carta horizontal con la misma lista dos veces, una en cada mitad,
- * y una línea punteada al centro para doblar. jsPDF se carga aquí, al momento de exportar,
- * para no pesar en Aforo.
+ * Arma el PDF tamaño carta horizontal: una hoja por lista, con la misma lista dos veces
+ * (una en cada mitad) y una línea punteada al centro para doblar. jsPDF se carga aquí, al
+ * momento de exportar, para no pesar en Aforo.
  */
-export async function generarListaEquipoPdf(params: ListaEquipoPdfParams): Promise<JsPDF> {
+export async function generarListasEquiposPdf(
+  listas: ListaEquipoPdfParams[],
+): Promise<JsPDF> {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "letter" });
   const impreso = new Date().toLocaleString("es", {
@@ -220,18 +247,26 @@ export async function generarListaEquipoPdf(params: ListaEquipoPdfParams): Promi
     hour12: true,
   });
 
-  dibujarLista(doc, MARGEN, params, impreso);
-  dibujarLista(doc, MITAD + MARGEN, params, impreso);
+  listas.forEach((lista, i) => {
+    if (i > 0) doc.addPage("letter", "landscape");
+    dibujarLista(doc, MARGEN, lista, impreso);
+    dibujarLista(doc, MITAD + MARGEN, lista, impreso);
 
-  doc.setDrawColor(...BORDE);
-  doc.setLineWidth(0.2);
-  doc.setLineDashPattern([2, 2], 0);
-  doc.line(MITAD, 4, MITAD, HOJA_ALTO - 4);
-  doc.setLineDashPattern([], 0);
+    doc.setDrawColor(...BORDE);
+    doc.setLineWidth(0.2);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.line(MITAD, 4, MITAD, HOJA_ALTO - 4);
+    doc.setLineDashPattern([], 0);
+  });
   return doc;
 }
 
-/** Descarga la lista del equipo para imprimir (ver `generarListaEquipoPdf`). */
+/** Una sola lista (una hoja); ver `generarListasEquiposPdf`. */
+export function generarListaEquipoPdf(params: ListaEquipoPdfParams): Promise<JsPDF> {
+  return generarListasEquiposPdf([params]);
+}
+
+/** Descarga listas de equipos para imprimir: una sola o varias en un PDF (una hoja cada una). */
 export function useExportListaEquipoPdf() {
   const [loading, setLoading] = useState(false);
 
@@ -248,5 +283,22 @@ export function useExportListaEquipoPdf() {
     }
   };
 
-  return { exportListaEquipoPdf, loading };
+  /** Varias listas en un solo PDF, una hoja por lista, en el orden recibido. */
+  const exportListasEquiposPdf = async (
+    listas: ListaEquipoPdfParams[],
+    nombreArchivo: string,
+  ) => {
+    if (listas.length === 0) return;
+    setLoading(true);
+    try {
+      const doc = await generarListasEquiposPdf(listas);
+      doc.save(nombreArchivo);
+    } catch {
+      toast.error("No se pudo generar el PDF");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { exportListaEquipoPdf, exportListasEquiposPdf, loading };
 }

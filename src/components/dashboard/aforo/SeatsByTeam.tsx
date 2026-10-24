@@ -228,6 +228,7 @@ export function SeatsByTeam() {
         <GestionarEquiposModal
           open={showGestionarEquipos}
           onClose={() => setShowGestionarEquipos(false)}
+          seats={seats}
         />
       ) : null}
       <BuscarEncontradoModal

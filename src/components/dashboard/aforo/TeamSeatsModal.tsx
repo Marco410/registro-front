@@ -11,9 +11,9 @@ import {
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
 import type { Seat, SeatEncontrado } from "registro/graphql/aforo/queries";
-import type { TeamResponsableField } from "registro/graphql/aforo/mutations";
 import { GlassModal } from "registro/components/shared/GlassModal";
 import {
+  armarListaEquipo,
   useExportBautizosExcel,
   useExportListaEquipoPdf,
   useExportSeatsExcel,
@@ -24,23 +24,17 @@ import {
   ConfirmarBautizoModal,
   type BautizoAccion,
 } from "./ConfirmarBautizoModal";
-import { SEX_STYLES, getSeatSex, sortSeatsByLetter } from "./seat-utils";
+import {
+  RESPONSABLES,
+  SEX_STYLES,
+  getSeatSex,
+  sortSeatsByLetter,
+} from "./seat-utils";
 
 type Sexo = "H" | "M";
 type SeatEstado = "ocupado" | "libre" | "baja";
 type Filtro = "todos" | SeatEstado;
 
-/** Responsables del equipo; los campos de hombres llevan sufijo `_h`. */
-const RESPONSABLES: {
-  label: string;
-  field: Record<Sexo, TeamResponsableField>;
-}[] = [
-  { label: "Capitán", field: { H: "captain_h", M: "captain" } },
-  { label: "Auxiliar 1", field: { H: "auxiliar1_h", M: "auxiliar1" } },
-  { label: "Auxiliar 2", field: { H: "auxiliar2_h", M: "auxiliar2" } },
-  { label: "Auxiliar 3", field: { H: "auxiliar3_h", M: "auxiliar3" } },
-  { label: "Auxiliar 4", field: { H: "auxiliar4_h", M: "auxiliar4" } },
-];
 
 const inputClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-app-text-primary shadow-sm outline-none transition-colors focus:border-app-primary focus:ring-2 focus:ring-app-primary/40 disabled:opacity-60 dark:border-gray-700 dark:bg-[#202124] dark:text-gray-100 dark:focus:border-app-primary-muted";
@@ -429,18 +423,10 @@ export function TeamSeatsModal({
           </button>
           <button
             type="button"
-            onClick={() =>
-              void exportListaEquipoPdf({
-                seats: sexSeats,
-                teamLabel,
-                sex,
-                teamNumber: teamInfo?.teamNumber ?? undefined,
-                responsables: RESPONSABLES.map((r, i) => ({
-                  label: r.label,
-                  nombre: saved[i] ?? "",
-                })),
-              })
-            }
+            onClick={() => {
+              const lista = armarListaEquipo(seats, sex);
+              if (lista) void exportListaEquipoPdf(lista);
+            }}
             disabled={sexSeats.length === 0 || generandoPdf}
             title="Hoja carta horizontal con la lista dos veces, para doblar a la mitad"
             className={secondaryButtonClass}

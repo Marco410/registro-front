@@ -1,4 +1,5 @@
 import type { Seat, SeatsAgeGroup } from "registro/graphql/aforo/queries";
+import type { TeamResponsableField } from "registro/graphql/aforo/mutations";
 
 /**
  * Cada cuánto se vuelven a consultar asientos y conteos del aforo, para que la
@@ -47,6 +48,18 @@ export const SEX_STYLES: Record<
     chip: "border-pink-200 bg-pink-50 dark:border-pink-400/30 dark:bg-pink-500/10",
   },
 };
+
+/** Responsables del equipo; los campos de hombres llevan sufijo `_h`. */
+export const RESPONSABLES: {
+  label: string;
+  field: Record<"H" | "M", TeamResponsableField>;
+}[] = [
+  { label: "Capitán", field: { H: "captain_h", M: "captain" } },
+  { label: "Auxiliar 1", field: { H: "auxiliar1_h", M: "auxiliar1" } },
+  { label: "Auxiliar 2", field: { H: "auxiliar2_h", M: "auxiliar2" } },
+  { label: "Auxiliar 3", field: { H: "auxiliar3_h", M: "auxiliar3" } },
+  { label: "Auxiliar 4", field: { H: "auxiliar4_h", M: "auxiliar4" } },
+];
 
 /** Sexo del asiento (H/M); usa el del encontrado si el asiento no lo tiene. */
 export function getSeatSex(seat: Seat): "H" | "M" {
