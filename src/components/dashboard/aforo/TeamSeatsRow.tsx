@@ -1,6 +1,8 @@
 "use client";
 
 import { memo, useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import type { Seat } from "registro/graphql/aforo/queries";
 import { SeatBox } from "./SeatBox";
 import { TeamSeatsModal } from "./TeamSeatsModal";
@@ -14,7 +16,11 @@ import {
 
 type Sexo = "H" | "M";
 
-/** "ocupados/total" del equipo para un sexo; abre la lista de ese sexo. */
+/**
+ * "ocupados/total" del equipo para un sexo; abre la lista de ese sexo. En móvil se ve como
+ * botón (borde, fondo y flecha) porque no hay hover que lo delate; en xl+ queda como texto,
+ * entre los asientos y el nombre del equipo.
+ */
 function SeatCountButton({
   sex,
   seats,
@@ -37,10 +43,18 @@ function SeatCountButton({
       disabled={!onClick}
       title={`${style.label}: ${ocupados} ocupados, ${libres} libres. Clic para ver la lista.`}
       aria-label={`Ver lista de ${style.label.toLowerCase()} del ${teamName}: ${ocupados} de ${total} ocupados`}
-      className={`shrink-0 rounded-md px-1.5 py-1 text-[0.6875rem] font-semibold tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 disabled:cursor-default xl:py-0.5 ${style.text} ${style.hover} ${className}`}
+      className={`inline-flex min-h-8 shrink-0 items-center gap-0.5 rounded-lg border px-2 py-1 text-[0.6875rem] font-semibold tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-app-primary/50 disabled:cursor-default xl:min-h-0 xl:rounded-md xl:border-transparent xl:bg-transparent xl:px-1.5 xl:py-0.5 dark:xl:border-transparent dark:xl:bg-transparent ${style.text} ${style.chip} ${style.hover} ${className}`}
     >
       <span className="xl:hidden">{sex} </span>
       {ocupados}/{total}
+      {onClick ? (
+        <HugeiconsIcon
+          icon={ArrowRight01Icon}
+          size={12}
+          className="-mr-0.5 shrink-0 xl:hidden"
+          aria-hidden
+        />
+      ) : null}
     </button>
   );
 }

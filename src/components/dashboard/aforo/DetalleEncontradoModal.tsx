@@ -163,7 +163,8 @@ export interface DetalleEncontradoModalProps {
 
 /**
  * Modal de solo lectura con todos los datos de un encontrado (se abre desde el menú del
- * asiento en Aforo con "Ver detalle"). Lee los datos al abrir para mostrarlos al día.
+ * asiento en Aforo con "Ver detalle"). Lee los datos al abrir para mostrarlos al día. Las
+ * notas siempre se ven: ahí el backend deja un renglón por cada cambio de asiento.
  */
 export function DetalleEncontradoModal({
   open,
@@ -290,16 +291,20 @@ export function DetalleEncontradoModal({
             ))}
           </div>
 
-          {e.notes?.trim() ? (
-            <section className="mt-5 border-t border-gray-200 pt-4 dark:border-gray-700">
-              <h3 className="text-xs font-semibold text-app-text-primary dark:text-gray-200">
-                Notas
-              </h3>
-              <p className="mt-1.5 whitespace-pre-line text-sm text-app-text-primary dark:text-gray-200">
+          <section className="mt-5 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <h3 className="text-xs font-semibold text-app-text-primary dark:text-gray-200">
+              Notas
+            </h3>
+            {e.notes?.trim() ? (
+              <p className="mt-1.5 max-h-48 overflow-y-auto whitespace-pre-line text-sm text-app-text-primary dark:text-gray-200">
                 {e.notes.trim()}
               </p>
-            </section>
-          ) : null}
+            ) : (
+              <p className="mt-1.5 text-sm text-app-text-secondary dark:text-gray-400">
+                Sin notas.
+              </p>
+            )}
+          </section>
         </div>
       )}
 

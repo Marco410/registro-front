@@ -26,20 +26,25 @@ export const TEAM_ROW_GRID = "xl:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1fr)]";
 export const SEAT_SIZE_CLASS =
   "h-7 w-7 xl:h-[var(--seat-size,1.75rem)] xl:w-[var(--seat-size,1.75rem)]";
 
-/** Texto pequeño por sexo; blue-700 / pink-700 para pasar 4.5:1 sobre fondos grises. */
+/**
+ * Texto pequeño por sexo; blue-700 / pink-700 para pasar 4.5:1 sobre fondos grises.
+ * `chip`: borde y fondo suaves para que un botón se vea tocable (en móvil).
+ */
 export const SEX_STYLES: Record<
   "H" | "M",
-  { label: string; text: string; hover: string }
+  { label: string; text: string; hover: string; chip: string }
 > = {
   H: {
     label: "Hombres",
     text: "text-blue-700 dark:text-app-primary-muted",
     hover: "hover:bg-app-primary/10 dark:hover:bg-app-primary-muted/15",
+    chip: "border-blue-200 bg-blue-50 dark:border-app-primary-muted/30 dark:bg-app-primary-muted/10",
   },
   M: {
     label: "Mujeres",
     text: "text-pink-700 dark:text-pink-400",
     hover: "hover:bg-pink-500/10 dark:hover:bg-pink-500/15",
+    chip: "border-pink-200 bg-pink-50 dark:border-pink-400/30 dark:bg-pink-500/10",
   },
 };
 

@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@apollo/client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import {
+  AlertCircleIcon,
+  Cancel01Icon,
+  SeatSelectorIcon,
+} from "@hugeicons/core-free-icons";
 import {
   ASIENTOS_LIBRES_QUERY,
   type AsientosLibresResponse,
@@ -11,20 +15,37 @@ import {
 } from "registro/graphql/checkin/queries";
 import { GlassModal } from "registro/components/shared/GlassModal";
 
-export interface ElegirAsientoModalProps {
-  open: boolean;
-  /** Persona a la que se le hace el check-in. */
-  encontrado: { nombre: string; sexo: "H" | "M" } | null;
-  /** Hace el check-in en el asiento elegido; devuelve true si se hizo. */
-  onConfirm: (seatId: string) => Promise<boolean>;
-  confirming: boolean;
-  onClose: () => void;
+/** Asiento elegido, para armar textos ("Equipo 3 · asiento B"). */
+export interface AsientoElegido {
+  teamName: string;
+  letter: string;
 }
 
+export interface ElegirAsientoModalProps {
+  open: boolean;
+  /** Persona a la que se le busca lugar. */
+  encontrado: { nombre: string; sexo: "H" | "M" } | null;
+  /** Ocupa el asiento elegido; devuelve true si se hizo (si no, recarga la lista). */
+  onConfirm: (seatId: string, asiento: AsientoElegido) => Promise<boolean>;
+  confirming: boolean;
+  onClose: () => void;
+  /** Textos; por defecto, los del check-in sin lugar. */
+  title?: string;
+  description?: ReactNode;
+  confirmLabel?: (asiento: AsientoElegido | null) => string;
+  confirmingLabel?: string;
+  /** "aviso" (ámbar, no hubo lugar) o "neutral" (cambio de asiento a propósito). */
+  tone?: "aviso" | "neutral";
+}
+
+const checkinLabel = (a: AsientoElegido | null) =>
+  a ? `Hacer check-in en ${a.teamName} · asiento ${a.letter}` : "Hacer check-in";
+
 /**
- * Modal para cuando el check-in no encontró lugar automático (error `SIN_LUGAR`): lista los
- * equipos con asientos libres del sexo de la persona, el usuario elige uno y hace el check-in
- * en ese asiento. Si el asiento se ocupó mientras tanto, recarga la lista y quita la selección.
+ * Modal para elegir un asiento libre: lista los equipos con asientos libres del sexo de la
+ * persona, el usuario elige uno y confirma. Se usa cuando el check-in no encontró lugar
+ * automático (error `SIN_LUGAR`) y para cambiar de asiento desde Aforo. Si el asiento se
+ * ocupó mientras tanto, recarga la lista y quita la selección.
  */
 export function ElegirAsientoModal({
   open,
@@ -32,6 +53,11 @@ export function ElegirAsientoModal({
   onConfirm,
   confirming,
   onClose,
+  title = "Ya no hay equipos con lugar",
+  description,
+  confirmLabel = checkinLabel,
+  confirmingLabel = "Haciendo check-in…",
+  tone = "aviso",
 }: ElegirAsientoModalProps) {
   const sexo = encontrado?.sexo ?? "H";
   const isHombre = sexo === "H";
@@ -72,9 +98,13 @@ export function ElegirAsientoModal({
     return null;
   }, [teams, selectedSeatId]);
 
+  const elegido: AsientoElegido | null = selected
+    ? { teamName: selected.team.teamName, letter: selected.seat.letter }
+    : null;
+
   const handleConfirm = async () => {
-    if (!selected) return;
-    const ok = await onConfirm(selected.seat.id);
+    if (!selected || !elegido) return;
+    const ok = await onConfirm(selected.seat.id, elegido);
     if (!ok) {
       setSelectedSeatId(null);
       void refetch();
@@ -103,22 +133,35 @@ export function ElegirAsientoModal({
       disableBackdropClose={confirming}
     >
       <div className="flex items-start gap-3 px-5 pb-3 pt-4">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
-          <HugeiconsIcon icon={AlertCircleIcon} size={22} />
+        <span
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+            tone === "aviso"
+              ? "bg-amber-500/15 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
+              : "bg-app-primary/10 text-app-primary dark:bg-app-primary-muted/15 dark:text-app-primary-muted"
+          }`}
+        >
+          <HugeiconsIcon
+            icon={tone === "aviso" ? AlertCircleIcon : SeatSelectorIcon}
+            size={22}
+          />
         </span>
         <div className="min-w-0 flex-1">
           <h2
             id="elegir-asiento-title"
             className="text-lg font-semibold text-app-text-primary dark:text-white"
           >
-            Ya no hay equipos con lugar
+            {title}
           </h2>
           <p className="mt-0.5 text-sm text-app-text-secondary dark:text-gray-400">
-            No quedó lugar automático para{" "}
-            <span className="font-medium text-app-text-primary dark:text-gray-200">
-              {encontrado?.nombre}
-            </span>
-            . Elige un asiento libre de {sexoPlural} y haz el check-in.
+            {description ?? (
+              <>
+                No quedó lugar automático para{" "}
+                <span className="font-medium text-app-text-primary dark:text-gray-200">
+                  {encontrado?.nombre}
+                </span>
+                . Elige un asiento libre de {sexoPlural} y haz el check-in.
+              </>
+            )}
           </p>
         </div>
         <button
@@ -211,11 +254,7 @@ export function ElegirAsientoModal({
             disabled={!selected || confirming}
             className={`rounded-lg px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${confirmClass}`}
           >
-            {confirming
-              ? "Haciendo check-in…"
-              : selected
-                ? `Hacer check-in en ${selected.team.teamName} · asiento ${selected.seat.letter}`
-                : "Hacer check-in"}
+            {confirming ? confirmingLabel : confirmLabel(elegido)}
           </button>
         </div>
       </div>

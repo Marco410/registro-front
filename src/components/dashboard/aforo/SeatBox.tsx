@@ -22,7 +22,8 @@ import { AsignarAsientoModal } from "registro/components/dashboard/aforo/Asignar
 import { ConfirmEliminarAsientoModal } from "registro/components/dashboard/aforo/ConfirmEliminarAsientoModal";
 import { DetalleEncontradoModal } from "./DetalleEncontradoModal";
 import { darDeBajaSeat, useSeatUpdate } from "./seat-update-context";
-import { useDeleteSeats } from "./hooks";
+import { useDeleteSeats, useReassignSeat } from "./hooks";
+import { ElegirAsientoModal } from "registro/components/dashboard/checkin";
 import {
   SEAT_SIZE_CLASS,
   isSeatRemovable,
@@ -167,6 +168,7 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [showDetalle, setShowDetalle] = useState(false);
+  const [showCambiarAsiento, setShowCambiarAsiento] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -178,6 +180,7 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
     refetchQueries: [{ query: SEATS_QUERY }],
   });
   const { deleteSeats, loading: deletingSeat } = useDeleteSeats();
+  const { performReassign, loading: reasignando } = useReassignSeat();
 
   const occupied = seat.occupied;
   const abandoned = seat.abandoned;
@@ -233,6 +236,31 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
   const handleEliminarAsiento = async () => {
     const ok = await deleteSeats([seat.id]);
     if (ok) setShowConfirmEliminar(false);
+  };
+
+  /** Mueve al encontrado de este asiento al que eligió; false si falló (el modal recarga). */
+  const handleCambiarAsiento = async (
+    newSeatId: string,
+    destino: { teamName: string; letter: string },
+  ): Promise<boolean> => {
+    if (!seat.encontrado?.id) return false;
+    try {
+      await performReassign({
+        encontradoId: seat.encontrado.id,
+        currentSeatId: seat.id,
+        newSeatId,
+      });
+      toast.success(
+        `${ocupadoPor(seat)} ahora está en ${destino.teamName} · asiento ${destino.letter}`,
+      );
+      setShowCambiarAsiento(false);
+      return true;
+    } catch (err) {
+      toast.error(
+        err instanceof Error && err.message ? err.message : "No se pudo cambiar el asiento",
+      );
+      return false;
+    }
   };
 
   const hasBautizo = Boolean(seat.encontrado?.bautizo);
@@ -353,6 +381,19 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
                     className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     Ver detalle
+                  </button>
+                ) : null}
+                {occupied && seat.encontrado?.id && !abandoned ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setShowCambiarAsiento(true);
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs font-medium text-app-text-primary hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                  >
+                    Cambiar de asiento
                   </button>
                 ) : null}
                 <button
@@ -514,6 +555,31 @@ function SeatBoxComponent({ seat, sex, rangoEdad = null }: SeatBoxProps) {
           sex={sex}
           onSuccess={() => setShowAsignar(false)}
           onCancel={() => setShowAsignar(false)}
+        />
+      )}
+
+      {showCambiarAsiento && seat.encontrado && (
+        <ElegirAsientoModal
+          open={showCambiarAsiento}
+          encontrado={{ nombre: ocupadoPor(seat), sexo: sex }}
+          title="Cambiar de asiento"
+          tone="neutral"
+          description={
+            <>
+              Elige el nuevo asiento de{" "}
+              <span className="font-medium text-app-text-primary dark:text-gray-200">
+                {ocupadoPor(seat)}
+              </span>
+              . Ahora está en {seat.team?.teamName ?? "su equipo"} · asiento {seat.letter}.
+            </>
+          }
+          confirmLabel={(a) =>
+            a ? `Mover a ${a.teamName} · asiento ${a.letter}` : "Mover"
+          }
+          confirmingLabel="Moviendo…"
+          confirming={reasignando}
+          onConfirm={handleCambiarAsiento}
+          onClose={() => setShowCambiarAsiento(false)}
         />
       )}
 
