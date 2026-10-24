@@ -15,6 +15,7 @@ import type { TeamResponsableField } from "registro/graphql/aforo/mutations";
 import { GlassModal } from "registro/components/shared/GlassModal";
 import {
   useExportBautizosExcel,
+  useExportListaEquipoPdf,
   useExportSeatsExcel,
   usePrintCertificate,
   useUpdateTeamResponsables,
@@ -252,6 +253,7 @@ export function TeamSeatsModal({
   >(null);
 
   const { exportSeatsToExcel } = useExportSeatsExcel();
+  const { exportListaEquipoPdf, loading: generandoPdf } = useExportListaEquipoPdf();
   const { exportBautizosToExcel } = useExportBautizosExcel();
   const { PrintCertificate } = usePrintCertificate();
 
@@ -424,6 +426,27 @@ export function TeamSeatsModal({
           >
             <HugeiconsIcon icon={Download01Icon} size={14} className="shrink-0" />
             Lista del equipo
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void exportListaEquipoPdf({
+                seats: sexSeats,
+                teamLabel,
+                sex,
+                teamNumber: teamInfo?.teamNumber ?? undefined,
+                responsables: RESPONSABLES.map((r, i) => ({
+                  label: r.label,
+                  nombre: saved[i] ?? "",
+                })),
+              })
+            }
+            disabled={sexSeats.length === 0 || generandoPdf}
+            title="Hoja carta horizontal con la lista dos veces, para doblar a la mitad"
+            className={secondaryButtonClass}
+          >
+            <HugeiconsIcon icon={PrinterIcon} size={14} className="shrink-0" />
+            {generandoPdf ? "Generando…" : "Lista para imprimir (PDF)"}
           </button>
           <button
             type="button"

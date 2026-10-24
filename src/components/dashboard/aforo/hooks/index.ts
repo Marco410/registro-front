@@ -8,6 +8,7 @@ export { useDeleteSeats } from "./use-delete-seats";
 export { useUpdateTeamResponsables } from "./use-update-team-responsables";
 export { useManageTeams } from "./use-manage-teams";
 export { useExportSeatsExcel } from "./use-export-seats-excel";
+export { useExportListaEquipoPdf } from "./use-export-lista-equipo-pdf";
 export { useExportBautizosExcel } from "./use-export-bautizos-excel";
 export { useExportEncontradosExcel } from "./use-export-encontrados-excel";
 export { useExportListaBautizos } from "./use-export-lista-bautizos";
